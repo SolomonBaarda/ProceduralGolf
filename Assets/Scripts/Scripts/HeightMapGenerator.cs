@@ -5,7 +5,7 @@ using UnityEngine;
 public static class HeightMapGenerator {
 
 	public static HeightMap GenerateHeightMap(int width, int height, HeightMapSettings settings, Vector2 sampleCentre) {
-		float[,] values = Noise.GenerateNoiseMap (width, height, settings.noiseSettings, sampleCentre);
+		float[,] values = seb_Noise.GenerateNoiseMap (width, height, settings.noiseSettings, sampleCentre);
 
 		AnimationCurve heightCurve_threadsafe = new AnimationCurve (settings.heightCurve.keys);
 

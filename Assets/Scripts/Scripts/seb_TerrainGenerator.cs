@@ -2,9 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class TerrainGenerator : MonoBehaviour
+public class seb_TerrainGenerator : MonoBehaviour
 {
-
     const float viewerMoveThresholdForChunkUpdate = 25f;
     const float sqrViewerMoveThresholdForChunkUpdate = viewerMoveThresholdForChunkUpdate * viewerMoveThresholdForChunkUpdate;
 
@@ -12,7 +11,7 @@ public class TerrainGenerator : MonoBehaviour
     public int colliderLODIndex;
     public LODInfo[] detailLevels;
 
-    public MeshSettings meshSettings;
+    public seb_MeshSettings meshSettings;
     public HeightMapSettings heightMapSettings;
     public TextureData textureSettings;
 
@@ -25,8 +24,8 @@ public class TerrainGenerator : MonoBehaviour
     float meshWorldSize;
     int chunksVisibleInViewDst;
 
-    Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
-    List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
+    Dictionary<Vector2, seb_TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, seb_TerrainChunk>();
+    List<seb_TerrainChunk> visibleTerrainChunks = new List<seb_TerrainChunk>();
 
     void Start()
     {
@@ -46,7 +45,7 @@ public class TerrainGenerator : MonoBehaviour
 
         if (viewerPosition != viewerPositionOld)
         {
-            foreach (TerrainChunk chunk in visibleTerrainChunks)
+            foreach (seb_TerrainChunk chunk in visibleTerrainChunks)
             {
                 chunk.UpdateCollisionMesh();
             }
@@ -84,7 +83,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
                     else
                     {
-                        TerrainChunk newChunk = new TerrainChunk(viewedChunkCoord, heightMapSettings, meshSettings, detailLevels, colliderLODIndex, transform, viewer, mapMaterial);
+                        seb_TerrainChunk newChunk = new seb_TerrainChunk(viewedChunkCoord, heightMapSettings, meshSettings, detailLevels, colliderLODIndex, transform, viewer, mapMaterial);
                         terrainChunkDictionary.Add(viewedChunkCoord, newChunk);
                         newChunk.onVisibilityChanged += OnTerrainChunkVisibilityChanged;
                         newChunk.Load();
@@ -95,7 +94,7 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    void OnTerrainChunkVisibilityChanged(TerrainChunk chunk, bool isVisible)
+    void OnTerrainChunkVisibilityChanged(seb_TerrainChunk chunk, bool isVisible)
     {
         if (isVisible)
         {
@@ -112,7 +111,7 @@ public class TerrainGenerator : MonoBehaviour
 [System.Serializable]
 public struct LODInfo
 {
-    [Range(0, MeshSettings.numSupportedLODs - 1)]
+    [Range(0, seb_MeshSettings.numSupportedLODs - 1)]
     public int lod;
     public float visibleDstThreshold;
 

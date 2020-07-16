@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public static class Noise {
+public static class seb_Noise {
 
 	public enum NormalizeMode {Local, Global};
 
@@ -79,7 +79,7 @@ public static class Noise {
 
 [System.Serializable]
 public class NoiseSettings {
-	public Noise.NormalizeMode normalizeMode;
+	public seb_Noise.NormalizeMode normalizeMode;
 
 	public float scale = 50;
 

@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
-public class TerrainChunk
+public class seb_TerrainChunk
 {
 
     const float colliderGenerationDistanceThreshold = 5;
-    public event System.Action<TerrainChunk, bool> onVisibilityChanged;
+    public event System.Action<seb_TerrainChunk, bool> onVisibilityChanged;
     public Vector2 coord;
 
     GameObject meshObject;
@@ -26,10 +26,10 @@ public class TerrainChunk
     float maxViewDst;
 
     HeightMapSettings heightMapSettings;
-    MeshSettings meshSettings;
+    seb_MeshSettings meshSettings;
     Transform viewer;
 
-    public TerrainChunk(Vector2 coord, HeightMapSettings heightMapSettings, MeshSettings meshSettings, LODInfo[] detailLevels, int colliderLODIndex, Transform parent, Transform viewer, Material material)
+    public seb_TerrainChunk(Vector2 coord, HeightMapSettings heightMapSettings, seb_MeshSettings meshSettings, LODInfo[] detailLevels, int colliderLODIndex, Transform parent, Transform viewer, Material material)
     {
         this.coord = coord;
         this.detailLevels = detailLevels;
@@ -205,10 +205,10 @@ class LODMesh
         updateCallback();
     }
 
-    public void RequestMesh(HeightMap heightMap, MeshSettings meshSettings)
+    public void RequestMesh(HeightMap heightMap, seb_MeshSettings meshSettings)
     {
         hasRequestedMesh = true;
-        ThreadedDataRequester.RequestData(() => MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, lod), OnMeshDataReceived);
+        ThreadedDataRequester.RequestData(() => seb_MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, lod), OnMeshDataReceived);
     }
 
 }

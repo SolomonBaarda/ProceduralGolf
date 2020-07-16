@@ -2,24 +2,19 @@
 using System.Collections;
 using UnityEngine;
 
-public class MyTerrainGenerator : MonoBehaviour
+public class TerrainGenerator : MonoBehaviour
 {
-    public Grid grid;
-    public HexMap HexMap;
-
+    public TerrainChunkManager TerrainChunkManager;
 
     public bool IsGenerating { get; private set; } = false;
 
-    [Header("Noise generation settings")]
-    public MyNoise.PerlinSettings HeightMapSettings;
+    [Header("Generation settings")]
+    public Noise.PerlinSettings HeightMapSettings;
+    public MeshGenerator.MeshSettings ChunkMeshSettings;
 
     [Space]
     public int Seed = 0;
     public bool DoRandomSeed = false;
-
-    [Space]
-    public Transform cameraTransform;
-
 
 
     private void Update()
@@ -36,12 +31,9 @@ public class MyTerrainGenerator : MonoBehaviour
         {
             if (DoRandomSeed)
             {
-                Seed = MyNoise.RandomSeed;
+                Seed = Noise.RandomSeed;
             }
 
-            cameraTransform.position = new Vector3(0, 0, -32);
-
-            //HexMap.Water.transform.position = CentreOfIsland;
 
             IsGenerating = true;
             StartCoroutine(WaitForGenerate(Seed));
@@ -53,7 +45,7 @@ public class MyTerrainGenerator : MonoBehaviour
     {
         if (!IsGenerating)
         {
-            HexMap.ClearAll();
+            TerrainChunkManager.Clear();
         }
     }
 
@@ -63,7 +55,7 @@ public class MyTerrainGenerator : MonoBehaviour
     {
         DateTime before = DateTime.Now;
         // Reset the whole HexMap
-        HexMap.ClearAll();
+        TerrainChunkManager.Clear();
 
 
 
@@ -76,11 +68,6 @@ public class MyTerrainGenerator : MonoBehaviour
         }
 
 
-
-        HexMap.RecalculateAll();
-
-
-
         Debug.Log("Generated in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
         IsGenerating = false;
 
@@ -91,9 +78,13 @@ public class MyTerrainGenerator : MonoBehaviour
 
     public void GenerateChunk(int x, int y, int seed)
     {
-        Vector3Int initialTilePos = HexMap.FirstHexagonCellInChunk(new Vector2Int(x, y));
+        Vector2Int chunk = new Vector2Int(x, y);
+        Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-        SetTilesForChunk(GetPerlinForChunk(new Vector2Int(x, y), HeightMapSettings, seed), initialTilePos);
+        Vector2[,] pointsInChunkToSample = MeshGenerator.CalculatePointsToSampleFrom(chunkBounds, ChunkMeshSettings);
+        float[,] heightMap = Noise.Perlin(HeightMapSettings, seed, pointsInChunkToSample);
+
+        TerrainChunkManager.AddNewChunk(chunk, heightMap);
     }
 
 
@@ -117,11 +108,12 @@ public class MyTerrainGenerator : MonoBehaviour
         }
 
         // Set all the tiles
-        HexMap.AddHexagons(positions, heights);
+        //HexMap.AddHexagons(positions, heights);
     }
 
-    private float[,] GetPerlinForChunk(Vector2Int chunk, MyNoise.PerlinSettings settings, int seed)
+    private void GetPerlinForChunk(Vector2Int chunk, Noise.PerlinSettings settings, int seed)
     {
+        /*
         settings.ValidateValues();
 
         // Get the perlin map for the default chunk size starting on this tile
@@ -136,11 +128,12 @@ public class MyTerrainGenerator : MonoBehaviour
         {
             for (int x = 0; x < HexMap.ChunkSizeInHexagons; x++)
             {
-                heightMap[x, y] = Mathf.Clamp01(MyNoise.Perlin(HeightMapSettings, seed, firstTileWorldPos + new Vector2(x * oneHexBounds.x, y * oneHexBounds.y)));
+                heightMap[x, y] = Mathf.Clamp01(Noise.Perlin(HeightMapSettings, seed, firstTileWorldPos + new Vector2(x * oneHexBounds.x, y * oneHexBounds.y)));
             }
         }
 
         return heightMap;
+        */
     }
 
 

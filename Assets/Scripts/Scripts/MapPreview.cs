@@ -11,7 +11,7 @@ public class MapPreview : MonoBehaviour {
 	public enum DrawMode {NoiseMap, Mesh, FalloffMap};
 	public DrawMode drawMode;
 
-	public MeshSettings meshSettings;
+	public seb_MeshSettings meshSettings;
 	public HeightMapSettings heightMapSettings;
 	public TextureData textureData;
 
@@ -19,7 +19,7 @@ public class MapPreview : MonoBehaviour {
 
 
 
-	[Range(0,MeshSettings.numSupportedLODs-1)]
+	[Range(0,seb_MeshSettings.numSupportedLODs-1)]
 	public int editorPreviewLOD;
 	public bool autoUpdate;
 
@@ -34,7 +34,7 @@ public class MapPreview : MonoBehaviour {
 		if (drawMode == DrawMode.NoiseMap) {
 			DrawTexture (TextureGenerator.TextureFromHeightMap (heightMap));
 		} else if (drawMode == DrawMode.Mesh) {
-			DrawMesh (MeshGenerator.GenerateTerrainMesh (heightMap.values,meshSettings, editorPreviewLOD));
+			DrawMesh (seb_MeshGenerator.GenerateTerrainMesh (heightMap.values,meshSettings, editorPreviewLOD));
 		} else if (drawMode == DrawMode.FalloffMap) {
 			DrawTexture(TextureGenerator.TextureFromHeightMap(new HeightMap(FalloffGenerator.GenerateFalloffMap(meshSettings.numVertsPerLine),0,1)));
 		}

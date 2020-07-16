@@ -2,7 +2,7 @@
 using System.Collections;
 
 [CreateAssetMenu()]
-public class MeshSettings : UpdatableData {
+public class seb_MeshSettings : UpdatableData {
 
 	public const int numSupportedLODs = 5;
 	public const int numSupportedChunkSizes = 9;

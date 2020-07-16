@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public static class MeshGenerator
+public static class seb_MeshGenerator
 {
 
 
-    public static MeshData GenerateTerrainMesh(float[,] heightMap, MeshSettings meshSettings, int levelOfDetail)
+    public static MeshData GenerateTerrainMesh(float[,] heightMap, seb_MeshSettings meshSettings, int levelOfDetail)
     {
 
         int skipIncrement = (levelOfDetail == 0) ? 1 : levelOfDetail * 2;
