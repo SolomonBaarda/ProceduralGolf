@@ -4,12 +4,12 @@ using UnityEngine;
 using UnityEditor;
 
 
-[CustomEditor(typeof(TerrainGenerator))]
+[CustomEditor(typeof(MyTerrainGenerator))]
 public class TerrainGeneratorEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        TerrainGenerator t = (TerrainGenerator)target;
+        MyTerrainGenerator t = (MyTerrainGenerator)target;
         DrawDefaultInspector();
 
         if (GUILayout.Button("Clear"))

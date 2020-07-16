@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class TerrainGenerator : MonoBehaviour
+public class MyTerrainGenerator : MonoBehaviour
 {
     public Grid grid;
     public HexMap HexMap;
@@ -11,7 +11,7 @@ public class TerrainGenerator : MonoBehaviour
     public bool IsGenerating { get; private set; } = false;
 
     [Header("Noise generation settings")]
-    public Noise.PerlinSettings HeightMapSettings;
+    public MyNoise.PerlinSettings HeightMapSettings;
 
     [Space]
     public int Seed = 0;
@@ -36,7 +36,7 @@ public class TerrainGenerator : MonoBehaviour
         {
             if (DoRandomSeed)
             {
-                Seed = Noise.RandomSeed;
+                Seed = MyNoise.RandomSeed;
             }
 
             cameraTransform.position = new Vector3(0, 0, -32);
@@ -93,7 +93,7 @@ public class TerrainGenerator : MonoBehaviour
     {
         Vector3Int initialTilePos = HexMap.FirstHexagonCellInChunk(new Vector2Int(x, y));
 
-        SetTilesForChunk(GetPerlinForChunk(new Vector2Int(x,y), HeightMapSettings, seed), initialTilePos);
+        SetTilesForChunk(GetPerlinForChunk(new Vector2Int(x, y), HeightMapSettings, seed), initialTilePos);
     }
 
 
@@ -120,7 +120,7 @@ public class TerrainGenerator : MonoBehaviour
         HexMap.AddHexagons(positions, heights);
     }
 
-    private float[,] GetPerlinForChunk(Vector2Int chunk, Noise.PerlinSettings settings, int seed)
+    private float[,] GetPerlinForChunk(Vector2Int chunk, MyNoise.PerlinSettings settings, int seed)
     {
         settings.ValidateValues();
 
@@ -132,11 +132,11 @@ public class TerrainGenerator : MonoBehaviour
         // Get the height map
         float[,] heightMap = new float[HexMap.ChunkSizeInHexagons, HexMap.ChunkSizeInHexagons];
 
-        for(int y = 0; y < HexMap.ChunkSizeInHexagons; y++)
+        for (int y = 0; y < HexMap.ChunkSizeInHexagons; y++)
         {
-            for(int x = 0; x < HexMap.ChunkSizeInHexagons; x++)
+            for (int x = 0; x < HexMap.ChunkSizeInHexagons; x++)
             {
-                heightMap[x, y] = Mathf.Clamp01(Noise.Perlin(HeightMapSettings, seed, firstTileWorldPos + new Vector2(x * oneHexBounds.x, y * oneHexBounds.y)));
+                heightMap[x, y] = Mathf.Clamp01(MyNoise.Perlin(HeightMapSettings, seed, firstTileWorldPos + new Vector2(x * oneHexBounds.x, y * oneHexBounds.y)));
             }
         }
 

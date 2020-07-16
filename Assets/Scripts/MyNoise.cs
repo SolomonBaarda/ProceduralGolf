@@ -2,14 +2,14 @@
 using System.IO.Pipes;
 using UnityEngine;
 
-public class Noise
+public class MyNoise
 {
     public static int RandomSeed => Environment.TickCount.ToString().GetHashCode();
 
     public const float MoveAmount = 0.33f;
     private readonly System.Random r;
 
-    public Noise(System.Random r)
+    public MyNoise(System.Random r)
     {
         this.r = r;
     }
