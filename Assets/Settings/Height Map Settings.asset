@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Height Map Settings
   m_EditorClassIdentifier: Assembly-CSharp::Noise/PerlinSettings
-  scale: 50
-  octaves: 4
+  scale: 30
+  octaves: 6
   persistance: 0.5
   lacunarity: 2
   offset: {x: 0, y: 0}

@@ -28,11 +28,15 @@ public class TerrainChunkManager : MonoBehaviour
 
 
 
-    public void AddNewChunk(Vector2Int position, TerrainGenerator.HeightMap heightMap, Material terrainMaterial)
+    public void AddNewChunk(Vector2Int position, TerrainGenerator.HeightMap heightMap, Material terrainMaterial, MeshGenerator.MeshSettings meshSettings)
     {
         if (!TerrainChunks.ContainsKey(position))
         {
             TerrainChunk chunk = new TerrainChunk(position, CalculateTerrainChunkCentreWorld(position), terrainMaterial, ChunkParent, heightMap);
+
+            chunk.UpdateMeshData(MeshGenerator.GenerateMeshData(heightMap, meshSettings, chunk.Bounds));
+            chunk.SetVisible(true);
+
             TerrainChunks.Add(position, chunk);
         }
         else

@@ -12,6 +12,7 @@ public class TerrainGenerator : MonoBehaviour
     [Header("Generation settings")]
     public Noise.PerlinSettings HeightMapSettings;
     public MeshGenerator.MeshSettings ChunkMeshSettings;
+    public float WorldHeightMultiplier = 4;
 
     [Space]
     public int Seed = 0;
@@ -90,9 +91,9 @@ public class TerrainGenerator : MonoBehaviour
         // Get the height map
         Vector2[,] pointsInChunkToSample = MeshGenerator.CalculatePointsToSampleFrom(chunkBounds, ChunkMeshSettings);
         float[,] heights = Noise.Perlin(HeightMapSettings, seed, pointsInChunkToSample);
-        HeightMap heightMap = new HeightMap(heights);
+        HeightMap heightMap = new HeightMap(heights, WorldHeightMultiplier);
 
-        TerrainChunkManager.AddNewChunk(chunk, heightMap, TerrainMaterial);
+        TerrainChunkManager.AddNewChunk(chunk, heightMap, TerrainMaterial, ChunkMeshSettings);
     }
 
 
@@ -123,13 +124,15 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public class HeightMap
+    public struct HeightMap
     {
         public float[,] Heights;
+        public float Scale;
 
-        public HeightMap(float[,] heights)
+        public HeightMap(float[,] heights, float scale)
         {
             Heights = heights;
+            Scale = scale;
         }
     }
 

@@ -15,6 +15,8 @@ public class TerrainChunk
 
     TerrainGenerator.HeightMap heightMap;
 
+    MeshGenerator.MeshData meshData;
+
     public TerrainChunk(Vector2Int position, Vector3 centre, Material material, Transform parent, TerrainGenerator.HeightMap heightMap)
     {
         this.position = position;
@@ -36,7 +38,12 @@ public class TerrainChunk
         this.heightMap = heightMap;
     }
 
+    public void UpdateMeshData(MeshGenerator.MeshData data)
+    {
+        meshData = data;
 
+        meshFilter.mesh = meshData.CreateMesh();
+    }
 
 
     public void SetVisible(bool visible)
