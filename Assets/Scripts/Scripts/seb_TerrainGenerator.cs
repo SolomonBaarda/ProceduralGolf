@@ -12,7 +12,7 @@ public class seb_TerrainGenerator : MonoBehaviour
     public LODInfo[] detailLevels;
 
     public seb_MeshSettings meshSettings;
-    public HeightMapSettings heightMapSettings;
+    public seb_HeightMapSettings heightMapSettings;
     public TextureData textureSettings;
 
     public Transform viewer;

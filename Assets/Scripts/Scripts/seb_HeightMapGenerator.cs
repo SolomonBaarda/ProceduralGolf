@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class HeightMapGenerator {
+public static class seb_HeightMapGenerator {
 
-	public static HeightMap GenerateHeightMap(int width, int height, HeightMapSettings settings, Vector2 sampleCentre) {
+	public static seb_HeightMap GenerateHeightMap(int width, int height, seb_HeightMapSettings settings, Vector2 sampleCentre) {
 		float[,] values = seb_Noise.GenerateNoiseMap (width, height, settings.noiseSettings, sampleCentre);
 
 		AnimationCurve heightCurve_threadsafe = new AnimationCurve (settings.heightCurve.keys);
@@ -25,17 +25,17 @@ public static class HeightMapGenerator {
 			}
 		}
 
-		return new HeightMap (values, minValue, maxValue);
+		return new seb_HeightMap (values, minValue, maxValue);
 	}
 
 }
 
-public struct HeightMap {
+public struct seb_HeightMap {
 	public readonly float[,] values;
 	public readonly float minValue;
 	public readonly float maxValue;
 
-	public HeightMap (float[,] values, float minValue, float maxValue)
+	public seb_HeightMap (float[,] values, float minValue, float maxValue)
 	{
 		this.values = values;
 		this.minValue = minValue;

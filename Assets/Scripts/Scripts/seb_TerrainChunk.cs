@@ -19,17 +19,17 @@ public class seb_TerrainChunk
     LODMesh[] lodMeshes;
     int colliderLODIndex;
 
-    HeightMap heightMap;
+    seb_HeightMap heightMap;
     bool heightMapReceived;
     int previousLODIndex = -1;
     bool hasSetCollider;
     float maxViewDst;
 
-    HeightMapSettings heightMapSettings;
+    seb_HeightMapSettings heightMapSettings;
     seb_MeshSettings meshSettings;
     Transform viewer;
 
-    public seb_TerrainChunk(Vector2 coord, HeightMapSettings heightMapSettings, seb_MeshSettings meshSettings, LODInfo[] detailLevels, int colliderLODIndex, Transform parent, Transform viewer, Material material)
+    public seb_TerrainChunk(Vector2 coord, seb_HeightMapSettings heightMapSettings, seb_MeshSettings meshSettings, LODInfo[] detailLevels, int colliderLODIndex, Transform parent, Transform viewer, Material material)
     {
         this.coord = coord;
         this.detailLevels = detailLevels;
@@ -70,14 +70,14 @@ public class seb_TerrainChunk
 
     public void Load()
     {
-        ThreadedDataRequester.RequestData(() => HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, meshSettings.numVertsPerLine, heightMapSettings, sampleCentre), OnHeightMapReceived);
+        ThreadedDataRequester.RequestData(() => seb_HeightMapGenerator.GenerateHeightMap(meshSettings.numVertsPerLine, meshSettings.numVertsPerLine, heightMapSettings, sampleCentre), OnHeightMapReceived);
     }
 
 
 
     void OnHeightMapReceived(object heightMapObject)
     {
-        this.heightMap = (HeightMap)heightMapObject;
+        this.heightMap = (seb_HeightMap)heightMapObject;
         heightMapReceived = true;
 
         UpdateTerrainChunk();
@@ -205,7 +205,7 @@ class LODMesh
         updateCallback();
     }
 
-    public void RequestMesh(HeightMap heightMap, seb_MeshSettings meshSettings)
+    public void RequestMesh(seb_HeightMap heightMap, seb_MeshSettings meshSettings)
     {
         hasRequestedMesh = true;
         ThreadedDataRequester.RequestData(() => seb_MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, lod), OnMeshDataReceived);

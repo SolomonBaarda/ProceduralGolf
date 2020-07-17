@@ -2,7 +2,7 @@
 using System.Collections;
 
 [CreateAssetMenu()]
-public class HeightMapSettings : UpdatableData {
+public class seb_HeightMapSettings : UpdatableData {
 
 	public NoiseSettings noiseSettings;
 

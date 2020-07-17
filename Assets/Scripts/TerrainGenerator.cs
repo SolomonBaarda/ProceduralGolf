@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using UnityEditor;
 using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
@@ -16,6 +17,9 @@ public class TerrainGenerator : MonoBehaviour
     public int Seed = 0;
     public bool DoRandomSeed = false;
 
+
+    [Header("Materials")]
+    public Material TerrainMaterial;
 
     private void Update()
     {
@@ -34,8 +38,6 @@ public class TerrainGenerator : MonoBehaviour
                 Seed = Noise.RandomSeed;
             }
 
-
-            IsGenerating = true;
             StartCoroutine(WaitForGenerate(Seed));
         }
     }
@@ -54,6 +56,9 @@ public class TerrainGenerator : MonoBehaviour
     private IEnumerator WaitForGenerate(int seed)
     {
         DateTime before = DateTime.Now;
+
+        IsGenerating = true;
+
         // Reset the whole HexMap
         TerrainChunkManager.Clear();
 
@@ -78,13 +83,16 @@ public class TerrainGenerator : MonoBehaviour
 
     public void GenerateChunk(int x, int y, int seed)
     {
+        // Get the chunk number and bounds
         Vector2Int chunk = new Vector2Int(x, y);
         Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
+        // Get the height map
         Vector2[,] pointsInChunkToSample = MeshGenerator.CalculatePointsToSampleFrom(chunkBounds, ChunkMeshSettings);
-        float[,] heightMap = Noise.Perlin(HeightMapSettings, seed, pointsInChunkToSample);
+        float[,] heights = Noise.Perlin(HeightMapSettings, seed, pointsInChunkToSample);
+        HeightMap heightMap = new HeightMap(heights);
 
-        TerrainChunkManager.AddNewChunk(chunk, heightMap);
+        TerrainChunkManager.AddNewChunk(chunk, heightMap, TerrainMaterial);
     }
 
 
@@ -111,29 +119,18 @@ public class TerrainGenerator : MonoBehaviour
         //HexMap.AddHexagons(positions, heights);
     }
 
-    private void GetPerlinForChunk(Vector2Int chunk, Noise.PerlinSettings settings, int seed)
+
+
+
+
+    public class HeightMap
     {
-        /*
-        settings.ValidateValues();
+        public float[,] Heights;
 
-        // Get the perlin map for the default chunk size starting on this tile
-        Vector2 firstTileWorldPos = HexMap.CellToWorldPosition(HexMap.FirstHexagonCellInChunk(chunk));
-        Vector2 lastTileWorldPos = HexMap.CellToWorldPosition(HexMap.LastHexagonCellInChunk(chunk));
-        Vector2 oneHexBounds = (lastTileWorldPos - firstTileWorldPos) / HexMap.ChunkSizeInHexagons;
-
-        // Get the height map
-        float[,] heightMap = new float[HexMap.ChunkSizeInHexagons, HexMap.ChunkSizeInHexagons];
-
-        for (int y = 0; y < HexMap.ChunkSizeInHexagons; y++)
+        public HeightMap(float[,] heights)
         {
-            for (int x = 0; x < HexMap.ChunkSizeInHexagons; x++)
-            {
-                heightMap[x, y] = Mathf.Clamp01(Noise.Perlin(HeightMapSettings, seed, firstTileWorldPos + new Vector2(x * oneHexBounds.x, y * oneHexBounds.y)));
-            }
+            Heights = heights;
         }
-
-        return heightMap;
-        */
     }
 
 

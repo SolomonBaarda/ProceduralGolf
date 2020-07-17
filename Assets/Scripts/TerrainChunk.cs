@@ -2,7 +2,7 @@
 
 public class TerrainChunk
 {
-    public const float ChunkSizeWorldUnits = 1;
+    public const float ChunkSizeWorldUnits = 4;
     public const int NoiseSamplePointsDensity = 16;
 
     Vector2Int position;
@@ -13,9 +13,9 @@ public class TerrainChunk
     MeshFilter meshFilter;
     MeshCollider meshCollider;
 
-    HeightMap heightMap;
+    TerrainGenerator.HeightMap heightMap;
 
-    public TerrainChunk(Vector2Int position, Vector3 centre, Material material, Transform parent, HeightMap heightMap)
+    public TerrainChunk(Vector2Int position, Vector3 centre, Material material, Transform parent, TerrainGenerator.HeightMap heightMap)
     {
         this.position = position;
         Bounds = new Bounds(centre, new Vector2(ChunkSizeWorldUnits, ChunkSizeWorldUnits));
@@ -28,7 +28,7 @@ public class TerrainChunk
         meshCollider = meshObject.AddComponent<MeshCollider>();
         meshRenderer.material = material;
 
-        meshObject.transform.position = new Vector3(position.x, 0, position.y);
+        meshObject.transform.position = centre;
         meshObject.transform.parent = parent;
         SetVisible(false);
 
@@ -37,13 +37,6 @@ public class TerrainChunk
     }
 
 
-
-
-
-    public void Clear()
-    {
-        Object.Destroy(meshObject);
-    }
 
 
     public void SetVisible(bool visible)
