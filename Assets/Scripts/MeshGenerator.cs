@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 
 public static class MeshGenerator
 {
 
-    public static MeshData GenerateMeshData(TerrainGenerator.HeightMap heightMap, MeshSettings settings, Bounds chunkBounds)
+    public static MeshData GenerateMeshData(HeightMapGenerator.HeightMap heightMap)
     {
         int width = heightMap.Heights.GetLength(0), height = heightMap.Heights.GetLength(1);
         MeshData data = new MeshData(width, height);
@@ -45,50 +44,7 @@ public static class MeshGenerator
     }
 
 
-    public static Vector3 CalculateDistanceBetweenVertices(Bounds b, int divisions)
-    {
-        return (b.max - b.min) / divisions;
-    }
 
-
-
-
-
-    public static Vector3[,] CalculateVertexPointsForChunk(in Bounds chunk, MeshSettings settings)
-    {
-        settings.ValidateValues();
-
-        Vector3[,] roughVertices = new Vector3[settings.TotalVertices, settings.TotalVertices];
-        Vector3 distanceBetweenVertices = CalculateDistanceBetweenVertices(chunk, settings.Faces);
-
-        // Iterate over each point
-        for (int y = 0; y < settings.TotalVertices; y++)
-        {
-            for (int x = 0; x < settings.TotalVertices; x++)
-            {
-                // Calculate the 3d point
-                roughVertices[x, y] = chunk.min + new Vector3(x * distanceBetweenVertices.x, distanceBetweenVertices.y, y * distanceBetweenVertices.z);
-            }
-        }
-
-        return roughVertices;
-    }
-
-    public static Vector3[,] CalculateLocalVertexPointsForChunk(in Vector3[,] worldPoints, in Vector3 centre)
-    {
-        int width = worldPoints.GetLength(0), height = worldPoints.GetLength(1);
-        Vector3[,] localPositions = new Vector3[width, height];
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                localPositions[x, y] = worldPoints[x, y] - centre;
-            }
-        }
-
-        return localPositions;
-    }
 
 
     public class MeshData
@@ -135,8 +91,10 @@ public static class MeshGenerator
         }
 
 
-        public Mesh CreateMesh()
+        public Mesh GenerateMesh(MeshSettings settings)
         {
+
+
             Mesh m = new Mesh()
             {
                 vertices = Vertices,
@@ -153,16 +111,17 @@ public static class MeshGenerator
     [CreateAssetMenu()]
     public class MeshSettings : VariablePreset
     {
-        public int Faces = 8;
-        [HideInInspector]
-        public int TotalVertices;
+        [Header("1 (full), 2 (half), 4 (quarter), etc...")]
+        [Min(1)]
+        public int LevelOfDetail = 1;
 
         public override void ValidateValues()
         {
-            Faces = Mathf.Max(Faces, 1);
-            // There is always one extra vertex than face
-            TotalVertices = Faces + 1;
+            LevelOfDetail = Mathf.ClosestPowerOfTwo(Mathf.Max(LevelOfDetail, 1));
         }
 
+
     }
+
+
 }

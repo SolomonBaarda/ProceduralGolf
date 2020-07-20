@@ -10,7 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 0}
-  m_Name: Chunk Mesh
+  m_Name: Chunk Collider
   m_EditorClassIdentifier: Assembly-CSharp::MeshGenerator/MeshSettings
-  Faces: 100
-  TotalVertices: 101
+  LevelOfDetail: 2

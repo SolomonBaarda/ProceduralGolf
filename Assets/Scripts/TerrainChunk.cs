@@ -2,19 +2,18 @@
 
 public class TerrainChunk
 {
-    Vector2Int position;
+    private Vector2Int position;
     public Bounds Bounds { get; }
 
-    GameObject meshObject;
-    MeshRenderer meshRenderer;
-    MeshFilter meshFilter;
-    MeshCollider meshCollider;
+    private GameObject meshObject;
+    private MeshRenderer meshRenderer;
+    private MeshFilter meshFilter;
+    private MeshCollider meshCollider;
 
-    TerrainGenerator.HeightMap heightMap;
 
-    MeshGenerator.MeshData meshData;
+    private MeshGenerator.MeshData meshData;
 
-    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, Transform parent, TerrainGenerator.HeightMap heightMap)
+    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, MeshGenerator.MeshData data)
     {
         this.position = position;
         Bounds = bounds;
@@ -26,20 +25,26 @@ public class TerrainChunk
         meshFilter = meshObject.AddComponent<MeshFilter>();
         meshCollider = meshObject.AddComponent<MeshCollider>();
         meshRenderer.material = material;
+        meshCollider.material = physics;
 
         meshObject.transform.position = Bounds.center;
         meshObject.transform.parent = parent;
         SetVisible(false);
 
         // Set the height map
-        this.heightMap = heightMap;
+        meshData = data;
     }
 
-    public void UpdateMeshData(MeshGenerator.MeshData data)
-    {
-        meshData = data;
 
-        meshFilter.mesh = meshData.CreateMesh();
+    public void UpdateVisualMesh(MeshGenerator.MeshSettings visual)
+    {
+        meshFilter.mesh = meshData.GenerateMesh(visual);
+    }
+
+
+    public void UpdateColliderMesh(MeshGenerator.MeshSettings collider)
+    {
+        meshCollider.sharedMesh = meshData.GenerateMesh(collider);
     }
 
 

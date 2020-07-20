@@ -9,7 +9,8 @@ public class TerrainGenerator : MonoBehaviour
     public bool IsGenerating { get; private set; } = false;
 
     [Header("Settings")]
-    public MeshGenerator.MeshSettings ChunkMeshSettings;
+    public MeshGenerator.MeshSettings MeshSettingsVisual;
+    public MeshGenerator.MeshSettings MeshSettingsCollider;
     [Space]
     public Noise.NoiseSettings NoiseSettings_Green;
     public TerrainSettings TerrainSettings_Green;
@@ -20,7 +21,10 @@ public class TerrainGenerator : MonoBehaviour
 
 
     [Header("Materials")]
-    public Material TerrainMaterial;
+    public Material MaterialGrass;
+
+    [Header("Physics")]
+    public PhysicMaterial PhysicsGrass;
 
     private void Update()
     {
@@ -90,14 +94,14 @@ public class TerrainGenerator : MonoBehaviour
         Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
         // Get the vertex points
-        Vector3[,] vertices = MeshGenerator.CalculateVertexPointsForChunk(chunkBounds, ChunkMeshSettings);
-        Vector3[,] localVertexPositions = MeshGenerator.CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
+        Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
+        Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
         Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
 
         // Get the height map
-        HeightMap heightMap = new HeightMap(Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints), localVertexPositions, TerrainSettings_Green);
+        HeightMapGenerator.HeightMap heightMap = new HeightMapGenerator.HeightMap(Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints), localVertexPositions, TerrainSettings_Green);
 
-        TerrainChunkManager.AddNewChunk(chunk, heightMap, TerrainMaterial, ChunkMeshSettings);
+        TerrainChunkManager.AddNewChunk(chunk, heightMap, MaterialGrass, PhysicsGrass, MeshSettingsVisual, MeshSettingsCollider);
     }
 
 
@@ -121,49 +125,52 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public struct HeightMap
+    public static Vector3 CalculateDistanceBetweenVertices(Bounds b, int divisions)
     {
-        public float[,] Heights;
-        public Vector3[,] LocalVertexPositions;
-        public TerrainSettings TerrainSettings;
+        return (b.max - b.min) / divisions;
+    }
 
-        public HeightMap(float[,] heights, Vector3[,] vertices, TerrainSettings terrainSettings)
+
+
+
+
+    public static Vector3[,] CalculateVertexPointsForChunk(in Bounds chunk, TerrainSettings settings)
+    {
+        settings.ValidateValues();
+
+        Vector3[,] roughVertices = new Vector3[settings.SamplePointFrequency, settings.SamplePointFrequency];
+        Vector3 distanceBetweenVertices = CalculateDistanceBetweenVertices(chunk, settings.SamplePointFrequency - 1);
+
+        // Iterate over each point
+        for (int y = 0; y < settings.SamplePointFrequency; y++)
         {
-            Heights = heights;
-            LocalVertexPositions = vertices;
-            TerrainSettings = terrainSettings;
-
-            //DebugMinMax();
-        }
-
-
-        public void DebugMinMax()
-        {
-            if (Heights != null)
+            for (int x = 0; x < settings.SamplePointFrequency; x++)
             {
-                int width = Heights.GetLength(0), height = Heights.GetLength(1);
-                float min = Heights[0, 0], max = Heights[0, 0];
-
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        float curr = Heights[x, y];
-                        if (curr < min)
-                        {
-                            min = curr;
-                        }
-                        if (curr > max)
-                        {
-                            max = curr;
-                        }
-                    }
-                }
-
-                Debug.Log("min: " + min + " max: " + max);
+                // Calculate the 3d point
+                roughVertices[x, y] = chunk.min + new Vector3(x * distanceBetweenVertices.x, distanceBetweenVertices.y, y * distanceBetweenVertices.z);
             }
         }
+
+        return roughVertices;
     }
+
+    public static Vector3[,] CalculateLocalVertexPointsForChunk(in Vector3[,] worldPoints, in Vector3 centre)
+    {
+        int width = worldPoints.GetLength(0), height = worldPoints.GetLength(1);
+        Vector3[,] localPositions = new Vector3[width, height];
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                localPositions[x, y] = worldPoints[x, y] - centre;
+            }
+        }
+
+        return localPositions;
+    }
+
+
 
 
 
@@ -174,8 +181,16 @@ public class TerrainGenerator : MonoBehaviour
         public AnimationCurve HeightDistribution;
         public float HeightMultiplier = 2;
 
+        [Min(2)]
+        /// <summary>
+        /// Number of Noise sample points taken in each chunk.
+        /// </summary>
+        public int SamplePointFrequency = 64;
+
+
         public override void ValidateValues()
         {
+            SamplePointFrequency = Mathf.ClosestPowerOfTwo(Mathf.Max(SamplePointFrequency, 1));
         }
     }
 
