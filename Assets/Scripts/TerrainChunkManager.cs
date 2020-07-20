@@ -1,10 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 public class TerrainChunkManager : MonoBehaviour
 {
+    [Min(1)]
+    public float ChunkSizeWorldUnits = 4;
+
+    [Header("References")]
     public Grid ChunkGrid;
 
     public Transform ChunkParent;
@@ -14,16 +18,18 @@ public class TerrainChunkManager : MonoBehaviour
 
     private void Awake()
     {
-        ChunkGrid.cellSize = new Vector3(TerrainChunk.ChunkSizeWorldUnits, TerrainChunk.ChunkSizeWorldUnits);
-        ChunkGrid.cellSwizzle = GridLayout.CellSwizzle.XZY;
-        // Move the Grid so that chunk 0,0 is centered on the origin
-        ChunkGrid.transform.position -= new Vector3(ChunkGrid.cellSize.x / 2, 0, ChunkGrid.cellSize.y / 2);
+        UpdateGrid();
     }
 
 
 
-
-
+    private void UpdateGrid()
+    {
+        ChunkGrid.cellSize = new Vector3(ChunkSizeWorldUnits, ChunkSizeWorldUnits);
+        ChunkGrid.cellSwizzle = GridLayout.CellSwizzle.XZY;
+        // Move the Grid so that chunk 0,0 is centered on the origin
+        ChunkGrid.transform.position = -new Vector3(ChunkGrid.cellSize.x / 2, 0, ChunkGrid.cellSize.y / 2);
+    }
 
 
 
@@ -32,7 +38,7 @@ public class TerrainChunkManager : MonoBehaviour
     {
         if (!TerrainChunks.ContainsKey(position))
         {
-            TerrainChunk chunk = new TerrainChunk(position, CalculateTerrainChunkCentreWorld(position), terrainMaterial, ChunkParent, heightMap);
+            TerrainChunk chunk = new TerrainChunk(position, CalculateTerrainChunkBounds(position), terrainMaterial, ChunkParent, heightMap);
 
             chunk.UpdateMeshData(MeshGenerator.GenerateMeshData(heightMap, meshSettings, chunk.Bounds));
             chunk.SetVisible(true);
@@ -54,7 +60,7 @@ public class TerrainChunkManager : MonoBehaviour
 
     public Bounds CalculateTerrainChunkBounds(Vector2Int chunk)
     {
-        return new Bounds(CalculateTerrainChunkCentreWorld(chunk), ChunkGrid.cellSize);
+        return ChunkGrid.GetBoundsLocal(new Vector3Int(chunk.x, chunk.y, 0));
     }
 
 
@@ -67,9 +73,21 @@ public class TerrainChunkManager : MonoBehaviour
             Destroy(ChunkParent.GetChild(i).gameObject);
         }
         TerrainChunks.Clear();
+        UpdateGrid();
     }
 
 
+    /*
 
+    private void OnDrawGizmosSelected()
+    {
+        foreach (TerrainChunk c in TerrainChunks.Values)
+        {
+            Gizmos.color = Color.green;
+
+            Gizmos.DrawCube(c.Bounds.center, c.Bounds.size);
+        }
+    }
+    */
 
 }

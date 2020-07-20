@@ -2,9 +2,6 @@
 
 public class TerrainChunk
 {
-    public const float ChunkSizeWorldUnits = 4;
-    public const int NoiseSamplePointsDensity = 16;
-
     Vector2Int position;
     public Bounds Bounds { get; }
 
@@ -17,10 +14,10 @@ public class TerrainChunk
 
     MeshGenerator.MeshData meshData;
 
-    public TerrainChunk(Vector2Int position, Vector3 centre, Material material, Transform parent, TerrainGenerator.HeightMap heightMap)
+    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, Transform parent, TerrainGenerator.HeightMap heightMap)
     {
         this.position = position;
-        Bounds = new Bounds(centre, new Vector2(ChunkSizeWorldUnits, ChunkSizeWorldUnits));
+        Bounds = bounds;
 
 
         // Set the GameObject
@@ -30,7 +27,7 @@ public class TerrainChunk
         meshCollider = meshObject.AddComponent<MeshCollider>();
         meshRenderer.material = material;
 
-        meshObject.transform.position = centre;
+        meshObject.transform.position = Bounds.center;
         meshObject.transform.parent = parent;
         SetVisible(false);
 

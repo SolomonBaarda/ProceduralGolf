@@ -165,11 +165,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TerrainChunkManager: {fileID: 1822943190}
-  HeightMapSettings: {fileID: 11400000, guid: 1a7b452cdd0e3e74b9e3837260a16755, type: 2}
   ChunkMeshSettings: {fileID: 11400000, guid: 59df971c08d7bbe4baaba3e52ccf1096, type: 2}
+  NoiseSettings_Green: {fileID: 11400000, guid: 2ba880a49ae3e1145bce737e7280621d,
+    type: 2}
+  TerrainSettings_Green: {fileID: 11400000, guid: 6bf070b6674c16c41b69819db7f9d952,
+    type: 2}
   Seed: 0
   DoRandomSeed: 0
-  TerrainMaterial: {fileID: 2100000, guid: 6f03f1e9887a58e4db8182ec49c49320, type: 2}
+  TerrainMaterial: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
 --- !u!1 &704441793
 GameObject:
   m_ObjectHideFlags: 0
@@ -390,6 +393,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58be7f369eea4cc489eaf822f020f3a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ChunkSizeWorldUnits: 25
   ChunkGrid: {fileID: 1943703578}
   ChunkParent: {fileID: 981297233}
 --- !u!1 &1872898002

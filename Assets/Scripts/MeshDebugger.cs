@@ -17,10 +17,12 @@ public class MeshDebugger : MonoBehaviour
     {
         if (Mesh != null)
         {
+            Vector3 offset = transform.position;
+
             // Draw all normals for the mesh
             for (int i = 0; i < Mesh.vertexCount; i++)
             {
-                Vector3 vertex = Mesh.vertices[i];
+                Vector3 vertex = Mesh.vertices[i] + offset;
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(vertex, vertex + Mesh.normals[i]);
             }

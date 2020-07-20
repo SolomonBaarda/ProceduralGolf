@@ -77,7 +77,7 @@ public static class Noise
     /// <param name="seed"></param>
     /// <param name="sampleStartPoint"></param>
     /// <returns></returns>
-    public static float PerlinPoint(PerlinSettings settings, int seed, Vector2 sampleStartPoint = default)
+    public static float PerlinPoint(NoiseSettings settings, int seed, Vector2 sampleStartPoint = default)
     {
         float perlin;
 
@@ -118,57 +118,10 @@ public static class Noise
     }
 
 
-    public static float[,] Perlin(PerlinSettings settings, int seed, int width, int height, Vector2 sampleStartPoint, Vector2 incrementDistance)
-    {
-        float[,] perlin = new float[width, height];
-        settings.ValidateValues();
-
-        System.Random r = new System.Random(seed);
-        Vector2[] octaveOffsets = new Vector2[settings.octaves];
-
-        // Fill the array with random position offsets
-        for (int i = 0; i < settings.octaves; i++)
-        {
-            float offsetX = r.Next(-100000, 100000) + settings.offset.x + sampleStartPoint.x;
-            float offsetY = r.Next(-100000, 100000) - settings.offset.y + sampleStartPoint.y;
-            octaveOffsets[i] = new Vector2(offsetX, offsetY);
-        }
-
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                float amplitude = 1;
-                float frequency = 1;
-                float noiseHeight = 0;
-
-                // Loop through each octave
-                for (int octave = 0; octave < settings.octaves; octave++)
-                {
-                    // Calculate the position to sample the noise from
-                    float sampleX = octaveOffsets[octave].x + (x * incrementDistance.x) / settings.scale * frequency;
-                    float sampleY = octaveOffsets[octave].y + (y * incrementDistance.y) / settings.scale * frequency;
-
-                    // Get perlin in the range -1 to 1
-                    float perlinValue = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1;
-                    noiseHeight += perlinValue * amplitude;
-
-                    amplitude *= settings.persistance;
-                    frequency *= settings.lacunarity;
-                }
-
-                // Assign the perlin value and normalize it roughly
-                perlin[x, y] = (noiseHeight / 2.5f) + 0.5f;
-            }
-        }
-
-        return perlin;
-    }
 
 
 
-    public static float[,] Perlin(PerlinSettings settings, int seed, Vector2[,] samplePoints)
+    public static float[,] Perlin(NoiseSettings settings, int seed, in Vector2[,] samplePoints)
     {
         int width = samplePoints.GetLength(0), height = samplePoints.GetLength(1);
         float[,] perlin = new float[width, height];
@@ -198,7 +151,7 @@ public static class Noise
                 for (int octave = 0; octave < settings.octaves; octave++)
                 {
                     // Calculate the position to sample the noise from
-                    float sampleX = octaveOffsets[octave].x + samplePoints[x,y].x / settings.scale * frequency;
+                    float sampleX = octaveOffsets[octave].x + samplePoints[x, y].x / settings.scale * frequency;
                     float sampleY = octaveOffsets[octave].y + samplePoints[x, y].y / settings.scale * frequency;
 
                     // Get perlin in the range -1 to 1
@@ -210,7 +163,7 @@ public static class Noise
                 }
 
                 // Assign the perlin value and normalize it roughly
-                perlin[x, y] = totalPerlinForIndex;
+                perlin[x, y] = (totalPerlinForIndex / 2.5f) + 0.5f;
             }
         }
 
@@ -223,8 +176,8 @@ public static class Noise
 
 
 
-    [System.Serializable] [CreateAssetMenu()]
-    public class PerlinSettings : ISettings
+    [CreateAssetMenu()]
+    public class NoiseSettings : VariablePreset
     {
         public float scale = 50;
 
