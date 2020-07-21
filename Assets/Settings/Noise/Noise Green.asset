@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Noise Green
   m_EditorClassIdentifier: Assembly-CSharp::Noise/NoiseSettings
-  scale: 200
+  scale: 250
   octaves: 5
-  persistance: 0.55
+  persistance: 0.6
   lacunarity: 2
   offset: {x: 0, y: 0}

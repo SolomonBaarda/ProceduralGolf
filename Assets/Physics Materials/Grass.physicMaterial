@@ -7,8 +7,8 @@ PhysicMaterial:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Grass
-  dynamicFriction: 0.75
-  staticFriction: 0.75
+  dynamicFriction: 0.3
+  staticFriction: 0.5
   bounciness: 0.25
   frictionCombine: 0
   bounceCombine: 0

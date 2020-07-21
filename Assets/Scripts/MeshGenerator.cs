@@ -1,12 +1,13 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public static class MeshGenerator
 {
 
-    public static MeshData GenerateMeshData(HeightMapGenerator.HeightMap heightMap)
+    public static MeshData GenerateMeshData(HeightMapGenerator.HeightMap heightMap, Vector3 meshCentreWorld)
     {
         int width = heightMap.Heights.GetLength(0), height = heightMap.Heights.GetLength(1);
-        MeshData data = new MeshData(width, height);
+        MeshData data = new MeshData(width, height, meshCentreWorld);
 
         // Loop through each vertex
         for (int y = 0; y < height; y++)
@@ -43,14 +44,18 @@ public static class MeshGenerator
     {
         private readonly int MaxVerticesWidth, MaxVerticesHeight;
         public Vector3[] Vertices;
+        public Vector2[] UVs;
+        private Vector3 Min => Vertices[0];
+        private Vector3 Max => Vertices[Vertices.Length - 1];
 
 
-        public MeshData(int verticesX, int verticesY)
+        public MeshData(int verticesX, int verticesY, Vector3 centreMeshWorld)
         {
             MaxVerticesWidth = verticesX; MaxVerticesHeight = verticesY;
 
             // Assign array size
             Vertices = new Vector3[MaxVerticesWidth * MaxVerticesHeight];
+            UVs = new Vector2[Vertices.Length];
         }
 
 
@@ -70,6 +75,11 @@ public static class MeshGenerator
             if (index != -1)
             {
                 Vertices[index] = vertex;
+
+                float distanceX = Mathf.Abs(Max.x - vertex.x), distanceY = Mathf.Abs(Max.z - vertex.z);
+                float maxDistanceX = Mathf.Abs(Max.x - Min.x), maxDistanceY = Mathf.Abs(Max.z - Min.z);
+
+                UVs[index] = new Vector2(distanceX / maxDistanceX, distanceY / maxDistanceY);
             }
         }
 
@@ -80,6 +90,7 @@ public static class MeshGenerator
 
             int newWidthVertices = (MaxVerticesWidth - 1) / i + 1, newHeightVertices = (MaxVerticesHeight - 1) / i + 1;
             Vector3[] vertices = new Vector3[newWidthVertices * newHeightVertices];
+            Vector2[] uvs = new Vector2[vertices.Length];
             int[] triangles = new int[newWidthVertices * newHeightVertices * 6];
             int triangleIndex = 0;
 
@@ -92,6 +103,8 @@ public static class MeshGenerator
                     int thisVertexIndex = newY * newWidthVertices + newX;
                     // Add the vertex
                     vertices[thisVertexIndex] = Vertices[GetVertexIndex(x, y)];
+                    // Add the UV
+                    uvs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
 
                     // Set the triangles
                     if (newX >= 0 && newX < newWidthVertices - 1 && newY >= 0 && newY < newHeightVertices - 1)
@@ -117,9 +130,11 @@ public static class MeshGenerator
             {
                 vertices = vertices,
                 triangles = triangles,
+                uv = uvs,
             };
+
             m.RecalculateNormals();
-            //m.Optimize();
+            m.Optimize();
 
             return m;
         }
@@ -131,7 +146,7 @@ public static class MeshGenerator
     [CreateAssetMenu()]
     public class MeshSettings : VariablePreset
     {
-        [Header("Value of 1 (most detail) to 6 (least detail)")]
+        [Header("Value of 0 (most detail) to 6 (least detail)")]
         public int LevelOfDetail = 1;
         public int SimplificationIncrement
         {

@@ -3,13 +3,12 @@
 public class MeshDebugger : MonoBehaviour
 {
     public MeshFilter MeshFilter;
-    public Mesh Mesh => MeshFilter.mesh;
-    public MeshRenderer MeshRenderer;
+    public Mesh Mesh;
 
     private void Awake()
     {
         MeshFilter = GetComponent<MeshFilter>();
-        MeshRenderer = GetComponent<MeshRenderer>();
+        Mesh = MeshFilter.mesh;
     }
 
 
@@ -28,5 +27,7 @@ public class MeshDebugger : MonoBehaviour
             }
         }
     }
+
+
 
 }

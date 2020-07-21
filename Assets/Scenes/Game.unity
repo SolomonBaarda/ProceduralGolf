@@ -291,6 +291,93 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!1001 &731791864
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 731791866, guid: 5c0f473f35e3d25458e0b2ab9139f821, type: 3}
+      propertyPath: Following
+      value: 
+      objectReference: {fileID: 784421677}
+    - target: {fileID: 731791866, guid: 5c0f473f35e3d25458e0b2ab9139f821, type: 3}
+      propertyPath: Offset.y
+      value: 0.33
+      objectReference: {fileID: 0}
+    - target: {fileID: 731791866, guid: 5c0f473f35e3d25458e0b2ab9139f821, type: 3}
+      propertyPath: Offset.z
+      value: -1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992059, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_Name
+      value: Follower
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1069462428397992060, guid: 5c0f473f35e3d25458e0b2ab9139f821,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5c0f473f35e3d25458e0b2ab9139f821, type: 3}
+--- !u!1 &784421677 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4213627502347566067, guid: 8b5ace1036e996949aaff71ced827337,
+    type: 3}
+  m_PrefabInstance: {fileID: 1324745659}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &981297232
 GameObject:
   m_ObjectHideFlags: 0
@@ -332,11 +419,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Golf Ball
-      objectReference: {fileID: 0}
-    - target: {fileID: 4213627502347566067, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4213627502347566079, guid: 8b5ace1036e996949aaff71ced827337,
         type: 3}
@@ -440,7 +522,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58be7f369eea4cc489eaf822f020f3a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ChunkSizeWorldUnits: 200
+  ChunkSizeWorldUnits: 500
   ChunkGrid: {fileID: 1943703578}
   ChunkParent: {fileID: 981297233}
 --- !u!1 &1872898002

@@ -101,7 +101,7 @@ public class TerrainGenerator : MonoBehaviour
         // Get the height map
         HeightMapGenerator.HeightMap heightMap = new HeightMapGenerator.HeightMap(Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints), localVertexPositions, TerrainSettings_Green);
 
-        TerrainChunkManager.AddNewChunk(chunk, heightMap, MaterialGrass, PhysicsGrass, MeshSettingsVisual, MeshSettingsCollider);
+        TerrainChunkManager.AddNewChunk(chunk, heightMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider);
     }
 
 
@@ -179,7 +179,7 @@ public class TerrainGenerator : MonoBehaviour
     {
         public bool UseCurve = false;
         public AnimationCurve HeightDistribution;
-        public float HeightMultiplier = 2;
+        public float HeightMultiplier = 16;
 
         /// <summary>
         /// Number of Noise sample points taken in each chunk.
@@ -190,7 +190,6 @@ public class TerrainGenerator : MonoBehaviour
 
         public override void ValidateValues()
         {
-            //SamplePointFrequency = Mathf.ClosestPowerOfTwo(Mathf.Max(SamplePointFrequency, 2));
         }
 
     }

@@ -13,7 +13,7 @@ public class TerrainChunk
 
     private MeshGenerator.MeshData meshData;
 
-    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, MeshGenerator.MeshData data)
+    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer, MeshGenerator.MeshData data)
     {
         this.position = position;
         Bounds = bounds;
@@ -26,6 +26,8 @@ public class TerrainChunk
         meshCollider = meshObject.AddComponent<MeshCollider>();
         meshRenderer.material = material;
         meshCollider.material = physics;
+
+        meshObject.layer = terrainLayer;
 
         meshObject.transform.position = Bounds.center;
         meshObject.transform.parent = parent;
