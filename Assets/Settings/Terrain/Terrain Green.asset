@@ -38,4 +38,4 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   HeightMultiplier: 24
-  SamplePointFrequency: 64
+  SamplePointFrequency: 9

@@ -69,9 +69,9 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-        for (int y = -4; y <= 4; y++)
+        for (int y = -1; y <= 1; y++)
         {
-            for (int x = -4; x <= 4; x++)
+            for (int x = -1; x <= 1; x++)
             {
                 GenerateChunk(x, y, seed);
             }
@@ -139,7 +139,7 @@ public class TerrainGenerator : MonoBehaviour
         settings.ValidateValues();
 
         Vector3[,] roughVertices = new Vector3[settings.SamplePointFrequency, settings.SamplePointFrequency];
-        Vector3 distanceBetweenVertices = CalculateDistanceBetweenVertices(chunk, settings.SamplePointFrequency - 1);
+        Vector3 distanceBetweenVertices = CalculateDistanceBetweenVertices(chunk, settings.TerrainDivisions);
 
         // Iterate over each point
         for (int y = 0; y < settings.SamplePointFrequency; y++)
@@ -181,17 +181,18 @@ public class TerrainGenerator : MonoBehaviour
         public AnimationCurve HeightDistribution;
         public float HeightMultiplier = 2;
 
-        [Min(2)]
         /// <summary>
         /// Number of Noise sample points taken in each chunk.
         /// </summary>
-        public int SamplePointFrequency = 64;
+        public readonly int SamplePointFrequency = 241;
+        public int TerrainDivisions => SamplePointFrequency - 1;
 
 
         public override void ValidateValues()
         {
-            SamplePointFrequency = Mathf.ClosestPowerOfTwo(Mathf.Max(SamplePointFrequency, 1));
+            //SamplePointFrequency = Mathf.ClosestPowerOfTwo(Mathf.Max(SamplePointFrequency, 2));
         }
+
     }
 
 

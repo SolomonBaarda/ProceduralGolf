@@ -440,7 +440,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58be7f369eea4cc489eaf822f020f3a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ChunkSizeWorldUnits: 50
+  ChunkSizeWorldUnits: 200
   ChunkGrid: {fileID: 1943703578}
   ChunkParent: {fileID: 981297233}
 --- !u!1 &1872898002

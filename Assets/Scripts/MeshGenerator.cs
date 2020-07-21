@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public static class MeshGenerator
 {
@@ -28,13 +27,6 @@ public static class MeshGenerator
                 // Calculate the point of the vertex
                 Vector3 point = heightMap.LocalVertexPositions[x, y] + new Vector3(0, -vertexHeight, 0);
                 data.SetVertex(x, y, point);
-
-                if (x >= 0 && x < width - 1 && y >= 0 && y < height - 1)
-                {
-                    // Set the two triangles
-                    data.SetTriangle(x, y, x, y + 1, x + 1, y + 1);
-                    data.SetTriangle(x, y, x + 1, y + 1, x + 1, y);
-                }
             }
         }
 
@@ -49,27 +41,25 @@ public static class MeshGenerator
 
     public class MeshData
     {
-        private readonly int width, height;
+        private readonly int MaxVerticesWidth, MaxVerticesHeight;
         public Vector3[] Vertices;
-        public List<int> Triangles = new List<int>();
 
 
-        public MeshData(int verticesX, int verticesY, int facesPervertex = 2)
+        public MeshData(int verticesX, int verticesY)
         {
-            width = verticesX; height = verticesY;
+            MaxVerticesWidth = verticesX; MaxVerticesHeight = verticesY;
 
             // Assign array size
-            Vertices = new Vector3[width * height];
-            Triangles = new List<int>();
+            Vertices = new Vector3[MaxVerticesWidth * MaxVerticesHeight];
         }
 
 
 
         private int GetVertexIndex(int x, int y)
         {
-            if (x >= 0 && x < width && y >= 0 && y < height)
+            if (x >= 0 && x < MaxVerticesWidth && y >= 0 && y < MaxVerticesHeight)
             {
-                return y * width + x;
+                return y * MaxVerticesWidth + x;
             }
             return -1;
         }
@@ -83,41 +73,78 @@ public static class MeshGenerator
             }
         }
 
-        public void SetTriangle(int aX, int aY, int bX, int bY, int cX, int cY)
-        {
-            Triangles.Add(GetVertexIndex(aX, aY));
-            Triangles.Add(GetVertexIndex(bX, bY));
-            Triangles.Add(GetVertexIndex(cX, cY));
-        }
-
 
         public Mesh GenerateMesh(MeshSettings settings)
         {
+            int i = settings.SimplificationIncrement;
 
+            int newWidthVertices = (MaxVerticesWidth - 1) / i + 1, newHeightVertices = (MaxVerticesHeight - 1) / i + 1;
+            Vector3[] vertices = new Vector3[newWidthVertices * newHeightVertices];
+            int[] triangles = new int[newWidthVertices * newHeightVertices * 6];
+            int triangleIndex = 0;
+
+            // Add all the correct vertices
+            for (int y = 0; y < MaxVerticesHeight; y += i)
+            {
+                for (int x = 0; x < MaxVerticesWidth; x += i)
+                {
+                    int newX = x / i, newY = y / i;
+                    int thisVertexIndex = newY * newWidthVertices + newX;
+                    // Add the vertex
+                    vertices[thisVertexIndex] = Vertices[GetVertexIndex(x, y)];
+
+                    // Set the triangles
+                    if (newX >= 0 && newX < newWidthVertices - 1 && newY >= 0 && newY < newHeightVertices - 1)
+                    {
+                        triangles[triangleIndex] = thisVertexIndex;
+                        // Below
+                        triangles[triangleIndex + 1] = thisVertexIndex + newWidthVertices;
+                        // Bottom right
+                        triangles[triangleIndex + 2] = thisVertexIndex + newWidthVertices + 1;
+                        triangleIndex += 3;
+
+                        triangles[triangleIndex] = thisVertexIndex;
+                        // Bottom right
+                        triangles[triangleIndex + 1] = thisVertexIndex + newWidthVertices + 1;
+                        // Top right
+                        triangles[triangleIndex + 2] = thisVertexIndex + 1;
+                        triangleIndex += 3;
+                    }
+                }
+            }
 
             Mesh m = new Mesh()
             {
-                vertices = Vertices,
-                triangles = Triangles.ToArray(),
+                vertices = vertices,
+                triangles = triangles,
             };
             m.RecalculateNormals();
             //m.Optimize();
 
             return m;
         }
+
+
     }
 
 
     [CreateAssetMenu()]
     public class MeshSettings : VariablePreset
     {
-        [Header("1 (full), 2 (half), 4 (quarter), etc...")]
-        [Min(1)]
+        [Header("Value of 1 (most detail) to 6 (least detail)")]
         public int LevelOfDetail = 1;
+        public int SimplificationIncrement
+        {
+            get
+            {
+                ValidateValues();
+                return Mathf.Max(LevelOfDetail * 2, 1);
+            }
+        }
 
         public override void ValidateValues()
         {
-            LevelOfDetail = Mathf.ClosestPowerOfTwo(Mathf.Max(LevelOfDetail, 1));
+            LevelOfDetail = Mathf.Clamp(LevelOfDetail, 0, 6);
         }
 
 

@@ -12,5 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Chunk Visual
   m_EditorClassIdentifier: Assembly-CSharp::MeshGenerator/MeshSettings
-  Faces: 50
-  TotalVertices: 26
+  LevelOfDetail: 1
