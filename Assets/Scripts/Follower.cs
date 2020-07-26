@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering.Universal.Internal;
 
 public class Follower : MonoBehaviour
 {
@@ -7,23 +8,31 @@ public class Follower : MonoBehaviour
     public GameObject Following;
     private ICanBeFollowed target;
 
-    public Vector3 Offset;
+    [Header("Offset")]
+    public float Backwards;
+    public float Upwards;
+    public float Sideways;
 
 
     private void Update()
     {
         if (Following != null)
         {
-            Vector3 newPos = Following.transform.position + Offset;
+            Vector3 newPos = Following.transform.position;
+
+            transform.position = newPos;
 
             if (target != null)
             {
-                transform.rotation = Quaternion.Euler(target.Forward);
-
-
+                if(target.Forward != Vector3.zero)
+                {
+                    transform.rotation = Quaternion.LookRotation(target.Forward, Up);
+                }
+                
+                // Offset is backwards + upwards + sideways
+                Vector3 relativeOffset = (target.Forward * Backwards) - (Up * Upwards);
+                transform.position = transform.position - relativeOffset;
             }
-
-            transform.position = newPos;
         }
     }
 
@@ -34,8 +43,12 @@ public class Follower : MonoBehaviour
     {
         if (Following != null)
         {
-            target = Utils.GetClass<ICanBeFollowed>(Following);
+            if (Utils.GameObjectExtendsClass(Following, out ICanBeFollowed f))
+            {
+                target = f;
+            }
         }
+
     }
 
 }

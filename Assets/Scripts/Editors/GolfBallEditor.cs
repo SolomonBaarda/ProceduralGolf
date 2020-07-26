@@ -17,8 +17,7 @@ public class GolfBallEditor : Editor
 
         if (GUILayout.Button("Reset"))
         {
-            g.rigid.velocity = Vector3.zero;
-            g.transform.position = new Vector3(0, 50, 0);
+            g.Reset();
         }
     }
 }

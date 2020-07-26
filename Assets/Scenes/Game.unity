@@ -310,6 +310,14 @@ PrefabInstance:
       propertyPath: Offset.z
       value: -1.25
       objectReference: {fileID: 0}
+    - target: {fileID: 731791866, guid: 5c0f473f35e3d25458e0b2ab9139f821, type: 3}
+      propertyPath: Backwards
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 731791866, guid: 5c0f473f35e3d25458e0b2ab9139f821, type: 3}
+      propertyPath: Upwards
+      value: 0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 1069462428397992059, guid: 5c0f473f35e3d25458e0b2ab9139f821,
         type: 3}
       propertyPath: m_Name

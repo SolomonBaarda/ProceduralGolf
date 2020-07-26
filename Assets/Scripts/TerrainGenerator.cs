@@ -26,6 +26,13 @@ public class TerrainGenerator : MonoBehaviour
     [Header("Physics")]
     public PhysicMaterial PhysicsGrass;
 
+
+    private void Awake()
+    {
+        Generate();
+    }
+
+
     private void Update()
     {
         if (Input.GetButtonDown("Submit") || (Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began))

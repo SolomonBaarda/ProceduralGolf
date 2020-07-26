@@ -1,41 +1,51 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class GolfBall : MonoBehaviour, ICanBeFollowed
 {
-    public enum PlayState
-    {
-        Shooting,
-        Flying,
-        Rolling,
-    }
+    // Constants 
+    public readonly static RigidPreset Air = new RigidPreset(0f, 0f);
+    public readonly static RigidPreset Grass = new RigidPreset(0.5f, 0.5f);
 
+    // States
     public PlayState State;
     public bool IsOnGround;
+    public bool IsFrozen;
 
-    public const float DragInAir = 0f, DragOnGround = 0.2f;
-    public const float AngularDragInAir = 0f, AngularDragOnGround = 0.5f;
+    // Statistics
+    public Stats GameStats;
 
 
-
-    public Vector3 Forward
+    private Vector3 Facing
     {
         get
         {
             if (rigid != null)
             {
-                return rigid.velocity.normalized;
+                switch (State)
+                {
+                    case PlayState.Shooting:
+                        return transform.rotation.eulerAngles;
+                    // Use the velocity
+                    case PlayState.Flying:
+                        return rigid.velocity;
+                    // Use the velocity
+                    case PlayState.Rolling:
+                        return rigid.velocity;
+                }
             }
-            else
-            {
-                return Vector3.zero;
-            }
+
+            return Vector3.zero;
         }
     }
 
+    public Vector3 Forward => Facing.normalized;
 
 
+    public Vector3 Position => transform.position;
 
 
+    // Settings
     public const int Max_Power = 100;
     public float VelocityMagnitudeCutoffThreshold = 0.25f;
     [Header("Control settings")]
@@ -54,9 +64,36 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     private void Awake()
     {
-
+        GameStats = new Stats();
     }
 
+
+
+    private void FixedUpdate()
+    {
+        // Update the state
+        PlayState stateLastFrame = State;
+        State = UpdateState(ref IsOnGround);
+
+        // Check if this is the first frame where the player can start shooting
+        if (stateLastFrame == PlayState.Rolling && State == PlayState.Shooting)
+        {
+            WaitForNextShot();
+        }
+
+
+        // Update the rigidbody properties
+        RigidPreset r = Air;
+        // On the ground
+        if (IsOnGround)
+        {
+            r = Grass;
+        }
+
+        // Set the values
+        rigid.angularDrag = r.AngularDrag;
+        rigid.drag = r.Drag;
+    }
 
 
     public void Shoot()
@@ -64,55 +101,62 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Apply the force in direction
         Vector3 force = transform.forward * Power;
         rigid.AddForce(force, ForceMode.Impulse);
+
+        GameStats.Shots++;
     }
 
 
 
-
-
-    private void FixedUpdate()
+    public void Reset()
     {
-        State = UpdateState(ref IsOnGround);
+        transform.rotation = Quaternion.Euler(Vector3.zero);
 
-        // On the ground
-        if (IsOnGround)
-        {
-            rigid.angularDrag = AngularDragOnGround;
-            rigid.drag = DragOnGround;
-        }
-        // In the air
-        else
-        {
-            rigid.angularDrag = AngularDragInAir;
-            rigid.drag = DragInAir;
-        }
-
+        rigid.velocity = Vector3.zero;
+        rigid.angularVelocity = Vector3.zero;
     }
 
 
 
-
-
-    private void OnValidate()
+    private void WaitForNextShot()
     {
-        // Clamp the power
-        Power = Mathf.Clamp(Power, 0, Max_Power);
+        Reset();
 
-        // Ensure rotation is between 0 and 360
-        while (Rotation < 0)
+        if (!IsFrozen)
         {
-            Rotation += 360;
+            StartCoroutine(FreezeUntilShoot());
         }
-        while (Rotation > 360)
+    }
+
+
+    private IEnumerator FreezeUntilShoot()
+    {
+        Freeze(true);
+
+        int shotsBefore = GameStats.Shots;
+
+        while (shotsBefore == GameStats.Shots)
         {
-            Rotation -= 360;
+            yield return null;
         }
 
-        // Clamp the angle
-        Angle = Mathf.Clamp(Angle, -80, 80);
 
-        // Update the angle
-        transform.rotation = Quaternion.Euler(Angle, Rotation, 0);
+        Debug.Log("finished freezing as shot was taken");
+        Freeze(false);
+    }
+
+
+    private void Freeze(bool freeze)
+    {
+        IsFrozen = freeze;
+
+        // Set the freeze mode
+        RigidbodyConstraints c = RigidbodyConstraints.None;
+        if (freeze)
+        {
+            c = RigidbodyConstraints.FreezeAll;
+        }
+
+        rigid.constraints = c;
     }
 
 
@@ -142,12 +186,71 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         return newState;
     }
 
+    private void OnValidate()
+    {
+        // Clamp the power
+        Power = Mathf.Clamp(Power, 0, Max_Power);
+
+        // Ensure rotation is between 0 and 360
+        while (Rotation < 0)
+        {
+            Rotation += 360;
+        }
+        while (Rotation > 360)
+        {
+            Rotation -= 360;
+        }
+
+        // Clamp the angle
+        Angle = Mathf.Clamp(Angle, -80, 80);
+
+        // Update the angle
+        transform.rotation = Quaternion.Euler(Angle, Rotation, 0);
+    }
+
 
 
 
     private void OnDrawGizmos()
     {
+        // Draw the facing
         Gizmos.color = Color.green;
-        Gizmos.DrawLine(transform.position, transform.position + 10 * transform.forward);
+        Gizmos.DrawLine(transform.position, transform.position + 5 * Forward);
     }
+
+
+
+
+
+
+
+
+
+    public struct Stats
+    {
+        public int Shots;
+    }
+
+
+
+
+    public struct RigidPreset
+    {
+        public float Drag;
+        public float AngularDrag;
+
+        public RigidPreset(float drag, float angularDrag)
+        {
+            Drag = drag;
+            AngularDrag = angularDrag;
+        }
+    }
+
+    public enum PlayState
+    {
+        Shooting,
+        Flying,
+        Rolling,
+    }
+
 }
