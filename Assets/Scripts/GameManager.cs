@@ -45,9 +45,10 @@ public class GameManager : MonoBehaviour
         }
 
 
-
-
-        HUD.ShootingWindow.SetActive(GolfBall.State == GolfBall.PlayState.Shooting);
+        // Taking a shot
+        bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
+        HUD.ShootingWindow.SetActive(isShooting);
+        GolfBall.SetShotPreviewVisible(isShooting);
 
 
         // Update the camera angles
@@ -60,20 +61,37 @@ public class GameManager : MonoBehaviour
 
                 // Update the camera angle
                 Follower.View cameraView = Follower.View.Behind;
+                bool useRotation = false, useAngle = false, usePower = false;
+                float shotPreviewLengthMultiplier = 1;
+
+                // Setting rotation now
                 if (HUD.Rotation.isOn)
                 {
                     cameraView = Follower.View.ShootingAbove;
+                    useRotation = true;
+                    shotPreviewLengthMultiplier = 3;
                 }
+                // Angle
                 else if (HUD.Angle.isOn)
                 {
                     cameraView = Follower.View.ShootingLeft;
+                    useAngle = true;
+                    useRotation = true;
+                    shotPreviewLengthMultiplier = 1.5f;
                 }
+                // Power
                 else if (HUD.Power.isOn)
                 {
                     cameraView = Follower.View.ShootingBehind;
+                    useRotation = true;
+                    useAngle = true;
+                    usePower = true;
+                    shotPreviewLengthMultiplier = 16;
                 }
 
                 BallFollower.CurrentView = cameraView;
+                GolfBall.SetShotPreview(useRotation, useAngle, usePower, shotPreviewLengthMultiplier);
+
                 break;
 
             // Flying mode

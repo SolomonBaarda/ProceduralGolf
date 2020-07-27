@@ -434,12 +434,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Golf Ball
       objectReference: {fileID: 0}
-    - target: {fileID: 4213627502347566067, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: m_Icon
-      value: 
-      objectReference: {fileID: 4162164826716764455, guid: 0000000000000000d000000000000000,
-        type: 0}
     - target: {fileID: 4213627502347566079, guid: 8b5ace1036e996949aaff71ced827337,
         type: 3}
       propertyPath: m_LocalPosition.x

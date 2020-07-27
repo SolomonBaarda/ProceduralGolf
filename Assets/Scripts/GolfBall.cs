@@ -42,15 +42,15 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public Vector3 Forward => Facing.normalized;
 
-
     public Vector3 Position => transform.position;
 
 
     // Settings
-    public const int Max_Power = 100;
-    public float VelocityMagnitudeCutoffThreshold = 0.25f;
+    public const float FullPower = 50;
+    public const float VelocityMagnitudeCutoffThreshold = 0.25f;
+
     [Header("Control settings")]
-    [Range(0, Max_Power)] public float Power = Max_Power / 2;
+    [Range(0,1)] public float Power;
     public float Rotation;
     public float Angle;
 
@@ -66,11 +66,22 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public SphereCollider sphereCollider;
 
 
+    [Header("Line Preview")]
+    public Material LinePreviewMaterial;
+    private LineRenderer shotPreview;
 
 
     private void Awake()
     {
         GameStats = new Stats();
+
+
+        shotPreview = gameObject.AddComponent<LineRenderer>();
+        shotPreview.widthCurve = AnimationCurve.Linear(0f, 0.05f, 1f, 0.05f);
+        shotPreview.enabled = false;
+        shotPreview.material = LinePreviewMaterial;
+        shotPreview.startColor = Color.green;
+        shotPreview.endColor = Color.green;
     }
 
 
@@ -87,7 +98,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
             WaitForNextShot();
             OnRollingFinished.Invoke();
         }
-
 
         // Update the rigidbody properties
         RigidPreset r = Air;
@@ -109,7 +119,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Freeze(false);
 
         // Apply the force in direction
-        Vector3 force = transform.forward * Power;
+        Vector3 force = transform.forward * Power * FullPower;
         rigid.AddForce(force, ForceMode.Impulse);
 
         GameStats.Shots++;
@@ -200,6 +210,34 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
+    public void SetShotPreview(bool useRotation, bool useAngle, bool usePower, float lengthMultiplier)
+    {
+        // Calculate which axis to use
+        Vector3 offset = transform.forward;
+        offset.x = useRotation ? offset.x : 0;
+        offset.z = useRotation ? offset.z : 0;
+
+        offset.y = useAngle ? offset.y : 0;
+
+        // Now ensure it is the correct length
+        offset.Normalize();
+        offset *= lengthMultiplier;
+
+        // Apply power multiplier if we need to
+        offset *= usePower ? Power : 1;
+
+        // Assign the point
+        shotPreview.SetPositions(new Vector3[] { transform.position, transform.position + offset });
+    }
+
+    public void SetShotPreviewVisible(bool visible)
+    {
+        shotPreview.enabled = visible;
+    }
+
+
+
+
     public void SetValues(float rotation, float angle, float power)
     {
         Rotation = rotation;
@@ -210,7 +248,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     private void SetDefaultShotValues()
     {
-        Power = Max_Power / 2;
+        Power = 0.5f;
         Rotation = 0;
         Angle = 0;
 
@@ -220,7 +258,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private void ValidateValues()
     {
         // Clamp the power
-        Power = Mathf.Clamp(Power, 0, Max_Power);
+        Power = Mathf.Clamp01(Power);
 
         // Ensure rotation is between 0 and 360
         while (Rotation < 0)
@@ -233,10 +271,10 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
 
         // Clamp the angle
-        Angle = Mathf.Clamp(Angle, -80, 0);
+        Angle = Mathf.Clamp(Angle, 0, 80);
 
-        // Update the angle
-        transform.rotation = Quaternion.Euler(Angle, Rotation, 0);
+
+        transform.rotation = Quaternion.Euler(-Angle, Rotation, 0);
     }
 
 
@@ -252,7 +290,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     {
         // Draw the facing
         Gizmos.color = Color.green;
-        Gizmos.DrawLine(transform.position, transform.position + (Power / Max_Power * 10 * Forward));
+        Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
     }
 
 

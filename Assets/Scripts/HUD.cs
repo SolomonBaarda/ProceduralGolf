@@ -27,15 +27,15 @@ public class HUD : MonoBehaviour
         string text = "";
         if (Rotation.isOn)
         {
-            text = rotation.ToString("0.0") + " degrees";
+            text = rotation.ToString("0") + "°";
         }
         else if (Angle.isOn)
         {
-            text = angle.ToString("0.0") + " degrees";
+            text = angle.ToString("0") + "°";
         }
         else if (Power.isOn)
         {
-            text = power.ToString("0.0") + " power";
+            text = (power * 100).ToString("0") + "%";
         }
         // Nothing is on
         else
@@ -50,7 +50,8 @@ public class HUD : MonoBehaviour
 
     public void ResetShootingWindow()
     {
-        Rotation.isOn = false;
+        // Enable another then rotation last to force it to update
+        Power.isOn = true;
         Rotation.isOn = true;
     }
 
