@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Old Hexmap.unity
-    guid: f47c9393869738842b0fa5b489b265f2
+    path: Assets/Scenes/Game.unity
+    guid: 70ed1f8e40c01c9439e4ee2c66ae38ec
+  - enabled: 1
+    path: Assets/Scenes/HUD.unity
+    guid: 3960c558a15a52d47bf0cd9b4d5a7cef
   m_configObjects: {}

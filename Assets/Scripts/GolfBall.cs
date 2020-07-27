@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class GolfBall : MonoBehaviour, ICanBeFollowed
 {
@@ -54,6 +55,11 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public float Angle;
 
 
+    /// <summary>
+    /// Event called when the GolfBall has finished rolling and the Shooting state has been entered.
+    /// </summary>
+    public UnityAction OnRollingFinished;
+
 
     [Header("References")]
     public Rigidbody rigid;
@@ -79,6 +85,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         if (stateLastFrame == PlayState.Rolling && State == PlayState.Shooting)
         {
             WaitForNextShot();
+            OnRollingFinished.Invoke();
         }
 
 
@@ -116,6 +123,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         rigid.velocity = Vector3.zero;
         rigid.angularVelocity = Vector3.zero;
+
+        SetDefaultShotValues();
     }
 
 
@@ -188,7 +197,27 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         return newState;
     }
 
-    private void OnValidate()
+
+
+
+    public void SetValues(float rotation, float angle, float power)
+    {
+        Rotation = rotation;
+        Angle = angle;
+        Power = power;
+        ValidateValues();
+    }
+
+    private void SetDefaultShotValues()
+    {
+        Power = Max_Power / 2;
+        Rotation = 0;
+        Angle = 0;
+
+        ValidateValues();
+    }
+
+    private void ValidateValues()
     {
         // Clamp the power
         Power = Mathf.Clamp(Power, 0, Max_Power);
@@ -211,6 +240,12 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     }
 
 
+    private void OnValidate()
+    {
+        ValidateValues();
+    }
+
+
 
 
     private void OnDrawGizmos()
@@ -219,9 +254,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Gizmos.color = Color.green;
         Gizmos.DrawLine(transform.position, transform.position + (Power / Max_Power * 10 * Forward));
     }
-
-
-
 
 
 

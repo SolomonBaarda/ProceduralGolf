@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Chunk Visual
   m_EditorClassIdentifier: Assembly-CSharp::MeshGenerator/MeshSettings
-  LevelOfDetail: 1
+  LevelOfDetail: 2
