@@ -25,7 +25,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
                 switch (State)
                 {
                     case PlayState.Shooting:
-                        return transform.rotation.eulerAngles;
+                        return transform.forward;
                     // Use the velocity
                     case PlayState.Flying:
                         return rigid.velocity;
@@ -49,7 +49,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public const int Max_Power = 100;
     public float VelocityMagnitudeCutoffThreshold = 0.25f;
     [Header("Control settings")]
-    [Range(0, Max_Power)] public float Power;
+    [Range(0, Max_Power)] public float Power = Max_Power / 2;
     public float Rotation;
     public float Angle;
 
@@ -98,6 +98,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public void Shoot()
     {
+        // Undo any freezes
+        Freeze(false);
+
         // Apply the force in direction
         Vector3 force = transform.forward * Power;
         rigid.AddForce(force, ForceMode.Impulse);
@@ -109,7 +112,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public void Reset()
     {
-        transform.rotation = Quaternion.Euler(Vector3.zero);
+        transform.rotation = Quaternion.identity;
 
         rigid.velocity = Vector3.zero;
         rigid.angularVelocity = Vector3.zero;
@@ -140,7 +143,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
 
 
-        Debug.Log("finished freezing as shot was taken");
         Freeze(false);
     }
 
@@ -202,7 +204,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
 
         // Clamp the angle
-        Angle = Mathf.Clamp(Angle, -80, 80);
+        Angle = Mathf.Clamp(Angle, -80, 0);
 
         // Update the angle
         transform.rotation = Quaternion.Euler(Angle, Rotation, 0);
@@ -215,7 +217,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     {
         // Draw the facing
         Gizmos.color = Color.green;
-        Gizmos.DrawLine(transform.position, transform.position + 5 * Forward);
+        Gizmos.DrawLine(transform.position, transform.position + (Power / Max_Power * 10 * Forward));
     }
 
 

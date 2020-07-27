@@ -49,12 +49,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   State: 0
   IsOnGround: 0
-  DragInAir: 0
-  DragOnGround: 0.2
-  AngularDragInAir: 0
-  AngularDragOnGround: 0.2
+  IsFrozen: 0
   VelocityMagnitudeCutoffThreshold: 0.25
-  Power: 0
+  Power: 50
   Rotation: 0
   Angle: 0
   rigid: {fileID: 4448303046775399604}
