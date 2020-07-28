@@ -8,17 +8,36 @@ public class HUD : MonoBehaviour
     public const string SceneName = "HUD";
     public static UnityAction<HUD> OnHudLoaded;
 
+    public UnityAction OnShootPressed;
+
+
     public GameObject ShootingWindow;
 
     public Toggle Rotation, Angle, Power;
     public TMP_Text ShotValue;
+    public Button Shoot;
 
 
     private void Start()
     {
         ResetShootingWindow();
         OnHudLoaded.Invoke(this);
+
+        Shoot.onClick.AddListener(ShootPressed);
     }
+
+
+    private void OnDestroy()
+    {
+        Shoot.onClick.RemoveAllListeners();
+    }
+
+
+    private void ShootPressed()
+    {
+        OnShootPressed.Invoke();
+    }
+
 
 
     public void UpdateShootingWindow(float rotation, float angle, float power)
@@ -50,8 +69,8 @@ public class HUD : MonoBehaviour
 
     public void ResetShootingWindow()
     {
-        // Enable another then rotation last to force it to update
-        Power.isOn = true;
+        // Enable another, then rotation last to force it to update
+        Rotation.isOn = false;
         Rotation.isOn = true;
     }
 

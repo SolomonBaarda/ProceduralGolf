@@ -489,6 +489,61 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key0.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key0.g
+      value: 0.114754096
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key0.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key1.r
+      value: 0.38679248
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key1.g
+      value: 0.21711464
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key1.b
+      value: 0.21711464
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key1.a
+      value: 0.5294118
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.ctime1
+      value: 65535
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.ctime0
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.atime1
+      value: 65535
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
 --- !u!114 &1324745660 stripped

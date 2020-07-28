@@ -28,7 +28,9 @@ public class GameManager : MonoBehaviour
     private void OnDestroy()
     {
         HUD.OnHudLoaded -= SetHud;
+
         GolfBall.OnRollingFinished -= HUD.ResetShootingWindow;
+        HUD.OnShootPressed -= GolfBall.Shoot;
     }
 
 
@@ -64,12 +66,19 @@ public class GameManager : MonoBehaviour
                 bool useRotation = false, useAngle = false, usePower = false;
                 float shotPreviewLengthMultiplier = 1;
 
+
+
+
+                Vector2 deltaPosition = Controller.GetDeltaPositionScaled() * Controller.TouchMultiplier;
+                float rotation = GolfBall.Rotation, angle = GolfBall.Angle, power = GolfBall.Power;
+
                 // Setting rotation now
                 if (HUD.Rotation.isOn)
                 {
                     cameraView = Follower.View.ShootingAbove;
                     useRotation = true;
                     shotPreviewLengthMultiplier = 3;
+                    rotation += deltaPosition.x;
                 }
                 // Angle
                 else if (HUD.Angle.isOn)
@@ -78,6 +87,7 @@ public class GameManager : MonoBehaviour
                     useAngle = true;
                     useRotation = true;
                     shotPreviewLengthMultiplier = 1.5f;
+                    angle += deltaPosition.y;
                 }
                 // Power
                 else if (HUD.Power.isOn)
@@ -87,9 +97,14 @@ public class GameManager : MonoBehaviour
                     useAngle = true;
                     usePower = true;
                     shotPreviewLengthMultiplier = 16;
+                    power += deltaPosition.y;
                 }
 
+                // Update the camera 
                 BallFollower.CurrentView = cameraView;
+
+                // Update the golf ball
+                GolfBall.SetValues(rotation, angle, power);
                 GolfBall.SetShotPreview(useRotation, useAngle, usePower, shotPreviewLengthMultiplier);
 
                 break;
@@ -117,5 +132,7 @@ public class GameManager : MonoBehaviour
         HUD = hud;
 
         GolfBall.OnRollingFinished += HUD.ResetShootingWindow;
+
+        HUD.OnShootPressed += GolfBall.Shoot;
     }
 }

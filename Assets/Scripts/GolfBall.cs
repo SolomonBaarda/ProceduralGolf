@@ -69,6 +69,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     [Header("Line Preview")]
     public Material LinePreviewMaterial;
     private LineRenderer shotPreview;
+    public Gradient LineColour;
 
 
     private void Awake()
@@ -80,8 +81,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         shotPreview.widthCurve = AnimationCurve.Linear(0f, 0.05f, 1f, 0.05f);
         shotPreview.enabled = false;
         shotPreview.material = LinePreviewMaterial;
-        shotPreview.startColor = Color.green;
-        shotPreview.endColor = Color.green;
+        shotPreview.colorGradient = LineColour;
     }
 
 
