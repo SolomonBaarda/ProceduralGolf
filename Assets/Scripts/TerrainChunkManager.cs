@@ -35,7 +35,7 @@ public class TerrainChunkManager : MonoBehaviour
 
 
     public void AddNewChunk(Vector2Int position, HeightMapGenerator.HeightMap heightMap, Material material, PhysicMaterial physics,
-        int terrainLayer, MeshGenerator.MeshSettings meshSettingsVisual, MeshGenerator.MeshSettings meshSettingsCollider)
+        int terrainLayer, MeshSettings meshSettingsVisual, MeshSettings meshSettingsCollider)
     {
         if (!TerrainChunks.ContainsKey(position))
         {

@@ -38,13 +38,13 @@ public class TerrainChunk
     }
 
 
-    public void UpdateVisualMesh(MeshGenerator.MeshSettings visual)
+    public void UpdateVisualMesh(MeshSettings visual)
     {
         meshFilter.mesh = meshData.GenerateMesh(visual);
     }
 
 
-    public void UpdateColliderMesh(MeshGenerator.MeshSettings collider)
+    public void UpdateColliderMesh(MeshSettings collider)
     {
         meshCollider.sharedMesh = meshData.GenerateMesh(collider);
     }

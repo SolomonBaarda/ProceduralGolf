@@ -9,7 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: Chunk Collider
-  m_EditorClassIdentifier: Assembly-CSharp::MeshGenerator/MeshSettings
-  LevelOfDetail: 2
+  m_Script: {fileID: 11500000, guid: 8e3c32715cc46b14f8da824198e36a66, type: 3}
+  m_Name: Green
+  m_EditorClassIdentifier: 
+  scale: 250
+  octaves: 5
+  persistance: 0.6
+  lacunarity: 2
+  offset: {x: 0, y: 0}

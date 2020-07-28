@@ -17,12 +17,6 @@ public class GameManager : MonoBehaviour
     {
         HUD.OnHudLoaded += SetHud;
         SceneManager.LoadSceneAsync(HUD.SceneName, LoadSceneMode.Additive);
-
-
-
-
-
-        TerrainGenerator.Generate();
     }
 
     private void OnDestroy()
@@ -34,17 +28,22 @@ public class GameManager : MonoBehaviour
     }
 
 
-
+    private void Start()
+    {
+        TerrainGenerator.Generate();
+    }
 
 
 
 
     private void Update()
     {
+        /*
         if (Input.GetButtonDown("Submit") || (Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began))
         {
             TerrainGenerator.Generate();
         }
+        */
 
 
         // Taking a shot
@@ -65,7 +64,6 @@ public class GameManager : MonoBehaviour
                 Follower.View cameraView = Follower.View.Behind;
                 bool useRotation = false, useAngle = false, usePower = false;
                 float shotPreviewLengthMultiplier = 1;
-
 
 
 

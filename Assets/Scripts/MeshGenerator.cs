@@ -143,27 +143,7 @@ public static class MeshGenerator
     }
 
 
-    [CreateAssetMenu()]
-    public class MeshSettings : VariablePreset
-    {
-        [Header("Value of 0 (most detail) to 6 (least detail)")]
-        public int LevelOfDetail = 1;
-        public int SimplificationIncrement
-        {
-            get
-            {
-                ValidateValues();
-                return Mathf.Max(LevelOfDetail * 2, 1);
-            }
-        }
 
-        public override void ValidateValues()
-        {
-            LevelOfDetail = Mathf.Clamp(LevelOfDetail, 0, 6);
-        }
-
-
-    }
 
 
 }

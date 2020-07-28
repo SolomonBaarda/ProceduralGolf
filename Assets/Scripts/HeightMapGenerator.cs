@@ -11,9 +11,9 @@ public static class HeightMapGenerator
     {
         public float[,] Heights;
         public Vector3[,] LocalVertexPositions;
-        public TerrainGenerator.TerrainSettings TerrainSettings;
+        public TerrainSettings TerrainSettings;
 
-        public HeightMap(float[,] heights, Vector3[,] vertices, TerrainGenerator.TerrainSettings terrainSettings)
+        public HeightMap(float[,] heights, Vector3[,] vertices, TerrainSettings terrainSettings)
         {
             Heights = heights;
             LocalVertexPositions = vertices;

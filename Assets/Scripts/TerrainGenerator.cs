@@ -9,10 +9,10 @@ public class TerrainGenerator : MonoBehaviour
     public bool IsGenerating { get; private set; } = false;
 
     [Header("Settings")]
-    public MeshGenerator.MeshSettings MeshSettingsVisual;
-    public MeshGenerator.MeshSettings MeshSettingsCollider;
+    public MeshSettings MeshSettingsVisual;
+    public MeshSettings MeshSettingsCollider;
     [Space]
-    public Noise.NoiseSettings NoiseSettings_Green;
+    public NoiseSettings NoiseSettings_Green;
     public TerrainSettings TerrainSettings_Green;
 
     [Space]
@@ -166,28 +166,6 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-
-
-
-    [CreateAssetMenu()]
-    public class TerrainSettings : VariablePreset
-    {
-        public bool UseCurve = false;
-        public AnimationCurve HeightDistribution;
-        public float HeightMultiplier = 16;
-
-        /// <summary>
-        /// Number of Noise sample points taken in each chunk.
-        /// </summary>
-        public readonly int SamplePointFrequency = 241;
-        public int TerrainDivisions => SamplePointFrequency - 1;
-
-
-        public override void ValidateValues()
-        {
-        }
-
-    }
 
 
 }

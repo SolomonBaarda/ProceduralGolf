@@ -33,6 +33,8 @@ public class Follower : MonoBehaviour
 
     private void Update()
     {
+        OnValidate();
+
         if (Following != null && target != null)
         {
             // Update the current view preset values
