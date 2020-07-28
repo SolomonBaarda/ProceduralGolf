@@ -2,38 +2,41 @@
 
 public class Follower : MonoBehaviour
 {
-    public readonly Vector3 Up = Vector3.up;
+    public static readonly Vector3 Up = Vector3.up;
 
-    public GameObject Following;
+    public Transform Following;
     private ICanBeFollowed target;
 
-    [Header("Offset Presets")]
-    public static readonly ViewPreset ViewPresetBehind = new ViewPreset(true, true, true, 1f, 0.25f, 0f, false, Vector3.zero, Vector3.zero);
-    public static readonly ViewPreset ViewPresetAbove = new ViewPreset(true, true, true, 1.5f, 1f, 0f, true, Vector3.zero, Vector3.zero);
+    public View CurrentView;
+    private ViewPreset view;
 
+    public const float SecondsToReachTarget = 0.5f;
 
+    // Views
+    public static readonly ViewPreset ViewPresetBehind = new ViewPreset(true, true, true, false, false, 1f, 0.25f, 0f, Vector3.zero, Vector3.zero);
+    public static readonly ViewPreset ViewPresetAbove = new ViewPreset(true, true, true, true, true, 1.5f, 1f, 0f, Vector3.zero, Vector3.zero);
     /// <summary>
     /// View for setting the shot rotation.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingAbove = new ViewPreset(true, false, true, 3f, 2f, 0f, true, new Vector3(0, 1, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingAbove = new ViewPreset(true, false, true, true, true, 3f, 2f, 0f, new Vector3(0, 1, 0), Vector3.zero);
     /// <summary>
     /// View for setting the shot angle.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingLeft = new ViewPreset(true, false, true, 0f, 0.5f, 3f, true, new Vector3(0, 0.5f, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingLeft = new ViewPreset(true, false, true, true, true, 0f, 0.5f, 3f, new Vector3(0, 0.5f, 0), Vector3.zero);
     /// <summary>
     /// View for setting the shot power.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, 5f, 2f, 2f, true, new Vector3(0, 2, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 5f, 2f, 2f, new Vector3(0, 2, 0), Vector3.zero);
 
-
-    [Header("Current View")]
-    public View CurrentView;
-    private ViewPreset view;
 
 
     private void Update()
     {
-        OnValidate();
+        // Validate if the target object is null
+        if (target == null)
+        {
+            OnValidate();
+        }
 
         if (Following != null && target != null)
         {
@@ -70,7 +73,17 @@ public class Follower : MonoBehaviour
             // Offset is backwards + upwards + sideways
             Vector3 relativeOffset = (forward * view.Backwards) - (Up * view.Upwards) - (left * view.Sideways);
             // Set the position
-            transform.position = target.Position - relativeOffset;
+            Vector3 newPos = target.Position - relativeOffset;
+
+            // Smooth the transition a little
+            if (view.SmoothMovement)
+            {
+                // Move by a fraction of the total distance
+                float distance = Vector3.Distance(transform.position, newPos);
+                newPos = Vector3.MoveTowards(transform.position, newPos, distance * (1 / SecondsToReachTarget) * Time.deltaTime);
+            }
+            // Assign the value
+            transform.position = newPos;
 
 
             // Set the camera rotation
@@ -95,7 +108,7 @@ public class Follower : MonoBehaviour
     {
         if (Following != null)
         {
-            if (Utils.GameObjectExtendsClass(Following, out ICanBeFollowed f))
+            if (Utils.GameObjectExtendsClass(Following.gameObject, out ICanBeFollowed f))
             {
                 target = f;
             }
@@ -109,26 +122,31 @@ public class Follower : MonoBehaviour
     public struct ViewPreset
     {
         public bool UseX, UseY, UseZ;
+        public bool LookAtBall;
+        public bool SmoothMovement;
 
         public float Backwards;
         public float Upwards;
         public float Sideways;
 
-        public bool LookAtBall;
         public Vector3 LookingAtPositionOffset;
         public Vector3 ExtraRotation;
 
-        public ViewPreset(bool useX, bool useY, bool useZ, float backwards, float upwards, float sideways, bool lookAtBall, Vector3 lookingAtPositionOffset, Vector3 extraRotation)
+
+        public ViewPreset(bool useX, bool useY, bool useZ, bool lookAtBall, bool smoothMovement,
+            float backwards, float upwards, float sideways, Vector3 lookingAtPositionOffset, Vector3 extraRotation)
         {
             UseX = useX;
             UseY = useY;
             UseZ = useZ;
 
+            LookAtBall = lookAtBall;
+            SmoothMovement = smoothMovement;
+
             Backwards = backwards;
             Upwards = upwards;
             Sideways = sideways;
 
-            LookAtBall = lookAtBall;
             LookingAtPositionOffset = lookingAtPositionOffset;
             ExtraRotation = extraRotation;
         }

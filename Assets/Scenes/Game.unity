@@ -291,9 +291,9 @@ MonoBehaviour:
   DoRandomSeed: 0
   MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
   PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
---- !u!1 &784421677 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4213627502347566067, guid: 8b5ace1036e996949aaff71ced827337,
+--- !u!4 &784421682 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4213627502347566079, guid: 8b5ace1036e996949aaff71ced827337,
     type: 3}
   m_PrefabInstance: {fileID: 1324745659}
   m_PrefabAsset: {fileID: 0}
@@ -402,7 +402,7 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 1324745659}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 784421677}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57a29402160f6944aab0dd90e34649d3, type: 3}
@@ -682,5 +682,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93c438cfba179aa43a40a9dcf9428491, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Following: {fileID: 784421677}
+  Following: {fileID: 784421682}
   CurrentView: 0
+  SmoothMovement: 1
+  MaxDistanceSmoothingPercentage: 1

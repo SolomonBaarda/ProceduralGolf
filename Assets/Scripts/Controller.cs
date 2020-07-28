@@ -18,7 +18,7 @@ public static class Controller
         // Use mouse
         else if (Input.mousePresent)
         {
-            Debug.Log("Touch not supported, use mouse scroll");
+            //Debug.Log("Touch not supported, use mouse scroll");
             Vector2 scrollDelta = Input.mouseScrollDelta;
 
             return new Vector2(scrollDelta.y, scrollDelta.y);

@@ -50,7 +50,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public const float VelocityMagnitudeCutoffThreshold = 0.25f;
 
     [Header("Control settings")]
-    [Range(0,1)] public float Power;
+    [Range(0, 1)] public float Power;
     public float Rotation;
     public float Angle;
 
@@ -248,9 +248,10 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     private void SetDefaultShotValues()
     {
+        // Default values
         Power = 0.5f;
         Rotation = 0;
-        Angle = 0;
+        Angle = 40;
 
         ValidateValues();
     }
