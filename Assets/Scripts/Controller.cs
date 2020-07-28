@@ -2,29 +2,33 @@
 
 public static class Controller
 {
-    public const float TouchMultiplier = 1;
+    public const float TouchMultiplier = 10;
 
 
-    public static Vector2 GetDeltaPositionScaled()
+    public static bool UsingTouch => Input.touchSupported;
+
+
+
+
+    public static Vector2 DeltaPosition(RectTransform screenArea)
     {
-        // Use touchscreen
-        if (Input.touchSupported)
+        Vector2 currentMax = Vector2.zero;
+
+        foreach (Touch t in Input.touches)
         {
-            if (Input.touches.Length > 0)
+            // Ensure the touch is within the area
+            if (RectTransformUtility.RectangleContainsScreenPoint(screenArea, t.position))
             {
-                return Input.touches[0].deltaPosition * Input.touches[0].deltaTime;
+                // Update the value if it is the new largest
+                Vector2 possibleValue = t.deltaPosition;
+                currentMax = possibleValue.magnitude > currentMax.magnitude ? possibleValue : currentMax;
             }
         }
-        // Use mouse
-        else if (Input.mousePresent)
-        {
-            //Debug.Log("Touch not supported, use mouse scroll");
-            Vector2 scrollDelta = Input.mouseScrollDelta;
 
-            return new Vector2(scrollDelta.y, scrollDelta.y);
-        }
-
-        return Vector2.zero;
+        return currentMax;
     }
+
+
+
 
 }

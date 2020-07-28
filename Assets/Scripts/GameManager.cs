@@ -23,7 +23,6 @@ public class GameManager : MonoBehaviour
     {
         HUD.OnHudLoaded -= SetHud;
 
-        GolfBall.OnRollingFinished -= HUD.ResetShootingWindow;
         HUD.OnShootPressed -= GolfBall.Shoot;
     }
 
@@ -57,53 +56,45 @@ public class GameManager : MonoBehaviour
         {
             // Shooting mode
             case GolfBall.PlayState.Shooting:
-                // Update the HUD values
-                HUD.UpdateShootingWindow(GolfBall.Rotation, GolfBall.Angle, GolfBall.Power);
 
-                // Update the camera angle
-                Follower.View cameraView = Follower.View.Behind;
-                bool useRotation = false, useAngle = false, usePower = false;
-                float shotPreviewLengthMultiplier = 1;
+                // Calculate the deltas for each 
+                Vector2 rotationDelta = Controller.DeltaPosition(HUD.Rotation.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
+                Vector2 angleDelta = Controller.DeltaPosition(HUD.Angle.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
+                Vector2 powerDelta = Controller.DeltaPosition(HUD.Power.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
+
+                // Calculate the new values (take into consideration the slider height)
+                float rotation = GolfBall.Rotation + rotationDelta.y;
+                float angle = GolfBall.Angle + angleDelta.y;
+                float power = GolfBall.Power + powerDelta.y / 50f;
+
+                // Set the new values
+                GolfBall.SetValues(rotation, angle, power);
 
 
+                // Just use the one camera view for now
 
-                Vector2 deltaPosition = Controller.GetDeltaPositionScaled() * Controller.TouchMultiplier;
-                float rotation = GolfBall.Rotation, angle = GolfBall.Angle, power = GolfBall.Power;
-
-                // Setting rotation now
-                if (HUD.Rotation.isOn)
-                {
-                    cameraView = Follower.View.ShootingAbove;
-                    useRotation = true;
-                    shotPreviewLengthMultiplier = 3;
-                    rotation += deltaPosition.x;
-                }
-                // Angle
-                else if (HUD.Angle.isOn)
-                {
-                    cameraView = Follower.View.ShootingLeft;
-                    useAngle = true;
-                    useRotation = true;
-                    shotPreviewLengthMultiplier = 1.5f;
-                    angle += deltaPosition.y;
-                }
-                // Power
-                else if (HUD.Power.isOn)
-                {
-                    cameraView = Follower.View.ShootingBehind;
-                    useRotation = true;
-                    useAngle = true;
-                    usePower = true;
-                    shotPreviewLengthMultiplier = 16;
-                    power += deltaPosition.y;
-                }
+                // Update the shot preview
+                GolfBall.SetShotPreview(true, true, true, 16);
 
                 // Update the camera 
-                BallFollower.CurrentView = cameraView;
+                BallFollower.CurrentView = Follower.View.ShootingBehind;
 
-                // Update the golf ball
-                GolfBall.SetValues(rotation, angle, power);
-                GolfBall.SetShotPreview(useRotation, useAngle, usePower, shotPreviewLengthMultiplier);
+
+                // Update the HUD to display the correct values
+                HUD.Rotation.DisplayValue.text = GolfBall.Rotation.ToString("0") + "°";
+                HUD.Angle.DisplayValue.text = GolfBall.Angle.ToString("0") + "°";
+                HUD.Power.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
+
+                // Set the 2 angle sliders to the same colour
+                Color b = HUD.Rotation.Background.color;
+                b.a = HUD.SliderBackgroundAlpha;
+                HUD.Rotation.Background.color = b;
+                HUD.Angle.Background.color = b;
+
+                // Set the power slider colour
+                Color p = HUD.Power.Gradient.Evaluate(GolfBall.Power);
+                p.a = HUD.SliderBackgroundAlpha;
+                HUD.Power.Background.color = p;
 
                 break;
 
@@ -128,8 +119,6 @@ public class GameManager : MonoBehaviour
     private void SetHud(HUD hud)
     {
         HUD = hud;
-
-        GolfBall.OnRollingFinished += HUD.ResetShootingWindow;
 
         HUD.OnShootPressed += GolfBall.Shoot;
     }

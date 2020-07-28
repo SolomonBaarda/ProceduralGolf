@@ -76,6 +76,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     {
         GameStats = new Stats();
 
+        OnRollingFinished += Utils.EMPTY;
 
         shotPreview = gameObject.AddComponent<LineRenderer>();
         shotPreview.widthCurve = AnimationCurve.Linear(0f, 0.05f, 1f, 0.05f);
@@ -326,4 +327,11 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Rolling,
     }
 
+
+    public enum Parameters
+    {
+        Rotation,
+        Angle,
+        Power,
+    }
 }
