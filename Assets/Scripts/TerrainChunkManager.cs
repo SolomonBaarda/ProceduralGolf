@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 public class TerrainChunkManager : MonoBehaviour
 {
@@ -10,16 +8,17 @@ public class TerrainChunkManager : MonoBehaviour
 
     [Header("References")]
     public Grid ChunkGrid;
-
     public Transform ChunkParent;
 
-    Dictionary<Vector2Int, TerrainChunk> TerrainChunks = new Dictionary<Vector2Int, TerrainChunk>();
+    private Dictionary<Vector2Int, TerrainChunk> TerrainChunks = new Dictionary<Vector2Int, TerrainChunk>();
 
 
     private void Awake()
     {
         UpdateGrid();
     }
+
+
 
 
 
@@ -35,16 +34,16 @@ public class TerrainChunkManager : MonoBehaviour
 
 
     public void AddNewChunk(Vector2Int position, HeightMapGenerator.HeightMap heightMap, Material material, PhysicMaterial physics,
-        int terrainLayer, MeshSettings meshSettingsVisual, MeshSettings meshSettingsCollider)
+        int terrainLayer, MeshSettings meshSettingsVisual, MeshSettings meshSettingsCollider, bool useSameMesh)
     {
-        if (!TerrainChunks.ContainsKey(position))
+        if (!TerrainChunkExists(position))
         {
             Bounds newChunkBounds = CalculateTerrainChunkBounds(position);
             TerrainChunk chunk = new TerrainChunk(position, newChunkBounds, material, physics, ChunkParent, terrainLayer,
                 MeshGenerator.GenerateMeshData(heightMap, newChunkBounds.center));
 
             chunk.UpdateVisualMesh(meshSettingsVisual);
-            chunk.UpdateColliderMesh(meshSettingsCollider);
+            chunk.UpdateColliderMesh(meshSettingsCollider, useSameMesh);
             chunk.SetVisible(true);
 
             TerrainChunks.Add(position, chunk);
@@ -53,6 +52,49 @@ public class TerrainChunkManager : MonoBehaviour
         {
             Debug.LogError("Chunk " + position.ToString() + " has already been added.");
         }
+    }
+
+
+    public TerrainChunk GetChunk(Vector2Int chunk)
+    {
+        TerrainChunks.TryGetValue(chunk, out TerrainChunk val);
+        return val;
+    }
+
+
+    public void SetVisibleChunks(List<Vector2Int> visible)
+    {
+        // Disabel all chunks first
+        foreach (TerrainChunk c in TerrainChunks.Values)
+        {
+            c.SetVisible(false);
+        }
+
+        // Then enable the ones we want
+        foreach (Vector2Int key in visible)
+        {
+            if (TerrainChunks.TryGetValue(key, out TerrainChunk chunk))
+            {
+                chunk.SetVisible(true);
+            }
+        }
+    }
+
+
+    public bool TerrainChunkIsVisible(Vector2Int chunk)
+    {
+        if (TerrainChunkExists(chunk))
+        {
+            TerrainChunks.TryGetValue(chunk, out TerrainChunk c);
+            return c.IsVisible;
+        }
+        return false;
+    }
+
+
+    public bool TerrainChunkExists(Vector2Int chunk)
+    {
+        return TerrainChunks.ContainsKey(chunk);
     }
 
 
@@ -68,6 +110,12 @@ public class TerrainChunkManager : MonoBehaviour
     }
 
 
+    public Vector2Int WorldToChunk(Vector3 worldPos)
+    {
+        Vector3Int chunk = ChunkGrid.WorldToCell(worldPos);
+        return new Vector2Int(chunk.x, chunk.y);
+    }
+
 
     public void Clear()
     {
@@ -81,17 +129,6 @@ public class TerrainChunkManager : MonoBehaviour
     }
 
 
-    /*
 
-    private void OnDrawGizmosSelected()
-    {
-        foreach (TerrainChunk c in TerrainChunks.Values)
-        {
-            Gizmos.color = Color.green;
-
-            Gizmos.DrawCube(c.Bounds.center, c.Bounds.size);
-        }
-    }
-    */
 
 }

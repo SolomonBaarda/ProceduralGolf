@@ -55,6 +55,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public float Angle;
 
 
+    private const float Scale = 0.25f;
+    public float Radius => Scale / 2;
+
     /// <summary>
     /// Event called when the GolfBall has finished rolling and the Shooting state has been entered.
     /// </summary>
@@ -74,10 +77,14 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     private void Awake()
     {
+        transform.localScale = new Vector3(Scale, Scale, Scale);
+
         GameStats = new Stats();
+        GameStats.Reset();
 
         OnRollingFinished += Utils.EMPTY;
 
+        // Set the shot preview
         shotPreview = gameObject.AddComponent<LineRenderer>();
         shotPreview.widthCurve = AnimationCurve.Linear(0f, 0.05f, 1f, 0.05f);
         shotPreview.enabled = false;
@@ -140,7 +147,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-    private void WaitForNextShot()
+    public void WaitForNextShot()
     {
         Reset();
 
@@ -300,9 +307,14 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-    public struct Stats
+    public class Stats
     {
         public int Shots;
+
+        public void Reset()
+        {
+            Shots = 0;
+        }
     }
 
 

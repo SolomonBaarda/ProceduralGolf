@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
@@ -11,6 +11,7 @@ public class TerrainGenerator : MonoBehaviour
     [Header("Settings")]
     public MeshSettings MeshSettingsVisual;
     public MeshSettings MeshSettingsCollider;
+    public bool UseSameMesh = true;
     [Space]
     public NoiseSettings NoiseSettings_Green;
     public TerrainSettings TerrainSettings_Green;
@@ -29,7 +30,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public void Generate()
+    public void GenerateInitialTerrain()
     {
         if (!IsGenerating)
         {
@@ -38,7 +39,7 @@ public class TerrainGenerator : MonoBehaviour
                 Seed = Noise.RandomSeed;
             }
 
-            StartCoroutine(WaitForGenerate(Seed));
+            GenerateInitialArea(Seed, 2);
         }
     }
 
@@ -53,51 +54,78 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private IEnumerator WaitForGenerate(int seed)
+    private void GenerateInitialArea(int seed, int chunksFromOrigin)
     {
         DateTime before = DateTime.Now;
 
         IsGenerating = true;
+        chunksFromOrigin = Mathf.Abs(chunksFromOrigin);
 
         // Reset the whole HexMap
         TerrainChunkManager.Clear();
 
 
-
-        for (int y = -1; y <= 1; y++)
+        // Generate in that area
+        for (int y = -chunksFromOrigin; y <= chunksFromOrigin; y++)
         {
-            for (int x = -1; x <= 1; x++)
+            for (int x = -chunksFromOrigin; x <= chunksFromOrigin; x++)
             {
-                GenerateChunk(x, y, seed);
+                TryGenerateChunk(new Vector2Int(x, y), seed);
             }
         }
 
-
-
         Debug.Log("Generated in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
         IsGenerating = false;
-
-        yield return null;
     }
 
 
 
-    public void GenerateChunk(int x, int y, int seed)
+    public void TryGenerateChunk(Vector2Int chunk, int seed)
     {
-        // Get the chunk number and bounds
-        Vector2Int chunk = new Vector2Int(x, y);
-        Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
+        if (!TerrainChunkManager.TerrainChunkExists(chunk))
+        {
+            // Get the chunk bounds
+            Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-        // Get the vertex points
-        Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
-        Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
-        Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
+            // Get the vertex points
+            Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
+            Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
+            Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
 
-        // Get the height map
-        HeightMapGenerator.HeightMap heightMap = new HeightMapGenerator.HeightMap(Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints), localVertexPositions, TerrainSettings_Green);
+            // Get the height map
+            HeightMapGenerator.HeightMap heightMap = new HeightMapGenerator.HeightMap(Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints), localVertexPositions, TerrainSettings_Green);
 
-        TerrainChunkManager.AddNewChunk(chunk, heightMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider);
+            TerrainChunkManager.AddNewChunk(chunk, heightMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
+        }
     }
+
+
+
+
+
+    public void CheckNearbyChunks(Vector3 position, float viewDistanceWorldUnits)
+    {
+        // Calculate the centre chunk
+        Vector2Int centre = TerrainChunkManager.WorldToChunk(position);
+        int chunks = Mathf.RoundToInt(viewDistanceWorldUnits / TerrainChunkManager.ChunkSizeWorldUnits);
+
+        List<Vector2Int> nearbyChunks = new List<Vector2Int>();
+
+        // Generate in that area
+        for (int y = -chunks; y <= chunks; y++)
+        {
+            for (int x = -chunks; x <= chunks; x++)
+            {
+                Vector2Int chunk = new Vector2Int(centre.x + x, centre.y + y);
+                TryGenerateChunk(chunk, Seed);
+                nearbyChunks.Add(chunk);
+            }
+        }
+
+        // Set only those chunks to be visible
+        TerrainChunkManager.SetVisibleChunks(nearbyChunks);
+    }
+
 
 
 

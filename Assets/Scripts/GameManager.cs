@@ -1,22 +1,28 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     public TerrainGenerator TerrainGenerator;
+    public CourseManager CourseManager;
 
     public GolfBall GolfBall;
     public Follower BallFollower;
 
     public HUD HUD;
+    private bool HUDLoaded;
 
-
+    public float ViewDistanceWorld = 500;
 
 
     private void Awake()
     {
         HUD.OnHudLoaded += SetHud;
         SceneManager.LoadSceneAsync(HUD.SceneName, LoadSceneMode.Additive);
+        HUDLoaded = false;
+
+        CourseManager.AllTerrain = TerrainGenerator.TerrainChunkManager;
     }
 
     private void OnDestroy()
@@ -24,27 +30,40 @@ public class GameManager : MonoBehaviour
         HUD.OnHudLoaded -= SetHud;
 
         HUD.OnShootPressed -= GolfBall.Shoot;
+        HUD.OnShootPressed -= UpdateHUDShotCounter;
+
+        HUD.OnRestartPressed -= CourseManager.RespawnGolfBall;
+        HUD.OnQuitPressed -= Application.Quit;
     }
 
 
     private void Start()
     {
-        TerrainGenerator.Generate();
+        TerrainGenerator.GenerateInitialTerrain();
+
+        InvokeRepeating("CheckTerrainGeneration", 1, 5);
+
+
+        StartCoroutine(WaitForHUDLoadThenStart());
     }
 
+
+
+    private IEnumerator WaitForHUDLoadThenStart()
+    {
+        while (!HUDLoaded)
+        {
+            yield return null;
+        }
+
+        // Start the game
+        ResetGame();
+    }
 
 
 
     private void Update()
     {
-        /*
-        if (Input.GetButtonDown("Submit") || (Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began))
-        {
-            TerrainGenerator.Generate();
-        }
-        */
-
-
         // Taking a shot
         bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
         HUD.ShootingWindow.SetActive(isShooting);
@@ -113,6 +132,12 @@ public class GameManager : MonoBehaviour
 
 
 
+    private void CheckTerrainGeneration()
+    {
+        TerrainGenerator.CheckNearbyChunks(GolfBall.Position, ViewDistanceWorld);
+    }
+
+
 
 
 
@@ -121,5 +146,24 @@ public class GameManager : MonoBehaviour
         HUD = hud;
 
         HUD.OnShootPressed += GolfBall.Shoot;
+        HUD.OnShootPressed += UpdateHUDShotCounter;
+
+        HUD.OnRestartPressed += ResetGame;
+        HUD.OnQuitPressed += Application.Quit;
+
+        HUDLoaded = true;
+    }
+
+
+    private void ResetGame()
+    {
+        CourseManager.RespawnGolfBall();
+        UpdateHUDShotCounter();
+    }
+
+
+    private void UpdateHUDShotCounter()
+    {
+        HUD.Shots.text = GolfBall.GameStats.Shots.ToString();
     }
 }

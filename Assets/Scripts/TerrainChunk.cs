@@ -10,6 +10,11 @@ public class TerrainChunk
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
 
+    public Mesh Visual => meshFilter.mesh;
+    public Mesh Collider => meshCollider.sharedMesh;
+
+    public bool IsVisible => meshObject.activeSelf;
+
 
     private MeshGenerator.MeshData meshData;
 
@@ -44,9 +49,15 @@ public class TerrainChunk
     }
 
 
-    public void UpdateColliderMesh(MeshSettings collider)
+    public void UpdateColliderMesh(MeshSettings collider, bool useSameMesh)
     {
-        meshCollider.sharedMesh = meshData.GenerateMesh(collider);
+        Mesh m = meshFilter.mesh;
+        if (!useSameMesh)
+        {
+            m = meshData.GenerateMesh(collider);
+        }
+
+        meshCollider.sharedMesh = m;
     }
 
 
