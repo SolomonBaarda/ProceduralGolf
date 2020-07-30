@@ -11,14 +11,21 @@ public static class TextureGenerator
         {
             for (int x = 0; x < map.Width; x++)
             {
-                Color c = Color.white;
-                if (map.Map[x, y].Biome == TerrainSettings.Biome.Grass)
+                Color c = Color.black;
+                switch (map.Map[x, y].Biome)
                 {
-                    c = Color.green;
-                }
-                else if (map.Map[x, y].Biome == TerrainSettings.Biome.Sand)
-                {
-                    c = Color.black;
+                    case TerrainSettings.Biome.Grass:
+                        c = Color.green;
+                        break;
+                    case TerrainSettings.Biome.Sand:
+                        c = Color.yellow;
+                        break;
+                    case TerrainSettings.Biome.Water:
+                        c = Color.blue;
+                        break;
+                    case TerrainSettings.Biome.Ice:
+                        c = Color.white;
+                        break;
                 }
 
                 colours[y * map.Width + x] = c;
@@ -43,8 +50,9 @@ public static class TextureGenerator
         {
             filterMode = FilterMode.Point,
             wrapMode = TextureWrapMode.Clamp,
-            
+
         };
+        
 
         //Debug.Log("Creating texture with width " + width + " and height " + height);
 

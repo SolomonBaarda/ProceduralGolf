@@ -3,8 +3,6 @@
 public static class TerrainMapGenerator
 {
 
-
-
     public class TerrainMap
     {
         public int Width, Height;
@@ -24,6 +22,7 @@ public static class TerrainMapGenerator
 
             // Create the map
             Map = new Point[width, height];
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -32,9 +31,6 @@ public static class TerrainMapGenerator
                     Map[x, y] = new Point(terrainSettings, vertices[x, y], heights[x, y], bunkers[x, y]);
                 }
             }
-
-
-            //DebugMinMax(HeightMap);
         }
 
 
@@ -62,8 +58,8 @@ public static class TerrainMapGenerator
                 BaseHeight = baseHeight;
                 Bunker = bunker;
 
-                Height = CalculateFinalHeight(settings);
                 Biome = CalculateBiome(settings);
+                Height = CalculateFinalHeight(settings);
             }
 
 
@@ -73,7 +69,7 @@ public static class TerrainMapGenerator
                 TerrainSettings.Biome b = settings.Main;
 
                 // Do a bunker
-                if (settings.DoBunkers && Bunker != NoBunker)
+                if (settings.DoBunkers && !Mathf.Approximately(Bunker, NoBunker))
                 {
                     b = TerrainSettings.Biome.Sand;
                 }
@@ -91,14 +87,15 @@ public static class TerrainMapGenerator
                     height = settings.HeightDistribution.Evaluate(BaseHeight);
                 }
 
+                // And apply the scale
+                height *= settings.HeightMultiplier;
+
+
                 // Add the bunker now
                 if (settings.DoBunkers)
                 {
-                    height -= Bunker;
+                    height -= Bunker * settings.BunkerMultiplier;
                 }
-
-                // And add the scale
-                height *= settings.HeightMultiplier;
 
                 return height;
             }

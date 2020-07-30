@@ -96,7 +96,7 @@ public class TerrainGenerator : MonoBehaviour
             float[,] heightMap = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
             float[,] bunkerRaw = Noise.Perlin(NoiseSettings_Bunker, Noise.Seed(seed.ToString()), noiseSamplePoints);
 
-            Debug.Log("bunker before " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerRaw));
+            //Debug.Log("bunker before " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerRaw));
 
 
             float[,] bunkerShapeMask = new float[width, height];
@@ -110,12 +110,12 @@ public class TerrainGenerator : MonoBehaviour
                     }
                     else
                     {
-                        bunkerShapeMask[x, y] = bunkerRaw[x, y];
+                        bunkerShapeMask[x, y] = Mathf.Clamp01(bunkerRaw[x, y]);
                     }
                 }
             }
 
-            Debug.Log("bunker after " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerShapeMask));
+            //Debug.Log("bunker after " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerShapeMask));
 
             // Get the terrain map
             TerrainMapGenerator.TerrainMap terrainMap = new TerrainMapGenerator.TerrainMap(width, height, localVertexPositions, heightMap, bunkerShapeMask, TerrainSettings_Green);

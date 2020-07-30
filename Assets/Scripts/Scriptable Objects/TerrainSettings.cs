@@ -11,6 +11,7 @@ public class TerrainSettings : VariablePreset
     public Biome Main;
 
     public bool DoBunkers = true;
+    public float BunkerMultiplier = 0.5f;
 
 
     /// <summary>

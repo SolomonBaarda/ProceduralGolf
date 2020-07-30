@@ -14,12 +14,15 @@ public static class MeshGenerator
             for (int x = 0; x < terrainMap.Width; x++)
             {
                 // Calculate the point of the vertex
-                Vector3 point = terrainMap.Map[x,y].LocalVertexBasePosition + (TerrainGenerator.UP * terrainMap.Map[x,y].Height);
+                Vector3 point = terrainMap.Map[x, y].LocalVertexBasePosition + (TerrainGenerator.UP * terrainMap.Map[x, y].Height);
                 data.SetVertex(x, y, point);
+
+                if (terrainMap.Map[x, y].Biome == TerrainSettings.Biome.Sand)
+                {
+                    Debug.DrawRay(point, TerrainGenerator.UP, Color.yellow, 120);
+                }
             }
         }
-
-
 
         return data;
     }
@@ -33,8 +36,6 @@ public static class MeshGenerator
         private readonly int MaxVerticesWidth, MaxVerticesHeight;
         public Vector3[] Vertices;
         public Vector2[] UVs;
-        private Vector3 Min => Vertices[0];
-        private Vector3 Max => Vertices[Vertices.Length - 1];
 
 
         public MeshData(int verticesX, int verticesY)
@@ -43,7 +44,6 @@ public static class MeshGenerator
 
             // Assign array size
             Vertices = new Vector3[MaxVerticesWidth * MaxVerticesHeight];
-            UVs = new Vector2[Vertices.Length];
         }
 
 
@@ -63,20 +63,53 @@ public static class MeshGenerator
             if (index != -1)
             {
                 Vertices[index] = vertex;
-
-                float distanceX = Mathf.Abs(Max.x - vertex.x), distanceY = Mathf.Abs(Max.z - vertex.z);
-                float maxDistanceX = Mathf.Abs(Max.x - Min.x), maxDistanceY = Mathf.Abs(Max.z - Min.z);
-
-                UVs[index] = new Vector2(distanceX / maxDistanceX, distanceY / maxDistanceY);
             }
         }
 
-
-        public Mesh GenerateMesh(MeshSettings settings)
+        public void CalculateUVS()
         {
+            UVs = new Vector2[Vertices.Length];
+
+            // Get the minimum and maximum points
+            Vector2 min = Vertices[0], max = Vertices[0];
+            for (int y = 0; y < MaxVerticesHeight; y++)
+            {
+                for (int x = 0; x < MaxVerticesWidth; x++)
+                {
+                    Vector2 v = Vertices[GetVertexIndex(x, y)];
+                    min.x = v.x < min.x ? v.x : min.x;
+                    min.y = v.y < min.y ? v.y : min.y;
+                    max.x = v.x > max.x ? v.x : max.x;
+                    max.y = v.y < max.y ? v.y : max.y;
+                }
+            }
+
+            Vector2 size = max - min;
+
+            // Now assign each UV
+            for (int y = 0; y < MaxVerticesHeight; y++)
+            {
+                for (int x = 0; x < MaxVerticesWidth; x++)
+                {
+                    Vector2 point = Vertices[GetVertexIndex(x, y)];
+
+                    UVs[GetVertexIndex(x, y)] = (max - point) / size;
+                }
+            }
+
+
+        }
+
+
+        public Mesh GenerateMesh(MeshSettings settings, out int newWidthVertices, out int newHeightVertices)
+        {
+            CalculateUVS();
+
             int i = settings.SimplificationIncrement;
 
-            int newWidthVertices = (MaxVerticesWidth - 1) / i + 1, newHeightVertices = (MaxVerticesHeight - 1) / i + 1;
+            newWidthVertices = (MaxVerticesWidth - 1) / i + 1;
+            newHeightVertices = (MaxVerticesHeight - 1) / i + 1;
+
             Vector3[] vertices = new Vector3[newWidthVertices * newHeightVertices];
             Vector2[] uvs = new Vector2[vertices.Length];
             int[] triangles = new int[newWidthVertices * newHeightVertices * 6];

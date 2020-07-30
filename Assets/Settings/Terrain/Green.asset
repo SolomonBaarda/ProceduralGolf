@@ -40,3 +40,4 @@ MonoBehaviour:
   HeightMultiplier: 16
   Main: 0
   DoBunkers: 1
+  BunkerMultiplier: 10

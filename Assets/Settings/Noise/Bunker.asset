@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e3c32715cc46b14f8da824198e36a66, type: 3}
   m_Name: Bunker
   m_EditorClassIdentifier: 
-  scale: 200
+  scale: 100
   octaves: 4
-  persistance: 0.5
+  persistance: 0.4
   lacunarity: 2
   offset: {x: 0, y: 0}
