@@ -16,7 +16,7 @@ public class TerrainChunk
     public bool IsVisible => meshObject.activeSelf;
 
 
-    private MeshGenerator.MeshData meshData;
+    public MeshGenerator.MeshData MeshData;
 
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer, MeshGenerator.MeshData data)
     {
@@ -39,13 +39,13 @@ public class TerrainChunk
         SetVisible(false);
 
         // Set the height map
-        meshData = data;
+        MeshData = data;
     }
 
 
     public void UpdateVisualMesh(MeshSettings visual)
     {
-        meshFilter.mesh = meshData.GenerateMesh(visual);
+        meshFilter.mesh = MeshData.GenerateMesh(visual);
     }
 
 
@@ -54,7 +54,7 @@ public class TerrainChunk
         Mesh m = meshFilter.mesh;
         if (!useSameMesh)
         {
-            m = meshData.GenerateMesh(collider);
+            m = MeshData.GenerateMesh(collider);
         }
 
         meshCollider.sharedMesh = m;

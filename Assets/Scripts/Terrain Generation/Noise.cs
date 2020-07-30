@@ -1,10 +1,10 @@
 ﻿using System;
-using System.IO.Pipes;
 using UnityEngine;
 
 public static class Noise
 {
-    public static int RandomSeed => Environment.TickCount.ToString().GetHashCode();
+    public static int RandomSeed => Seed(Environment.TickCount.ToString());
+    public static int Seed(string seed) => seed.GetHashCode();
 
     public static float[,] DistributeEvenly(in float[,] array, float min, float max)
     {

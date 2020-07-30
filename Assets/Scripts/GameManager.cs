@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public HUD HUD;
     private bool HUDLoaded;
 
+    public bool DoEndlessTerrain = true;
     public float ViewDistanceWorld = 500;
 
 
@@ -134,7 +135,10 @@ public class GameManager : MonoBehaviour
 
     private void CheckTerrainGeneration()
     {
-        TerrainGenerator.CheckNearbyChunks(GolfBall.Position, ViewDistanceWorld);
+        if (DoEndlessTerrain)
+        {
+            TerrainGenerator.CheckNearbyChunks(GolfBall.Position, ViewDistanceWorld);
+        }
     }
 
 

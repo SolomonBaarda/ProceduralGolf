@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TMPro.EditorUtilities;
 using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
@@ -27,7 +28,9 @@ public class TerrainGenerator : MonoBehaviour
     [Header("Physics")]
     public PhysicMaterial PhysicsGrass;
 
-
+    [Header("Terrain")]
+    public Terrain Terrain;
+    public TerrainCollider TerrainCollider;
 
 
     public void GenerateInitialTerrain()
@@ -39,7 +42,7 @@ public class TerrainGenerator : MonoBehaviour
                 Seed = Noise.RandomSeed;
             }
 
-            GenerateInitialArea(Seed, 2);
+            GenerateInitialArea(Seed, 0);
         }
     }
 
@@ -64,15 +67,28 @@ public class TerrainGenerator : MonoBehaviour
         // Reset the whole HexMap
         TerrainChunkManager.Clear();
 
-
+        HeightMapGenerator.HeightMap h = null;
         // Generate in that area
         for (int y = -chunksFromOrigin; y <= chunksFromOrigin; y++)
         {
             for (int x = -chunksFromOrigin; x <= chunksFromOrigin; x++)
             {
-                TryGenerateChunk(new Vector2Int(x, y), seed);
+                h = TryGenerateChunk(new Vector2Int(x, y), seed);
             }
         }
+
+        //TerrainChunk origin = TerrainChunkManager.GetChunk(Vector2Int.zero);
+
+        //TerrainData d = new TerrainData();
+        //d.size = new Vector3(241, 0, 241);
+        
+        //d.SetHeights(0, 0, h.Heights);
+
+        //Terrain.terrainData = d;
+
+        //TerrainCollider.terrainData = Terrain.terrainData;
+        //TerrainCollider.material = PhysicsGrass;
+
 
         Debug.Log("Generated in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
         IsGenerating = false;
@@ -80,7 +96,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public void TryGenerateChunk(Vector2Int chunk, int seed)
+    public HeightMapGenerator.HeightMap TryGenerateChunk(Vector2Int chunk, int seed)
     {
         if (!TerrainChunkManager.TerrainChunkExists(chunk))
         {
@@ -96,7 +112,10 @@ public class TerrainGenerator : MonoBehaviour
             HeightMapGenerator.HeightMap heightMap = new HeightMapGenerator.HeightMap(Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints), localVertexPositions, TerrainSettings_Green);
 
             TerrainChunkManager.AddNewChunk(chunk, heightMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
+
+            return heightMap;
         }
+        return null;
     }
 
 
