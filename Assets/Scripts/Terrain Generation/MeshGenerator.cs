@@ -4,29 +4,17 @@ using UnityEngine;
 public static class MeshGenerator
 {
 
-    public static MeshData GenerateMeshData(HeightMapGenerator.HeightMap heightMap, Vector3 meshCentreWorld)
+    public static MeshData GenerateMeshData(TerrainMapGenerator.TerrainMap terrainMap)
     {
-        int width = heightMap.Heights.GetLength(0), height = heightMap.Heights.GetLength(1);
-        MeshData data = new MeshData(width, height, meshCentreWorld);
+        MeshData data = new MeshData(terrainMap.Width, terrainMap.Height);
 
         // Loop through each vertex
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < terrainMap.Height; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < terrainMap.Width; x++)
             {
-                float vertexHeight;
-                if (heightMap.TerrainSettings.UseCurve)
-                {
-                    vertexHeight = heightMap.TerrainSettings.HeightDistribution.Evaluate(heightMap.Heights[x, y]);
-                }
-                else
-                {
-                    vertexHeight = heightMap.Heights[x, y];
-                }
-                vertexHeight *= heightMap.TerrainSettings.HeightMultiplier;
-
                 // Calculate the point of the vertex
-                Vector3 point = heightMap.LocalVertexPositions[x, y] + new Vector3(0, -vertexHeight, 0);
+                Vector3 point = terrainMap.Map[x,y].LocalVertexBasePosition + (TerrainGenerator.UP * terrainMap.Map[x,y].Height);
                 data.SetVertex(x, y, point);
             }
         }
@@ -49,7 +37,7 @@ public static class MeshGenerator
         private Vector3 Max => Vertices[Vertices.Length - 1];
 
 
-        public MeshData(int verticesX, int verticesY, Vector3 centreMeshWorld)
+        public MeshData(int verticesX, int verticesY)
         {
             MaxVerticesWidth = verticesX; MaxVerticesHeight = verticesY;
 

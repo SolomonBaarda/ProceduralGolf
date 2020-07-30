@@ -65,11 +65,6 @@ public static class Noise
 
 
 
-
-
-
-
-
     /// <summary>
     /// Calculates a Perlin value at position additionalOffset using settings. Note values are not always between 0 and 1.
     /// </summary>

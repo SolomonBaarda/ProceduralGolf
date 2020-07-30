@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
     private bool HUDLoaded;
 
     public bool DoEndlessTerrain = true;
-    public float ViewDistanceWorld = 500;
+    public float ViewDistanceWorld = 200;
 
 
     private void Awake()
@@ -65,6 +65,11 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            TerrainGenerator.GenerateInitialTerrain();
+        }
+
         // Taking a shot
         bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
         HUD.ShootingWindow.SetActive(isShooting);

@@ -6,7 +6,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 {
     // Constants 
     public readonly static RigidPreset Air = new RigidPreset(0f, 0f);
-    public readonly static RigidPreset Grass = new RigidPreset(0.5f, 0.5f);
+    public readonly static RigidPreset Grass = new RigidPreset(0.75f, 1f);
 
     // States
     public PlayState State;

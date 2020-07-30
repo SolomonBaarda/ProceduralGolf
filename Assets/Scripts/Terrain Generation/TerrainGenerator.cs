@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
 {
+    public static readonly Vector3 UP = Vector3.up;
+
     public TerrainChunkManager TerrainChunkManager;
 
     public bool IsGenerating { get; private set; } = false;
@@ -15,22 +17,18 @@ public class TerrainGenerator : MonoBehaviour
     public bool UseSameMesh = true;
     [Space]
     public NoiseSettings NoiseSettings_Green;
+    public NoiseSettings NoiseSettings_Bunker;
     public TerrainSettings TerrainSettings_Green;
 
     [Space]
     public int Seed = 0;
     public bool DoRandomSeed = false;
 
-
     [Header("Materials")]
     public Material MaterialGrass;
 
     [Header("Physics")]
     public PhysicMaterial PhysicsGrass;
-
-    [Header("Terrain")]
-    public Terrain Terrain;
-    public TerrainCollider TerrainCollider;
 
 
     public void GenerateInitialTerrain()
@@ -42,7 +40,7 @@ public class TerrainGenerator : MonoBehaviour
                 Seed = Noise.RandomSeed;
             }
 
-            GenerateInitialArea(Seed, 0);
+            GenerateInitialArea(Seed, 1);
         }
     }
 
@@ -64,31 +62,17 @@ public class TerrainGenerator : MonoBehaviour
         IsGenerating = true;
         chunksFromOrigin = Mathf.Abs(chunksFromOrigin);
 
-        // Reset the whole HexMap
+        // Reset the whole terrain map
         TerrainChunkManager.Clear();
 
-        HeightMapGenerator.HeightMap h = null;
         // Generate in that area
         for (int y = -chunksFromOrigin; y <= chunksFromOrigin; y++)
         {
             for (int x = -chunksFromOrigin; x <= chunksFromOrigin; x++)
             {
-                h = TryGenerateChunk(new Vector2Int(x, y), seed);
+                TryGenerateChunk(new Vector2Int(x, y), seed);
             }
         }
-
-        //TerrainChunk origin = TerrainChunkManager.GetChunk(Vector2Int.zero);
-
-        //TerrainData d = new TerrainData();
-        //d.size = new Vector3(241, 0, 241);
-        
-        //d.SetHeights(0, 0, h.Heights);
-
-        //Terrain.terrainData = d;
-
-        //TerrainCollider.terrainData = Terrain.terrainData;
-        //TerrainCollider.material = PhysicsGrass;
-
 
         Debug.Log("Generated in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
         IsGenerating = false;
@@ -96,7 +80,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public HeightMapGenerator.HeightMap TryGenerateChunk(Vector2Int chunk, int seed)
+    public void TryGenerateChunk(Vector2Int chunk, int seed)
     {
         if (!TerrainChunkManager.TerrainChunkExists(chunk))
         {
@@ -108,14 +92,36 @@ public class TerrainGenerator : MonoBehaviour
             Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
             Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
 
-            // Get the height map
-            HeightMapGenerator.HeightMap heightMap = new HeightMapGenerator.HeightMap(Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints), localVertexPositions, TerrainSettings_Green);
+            int width = vertices.GetLength(0), height = vertices.GetLength(1);
+            float[,] heightMap = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
+            float[,] bunkerRaw = Noise.Perlin(NoiseSettings_Bunker, Noise.Seed(seed.ToString()), noiseSamplePoints);
 
-            TerrainChunkManager.AddNewChunk(chunk, heightMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
+            Debug.Log("bunker before " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerRaw));
 
-            return heightMap;
+
+            float[,] bunkerShapeMask = new float[width, height];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (bunkerRaw[x, y] >= 0.25f)
+                    {
+                        bunkerShapeMask[x, y] = TerrainMapGenerator.TerrainMap.Point.NoBunker;
+                    }
+                    else
+                    {
+                        bunkerShapeMask[x, y] = bunkerRaw[x, y];
+                    }
+                }
+            }
+
+            Debug.Log("bunker after " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerShapeMask));
+
+            // Get the terrain map
+            TerrainMapGenerator.TerrainMap terrainMap = new TerrainMapGenerator.TerrainMap(width, height, localVertexPositions, heightMap, bunkerShapeMask, TerrainSettings_Green);
+
+            TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
         }
-        return null;
     }
 
 

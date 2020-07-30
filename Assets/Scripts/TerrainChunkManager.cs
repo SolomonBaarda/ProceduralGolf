@@ -33,14 +33,18 @@ public class TerrainChunkManager : MonoBehaviour
 
 
 
-    public void AddNewChunk(Vector2Int position, HeightMapGenerator.HeightMap heightMap, Material material, PhysicMaterial physics,
+    public void AddNewChunk(Vector2Int position, TerrainMapGenerator.TerrainMap terrain, Material material, PhysicMaterial physics,
         int terrainLayer, MeshSettings meshSettingsVisual, MeshSettings meshSettingsCollider, bool useSameMesh)
     {
         if (!TerrainChunkExists(position))
         {
+            // Create the texture
+            Texture2D t = TextureGenerator.GenerateTexture(terrain);
+
             Bounds newChunkBounds = CalculateTerrainChunkBounds(position);
-            TerrainChunk chunk = new TerrainChunk(position, newChunkBounds, material, physics, ChunkParent, terrainLayer,
-                MeshGenerator.GenerateMeshData(heightMap, newChunkBounds.center));
+
+            TerrainChunk chunk = new TerrainChunk(position, newChunkBounds, material, t, physics, ChunkParent, terrainLayer,
+                MeshGenerator.GenerateMeshData(terrain));
 
             chunk.UpdateVisualMesh(meshSettingsVisual);
             chunk.UpdateColliderMesh(meshSettingsCollider, useSameMesh);

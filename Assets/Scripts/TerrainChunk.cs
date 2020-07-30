@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class TerrainChunk
 {
@@ -18,7 +19,7 @@ public class TerrainChunk
 
     public MeshGenerator.MeshData MeshData;
 
-    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer, MeshGenerator.MeshData data)
+    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, Texture2D texture, PhysicMaterial physics, Transform parent, int terrainLayer, MeshGenerator.MeshData data)
     {
         this.position = position;
         Bounds = bounds;
@@ -29,7 +30,10 @@ public class TerrainChunk
         meshRenderer = meshObject.AddComponent<MeshRenderer>();
         meshFilter = meshObject.AddComponent<MeshFilter>();
         meshCollider = meshObject.AddComponent<MeshCollider>();
+
         meshRenderer.material = material;
+        meshRenderer.material.SetTexture("_BaseMap", texture);
+
         meshCollider.material = physics;
 
         meshObject.layer = terrainLayer;

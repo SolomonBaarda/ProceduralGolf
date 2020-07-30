@@ -38,3 +38,5 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   HeightMultiplier: 16
+  Main: 0
+  DoBunkers: 1

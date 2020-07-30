@@ -246,8 +246,6 @@ GameObject:
   m_Component:
   - component: {fileID: 698838601}
   - component: {fileID: 698838602}
-  - component: {fileID: 698838603}
-  - component: {fileID: 698838604}
   m_Layer: 0
   m_Name: Terrain Generator
   m_TagString: Untagged
@@ -288,58 +286,14 @@ MonoBehaviour:
   UseSameMesh: 1
   NoiseSettings_Green: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3,
     type: 2}
+  NoiseSettings_Bunker: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0,
+    type: 2}
   TerrainSettings_Green: {fileID: 11400000, guid: 392c806505110884192175365aabbd81,
     type: 2}
   Seed: 0
   DoRandomSeed: 0
   MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
   PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
-  Terrain: {fileID: 698838603}
-  TerrainCollider: {fileID: 698838604}
---- !u!218 &698838603
-Terrain:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 698838600}
-  m_Enabled: 1
-  serializedVersion: 6
-  m_TerrainData: {fileID: 0}
-  m_TreeDistance: 5000
-  m_TreeBillboardDistance: 50
-  m_TreeCrossFadeLength: 5
-  m_TreeMaximumFullLODCount: 50
-  m_DetailObjectDistance: 80
-  m_DetailObjectDensity: 1
-  m_HeightmapPixelError: 5
-  m_SplatMapDistance: 1000
-  m_HeightmapMaximumLOD: 0
-  m_ShadowCastingMode: 2
-  m_DrawHeightmap: 1
-  m_DrawInstanced: 0
-  m_DrawTreesAndFoliage: 1
-  m_ReflectionProbeUsage: 1
-  m_MaterialTemplate: {fileID: 0}
-  m_BakeLightProbesForTrees: 1
-  m_PreserveTreePrototypeLayers: 0
-  m_DeringLightProbesForTrees: 1
-  m_ScaleInLightmap: 1
-  m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
-  m_GroupingID: 0
-  m_RenderingLayerMask: 1
-  m_AllowAutoConnect: 0
---- !u!154 &698838604
-TerrainCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 698838600}
-  m_Material: {fileID: 0}
-  m_Enabled: 1
-  m_TerrainData: {fileID: 0}
-  m_EnableTreeColliders: 1
 --- !u!4 &784421682 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4213627502347566079, guid: 8b5ace1036e996949aaff71ced827337,
@@ -447,6 +401,101 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.ctime0
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key1.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key1.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key1.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key2.r
+      value: 0.3679245
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key2.g
+      value: 0.2481755
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key2.b
+      value: 0.2481755
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.ctime1
+      value: 38541
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.ctime2
+      value: 65535
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.m_NumColorKeys
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key0.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key1.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.atime1
+      value: 46187
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.atime2
+      value: 65535
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.m_NumAlphaKeys
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key3.r
+      value: 0.38679248
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key3.g
+      value: 0.21711464
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.key3.b
+      value: 0.21711464
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: LineColour.ctime3
+      value: 65535
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
@@ -724,8 +773,8 @@ MonoBehaviour:
   GolfBall: {fileID: 1324745660}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
-  DoEndlessTerrain: 1
-  ViewDistanceWorld: 500
+  DoEndlessTerrain: 0
+  ViewDistanceWorld: 200
 --- !u!4 &2130833001
 Transform:
   m_ObjectHideFlags: 0

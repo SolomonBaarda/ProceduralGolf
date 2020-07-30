@@ -7,6 +7,12 @@ public class TerrainSettings : VariablePreset
     public AnimationCurve HeightDistribution;
     public float HeightMultiplier = 16;
 
+    [Space]
+    public Biome Main;
+
+    public bool DoBunkers = true;
+
+
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
     /// </summary>
@@ -18,4 +24,12 @@ public class TerrainSettings : VariablePreset
     {
     }
 
+
+    public enum Biome
+    {
+        Grass,
+        Sand,
+        Water,
+        Ice,
+    }
 }
