@@ -101,14 +101,13 @@ public static class MeshGenerator
         }
 
 
-        public Mesh GenerateMesh(MeshSettings settings, out int newWidthVertices, out int newHeightVertices)
+        public Mesh GenerateMesh(MeshSettings settings)
         {
             CalculateUVS();
 
             int i = settings.SimplificationIncrement;
 
-            newWidthVertices = (MaxVerticesWidth - 1) / i + 1;
-            newHeightVertices = (MaxVerticesHeight - 1) / i + 1;
+            int newWidthVertices = (MaxVerticesWidth - 1) / i + 1, newHeightVertices = (MaxVerticesHeight - 1) / i + 1;
 
             Vector3[] vertices = new Vector3[newWidthVertices * newHeightVertices];
             Vector2[] uvs = new Vector2[vertices.Length];

@@ -49,10 +49,7 @@ public class TerrainChunk
 
     public void UpdateVisualMesh(MeshSettings visual)
     {
-        meshFilter.mesh = MeshData.GenerateMesh(visual, out int width, out int height);
-        Texture t = meshRenderer.material.GetTexture("_BaseMap");
-        Vector2 scale = new Vector2((float)(width / t.width), (float)(height / t.height));
-        meshRenderer.material.SetTextureScale("_BaseMap", scale);
+        meshFilter.mesh = MeshData.GenerateMesh(visual);
     }
 
 
@@ -61,7 +58,7 @@ public class TerrainChunk
         Mesh m = meshFilter.mesh;
         if (!useSameMesh)
         {
-            m = MeshData.GenerateMesh(collider, out _, out _);
+            m = MeshData.GenerateMesh(collider);
         }
 
         meshCollider.sharedMesh = m;

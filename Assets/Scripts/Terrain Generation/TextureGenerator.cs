@@ -3,6 +3,17 @@
 public static class TextureGenerator
 {
 
+
+
+
+
+
+
+
+
+
+
+
     public static Color[] GenerateColourMap(TerrainMapGenerator.TerrainMap map)
     {
         Color[] colours = new Color[map.Width * map.Height];
@@ -52,7 +63,7 @@ public static class TextureGenerator
             wrapMode = TextureWrapMode.Clamp,
 
         };
-        
+
 
         //Debug.Log("Creating texture with width " + width + " and height " + height);
 
