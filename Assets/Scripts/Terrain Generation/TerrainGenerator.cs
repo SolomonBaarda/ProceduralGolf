@@ -104,13 +104,13 @@ public class TerrainGenerator : MonoBehaviour
             {
                 for (int x = 0; x < width; x++)
                 {
-                    if (bunkerRaw[x, y] >= 0.25f)
+                    if (bunkerRaw[x, y] >= TerrainSettings_Green.BunkerNoiseThresholdMinMax.x && bunkerRaw[x, y] <= TerrainSettings_Green.BunkerNoiseThresholdMinMax.y)
                     {
-                        bunkerShapeMask[x, y] = TerrainMapGenerator.TerrainMap.Point.NoBunker;
+                        bunkerShapeMask[x, y] = bunkerRaw[x, y];
                     }
                     else
                     {
-                        bunkerShapeMask[x, y] = Mathf.Clamp01(bunkerRaw[x, y]);
+                        bunkerShapeMask[x, y] = TerrainMapGenerator.TerrainMap.Point.NoBunker;
                     }
                 }
             }

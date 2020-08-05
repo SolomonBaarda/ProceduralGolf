@@ -13,7 +13,7 @@ public static class TerrainMapGenerator
         // Settings
         public TerrainSettings TerrainSettings;
 
-        public TerrainMap(int width, int height, Vector3[,] vertices, float[,] heights, float[,] bunkers, TerrainSettings terrainSettings)
+        public TerrainMap(int width, int height, Vector3[,] baseVertices, float[,] rawHeights, float[,] rawBunkers, TerrainSettings terrainSettings)
         {
             Width = width;
             Height = height;
@@ -28,7 +28,7 @@ public static class TerrainMapGenerator
                 for (int x = 0; x < width; x++)
                 {
                     // Assign the terrain point
-                    Map[x, y] = new Point(terrainSettings, vertices[x, y], heights[x, y], bunkers[x, y]);
+                    Map[x, y] = new Point(terrainSettings, baseVertices[x, y], rawHeights[x, y], rawBunkers[x, y]);
                 }
             }
         }
@@ -44,19 +44,19 @@ public static class TerrainMapGenerator
         {
             public Vector3 LocalVertexBasePosition;
 
-            private float BaseHeight;
-            private float Bunker;
+            private float rawHeight;
+            private float rawBunker;
             public const float NoBunker = 0f;
 
             public TerrainSettings.Biome Biome;
             public float Height;
 
 
-            public Point(TerrainSettings settings, Vector3 localVertexPos, float baseHeight, float bunker)
+            public Point(TerrainSettings settings, Vector3 localVertexPos, float rawHeight, float rawBunker)
             {
                 LocalVertexBasePosition = localVertexPos;
-                BaseHeight = baseHeight;
-                Bunker = bunker;
+                this.rawHeight = rawHeight;
+                this.rawBunker = rawBunker;
 
                 Biome = CalculateBiome(settings);
                 Height = CalculateFinalHeight(settings);
@@ -69,7 +69,7 @@ public static class TerrainMapGenerator
                 TerrainSettings.Biome b = settings.Main;
 
                 // Do a bunker
-                if (settings.DoBunkers && !Mathf.Approximately(Bunker, NoBunker))
+                if (settings.DoBunkers && !Mathf.Approximately(rawBunker, NoBunker))
                 {
                     b = TerrainSettings.Biome.Sand;
                 }
@@ -81,10 +81,10 @@ public static class TerrainMapGenerator
             private float CalculateFinalHeight(TerrainSettings settings)
             {
                 // Calculate the height to use
-                float height = BaseHeight;
+                float height = rawHeight;
                 if (settings.UseCurve)
                 {
-                    height = settings.HeightDistribution.Evaluate(BaseHeight);
+                    height = settings.HeightDistribution.Evaluate(rawHeight);
                 }
 
                 // And apply the scale
@@ -94,7 +94,7 @@ public static class TerrainMapGenerator
                 // Add the bunker now
                 if (settings.DoBunkers)
                 {
-                    height -= Bunker * settings.BunkerMultiplier;
+                    height -= rawBunker * settings.BunkerMultiplier;
                 }
 
                 return height;

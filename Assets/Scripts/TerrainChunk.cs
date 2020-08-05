@@ -19,7 +19,7 @@ public class TerrainChunk
 
     public MeshGenerator.MeshData MeshData;
 
-    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, Texture2D texture, PhysicMaterial physics, Transform parent, int terrainLayer, MeshGenerator.MeshData data)
+    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer, MeshGenerator.MeshData data)
     {
         this.position = position;
         Bounds = bounds;
@@ -32,7 +32,7 @@ public class TerrainChunk
         meshCollider = meshObject.AddComponent<MeshCollider>();
 
         meshRenderer.material = material;
-        meshRenderer.material.SetTexture("_BaseMap", texture);
+        //meshRenderer.material.SetTexture("_BaseMap", texture);
 
         meshCollider.material = physics;
 

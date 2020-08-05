@@ -12,6 +12,7 @@ public class TerrainSettings : VariablePreset
 
     public bool DoBunkers = true;
     public float BunkerMultiplier = 0.5f;
+    public Vector2 BunkerNoiseThresholdMinMax = new Vector2(0, 0.25f);
 
 
     /// <summary>
