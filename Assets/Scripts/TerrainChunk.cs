@@ -18,12 +18,13 @@ public class TerrainChunk
 
 
     public MeshGenerator.MeshData MeshData;
+    public TerrainMapGenerator.TerrainMap TerrainMap;
 
-    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer, MeshGenerator.MeshData data)
+    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
+            MeshGenerator.MeshData data, TerrainMapGenerator.TerrainMap terrainMap)
     {
         this.position = position;
         Bounds = bounds;
-
 
         // Set the GameObject
         meshObject = new GameObject("Terrain Chunk " + position.ToString());
@@ -31,25 +32,53 @@ public class TerrainChunk
         meshFilter = meshObject.AddComponent<MeshFilter>();
         meshCollider = meshObject.AddComponent<MeshCollider>();
 
+        // Material stuff
         meshRenderer.material = material;
         //meshRenderer.material.SetTexture("_BaseMap", texture);
 
+        // Physics material
         meshCollider.material = physics;
 
+        // Set position
         meshObject.layer = terrainLayer;
-
         meshObject.transform.position = Bounds.center;
         meshObject.transform.parent = parent;
         SetVisible(false);
 
-        // Set the height map
+        // Set the maps
         MeshData = data;
+        TerrainMap = terrainMap;
     }
 
 
     public void UpdateVisualMesh(MeshSettings visual)
     {
         meshFilter.mesh = MeshData.GenerateMesh(visual);
+        
+
+        for (int y = 0; y < TerrainMap.Height; y += visual.SimplificationIncrement)
+        {
+            for (int x = 0; x < TerrainMap.Width; x += visual.SimplificationIncrement)
+            {
+                switch (TerrainMap.Map[x, y].Biome)
+                {
+                    case TerrainSettings.Biome.Grass:
+                        break;
+                    case TerrainSettings.Biome.Sand:
+                        Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.yellow, 10);
+                        break;
+                    case TerrainSettings.Biome.Hole:
+                        Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.red, 10);
+                        break;
+                    case TerrainSettings.Biome.Water:
+                        Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.blue, 10);
+                        break;
+                    case TerrainSettings.Biome.Ice:
+                        Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.white, 10);
+                        break;
+                }
+            }
+        }
     }
 
 

@@ -13,14 +13,7 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                // Calculate the point of the vertex
-                Vector3 point = terrainMap.Map[x, y].LocalVertexBasePosition + (TerrainGenerator.UP * terrainMap.Map[x, y].Height);
-                data.SetVertex(x, y, point);
-
-                if (terrainMap.Map[x, y].Biome == TerrainSettings.Biome.Sand)
-                {
-                    Debug.DrawRay(point, TerrainGenerator.UP, Color.yellow, 120);
-                }
+                data.SetVertex(x, y, terrainMap.Map[x,y].LocalVertexPosition);
             }
         }
 

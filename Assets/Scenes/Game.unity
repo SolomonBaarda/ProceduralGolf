@@ -291,6 +291,8 @@ MonoBehaviour:
     type: 2}
   NoiseSettings_Bunker: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0,
     type: 2}
+  NoiseSettings_Holes: {fileID: 11400000, guid: a8d302693e9275142bea12d81d6b216f,
+    type: 2}
   TerrainSettings_Green: {fileID: 11400000, guid: 392c806505110884192175365aabbd81,
     type: 2}
   Seed: 0
@@ -776,7 +778,7 @@ MonoBehaviour:
   GolfBall: {fileID: 1324745660}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
-  DoEndlessTerrain: 0
+  DoEndlessTerrain: 1
   ViewDistanceWorld: 200
 --- !u!4 &2130833001
 Transform:

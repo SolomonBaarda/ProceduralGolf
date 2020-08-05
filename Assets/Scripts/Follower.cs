@@ -13,20 +13,20 @@ public class Follower : MonoBehaviour
     public const float SecondsToReachTarget = 0.5f;
 
     // Views
-    public static readonly ViewPreset ViewPresetBehind = new ViewPreset(true, true, true, false, false, 1f, 0.25f, 0f, Vector3.zero, Vector3.zero);
-    public static readonly ViewPreset ViewPresetAbove = new ViewPreset(true, true, true, true, true, 1.5f, 1f, 0f, Vector3.zero, Vector3.zero);
+    public static readonly ViewPreset ViewPresetBehind = new ViewPreset(true, true, true, false, false, 0, 1f, 0.25f, 0f, Vector3.zero, Vector3.zero);
+    public static readonly ViewPreset ViewPresetAbove = new ViewPreset(true, true, true, true, true, 7.5f, 1.5f, 1f, 0f, Vector3.zero, Vector3.zero);
     /// <summary>
     /// View for setting the shot rotation.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingAbove = new ViewPreset(true, false, true, true, true, 3f, 2f, 0f, new Vector3(0, 1, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingAbove = new ViewPreset(true, false, true, true, true, 10, 3f, 2f, 0f, new Vector3(0, 1, 0), Vector3.zero);
     /// <summary>
     /// View for setting the shot angle.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingLeft = new ViewPreset(true, false, true, true, true, 0f, 0.5f, 3f, new Vector3(0, 0.5f, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingLeft = new ViewPreset(true, false, true, true, true, 10, 0f, 0.5f, 3f, new Vector3(0, 0.5f, 0), Vector3.zero);
     /// <summary>
     /// View for setting the shot power.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 5f, 2f, 2f, new Vector3(0, 2, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 10, 5f, 2f, 2f, new Vector3(0, 2, 0), Vector3.zero);
 
 
 
@@ -78,9 +78,20 @@ public class Follower : MonoBehaviour
             // Smooth the transition a little
             if (view.SmoothMovement)
             {
-                // Move by a fraction of the total distance
+                // Distance between the two points
                 float distance = Vector3.Distance(transform.position, newPos);
-                newPos = Vector3.MoveTowards(transform.position, newPos, distance * (1 / SecondsToReachTarget) * Time.deltaTime);
+                // Move by a fraction of the total distance
+                float distanceToMove = distance / SecondsToReachTarget;
+
+                float extra = 0;
+                // Add the extra distance to force the view to stay within the bounds
+                if (distance > view.SmoothMaxDistanceFromTarget && view.SmoothMaxDistanceFromTarget > 0)
+                {
+                    extra = distance - view.SmoothMaxDistanceFromTarget;
+                }
+
+                newPos = Vector3.MoveTowards(transform.position, newPos, distanceToMove * Time.deltaTime + extra);
+
             }
             // Assign the value
             transform.position = newPos;
@@ -124,6 +135,7 @@ public class Follower : MonoBehaviour
         public bool UseX, UseY, UseZ;
         public bool LookAtBall;
         public bool SmoothMovement;
+        public float SmoothMaxDistanceFromTarget;
 
         public float Backwards;
         public float Upwards;
@@ -133,7 +145,7 @@ public class Follower : MonoBehaviour
         public Vector3 ExtraRotation;
 
 
-        public ViewPreset(bool useX, bool useY, bool useZ, bool lookAtBall, bool smoothMovement,
+        public ViewPreset(bool useX, bool useY, bool useZ, bool lookAtBall, bool smoothMovement, float smoothMaxDistanceFromTarget,
             float backwards, float upwards, float sideways, Vector3 lookingAtPositionOffset, Vector3 extraRotation)
         {
             UseX = useX;
@@ -142,6 +154,8 @@ public class Follower : MonoBehaviour
 
             LookAtBall = lookAtBall;
             SmoothMovement = smoothMovement;
+
+            SmoothMaxDistanceFromTarget = smoothMaxDistanceFromTarget;
 
             Backwards = backwards;
             Upwards = upwards;

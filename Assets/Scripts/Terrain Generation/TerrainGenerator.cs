@@ -18,6 +18,7 @@ public class TerrainGenerator : MonoBehaviour
     [Space]
     public NoiseSettings NoiseSettings_Green;
     public NoiseSettings NoiseSettings_Bunker;
+    public NoiseSettings NoiseSettings_Holes;
     public TerrainSettings TerrainSettings_Green;
 
     [Space]
@@ -93,24 +94,44 @@ public class TerrainGenerator : MonoBehaviour
             Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
 
             int width = vertices.GetLength(0), height = vertices.GetLength(1);
-            float[,] heightMap = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
-            float[,] bunkerRaw = Noise.Perlin(NoiseSettings_Bunker, Noise.Seed(seed.ToString()), noiseSamplePoints);
+
+            // Heights
+            float[,] heightsRaw = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
+
+            // Bunkers
+            int bunkerSeed = Noise.Seed(seed.ToString());
+            float[,] bunkerRaw = Noise.Perlin(NoiseSettings_Bunker, bunkerSeed, noiseSamplePoints);
+
+            // Holes
+            int holeSeed = Noise.Seed(bunkerSeed.ToString());
+            float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
 
             //Debug.Log("bunker before " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerRaw));
 
-
-            float[,] bunkerShapeMask = new float[width, height];
+            // Create masks from the bunkers and holes
+            float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width,height];
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
+                    // Bunker
                     if (bunkerRaw[x, y] >= TerrainSettings_Green.BunkerNoiseThresholdMinMax.x && bunkerRaw[x, y] <= TerrainSettings_Green.BunkerNoiseThresholdMinMax.y)
                     {
                         bunkerShapeMask[x, y] = bunkerRaw[x, y];
                     }
                     else
                     {
-                        bunkerShapeMask[x, y] = TerrainMapGenerator.TerrainMap.Point.NoBunker;
+                        bunkerShapeMask[x, y] = TerrainMapGenerator.TerrainMap.Point.Empty;
+                    }
+
+                    // Hole
+                    if (holesRaw[x, y] >= TerrainSettings_Green.HoleNoiseThresholdMinMax.x && holesRaw[x, y] <= TerrainSettings_Green.HoleNoiseThresholdMinMax.y)
+                    {
+                        holeShapeMask[x, y] = holesRaw[x, y];
+                    }
+                    else
+                    {
+                        holeShapeMask[x, y] = TerrainMapGenerator.TerrainMap.Point.Empty;
                     }
                 }
             }
@@ -118,7 +139,7 @@ public class TerrainGenerator : MonoBehaviour
             //Debug.Log("bunker after " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerShapeMask));
 
             // Get the terrain map
-            TerrainMapGenerator.TerrainMap terrainMap = new TerrainMapGenerator.TerrainMap(width, height, localVertexPositions, heightMap, bunkerShapeMask, TerrainSettings_Green);
+            TerrainMapGenerator.TerrainMap terrainMap = new TerrainMapGenerator.TerrainMap(width, height, localVertexPositions, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
 
             TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
         }

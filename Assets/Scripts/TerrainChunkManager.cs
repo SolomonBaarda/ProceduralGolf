@@ -44,7 +44,7 @@ public class TerrainChunkManager : MonoBehaviour
             Bounds newChunkBounds = CalculateTerrainChunkBounds(position);
 
             TerrainChunk chunk = new TerrainChunk(position, newChunkBounds, material, physics, ChunkParent, terrainLayer,
-                MeshGenerator.GenerateMeshData(terrain));
+                MeshGenerator.GenerateMeshData(terrain), terrain);
 
             chunk.UpdateVisualMesh(meshSettingsVisual);
             chunk.UpdateColliderMesh(meshSettingsCollider, useSameMesh);

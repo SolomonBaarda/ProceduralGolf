@@ -7,13 +7,16 @@ public static class TerrainMapGenerator
     {
         public int Width, Height;
 
-        // Map
+        /// <summary>
+        /// The maximum LOD Terrain data.
+        /// </summary>
         public Point[,] Map;
 
         // Settings
         public TerrainSettings TerrainSettings;
 
-        public TerrainMap(int width, int height, Vector3[,] baseVertices, float[,] rawHeights, float[,] rawBunkers, TerrainSettings terrainSettings)
+        public TerrainMap(int width, int height, Vector3[,] baseVertices, 
+            float[,] rawHeights, float[,] bunkersMask, float[,] holesMask, TerrainSettings terrainSettings)
         {
             Width = width;
             Height = height;
@@ -28,7 +31,7 @@ public static class TerrainMapGenerator
                 for (int x = 0; x < width; x++)
                 {
                     // Assign the terrain point
-                    Map[x, y] = new Point(terrainSettings, baseVertices[x, y], rawHeights[x, y], rawBunkers[x, y]);
+                    Map[x, y] = new Point(terrainSettings, baseVertices[x, y], rawHeights[x, y], bunkersMask[x, y], holesMask[x,y]);
                 }
             }
         }
@@ -38,25 +41,29 @@ public static class TerrainMapGenerator
 
 
 
-
-
         public class Point
         {
-            public Vector3 LocalVertexBasePosition;
+            public const float Empty = 0f;
 
-            private float rawHeight;
-            private float rawBunker;
-            public const float NoBunker = 0f;
+
+            public Vector3 LocalVertexBasePosition;
+            // Calculate the point of the vertex
+            public Vector3 LocalVertexPosition => LocalVertexBasePosition + (TerrainGenerator.UP * Height);
+
+            private readonly float rawHeight;
+            private readonly float rawBunker;
+            private readonly float rawHole;
 
             public TerrainSettings.Biome Biome;
             public float Height;
 
 
-            public Point(TerrainSettings settings, Vector3 localVertexPos, float rawHeight, float rawBunker)
+            public Point(TerrainSettings settings, Vector3 localVertexPos, float rawHeight, float rawBunker, float rawHole)
             {
                 LocalVertexBasePosition = localVertexPos;
                 this.rawHeight = rawHeight;
                 this.rawBunker = rawBunker;
+                this.rawHole = rawHole;
 
                 Biome = CalculateBiome(settings);
                 Height = CalculateFinalHeight(settings);
@@ -66,12 +73,18 @@ public static class TerrainMapGenerator
 
             private TerrainSettings.Biome CalculateBiome(TerrainSettings settings)
             {
-                TerrainSettings.Biome b = settings.Main;
+                TerrainSettings.Biome b = settings.MainBiome;
 
                 // Do a bunker
-                if (settings.DoBunkers && !Mathf.Approximately(rawBunker, NoBunker))
+                if (settings.DoBunkers && !Mathf.Approximately(rawBunker, Empty))
                 {
                     b = TerrainSettings.Biome.Sand;
+                }
+
+                // Hole is more important
+                if(!Mathf.Approximately(rawHole, Empty))
+                {
+                    b = TerrainSettings.Biome.Hole;
                 }
 
                 return b;
@@ -96,6 +109,13 @@ public static class TerrainMapGenerator
                 {
                     height -= rawBunker * settings.BunkerMultiplier;
                 }
+
+
+                if(Biome == TerrainSettings.Biome.Hole)
+                {
+                    height = 0.75f * settings.HeightMultiplier;
+                }
+
 
                 return height;
             }
