@@ -14,7 +14,7 @@ public static class TextureGenerator
 
 
 
-    public static Color[] GenerateColourMap(TerrainMapGenerator.TerrainMap map)
+    public static Color[] GenerateColourMap(TerrainMap map)
     {
         Color[] colours = new Color[map.Width * map.Height];
 
@@ -48,7 +48,7 @@ public static class TextureGenerator
 
 
 
-    public static Texture2D GenerateTexture(TerrainMapGenerator.TerrainMap terrainMap)
+    public static Texture2D GenerateTexture(TerrainMap terrainMap)
     {
         return GenerateTexture(GenerateColourMap(terrainMap), terrainMap.Width, terrainMap.Height);
     }

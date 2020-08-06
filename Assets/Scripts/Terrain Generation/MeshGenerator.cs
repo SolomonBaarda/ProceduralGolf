@@ -4,7 +4,7 @@ using UnityEngine;
 public static class MeshGenerator
 {
 
-    public static MeshData GenerateMeshData(TerrainMapGenerator.TerrainMap terrainMap)
+    public static MeshData GenerateMeshData(TerrainMap terrainMap)
     {
         MeshData data = new MeshData(terrainMap.Width, terrainMap.Height);
 

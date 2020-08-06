@@ -33,7 +33,7 @@ public class TerrainChunkManager : MonoBehaviour
 
 
 
-    public void AddNewChunk(Vector2Int position, TerrainMapGenerator.TerrainMap terrain, Material material, PhysicMaterial physics,
+    public void AddNewChunk(Vector2Int position, TerrainMap terrain, Material material, PhysicMaterial physics,
         int terrainLayer, MeshSettings meshSettingsVisual, MeshSettings meshSettingsCollider, bool useSameMesh)
     {
         if (!TerrainChunkExists(position))
@@ -111,6 +111,14 @@ public class TerrainChunkManager : MonoBehaviour
     public Bounds CalculateTerrainChunkBounds(Vector2Int chunk)
     {
         return ChunkGrid.GetBoundsLocal(new Vector3Int(chunk.x, chunk.y, 0));
+    }
+
+
+    public Vector3 LocalChunkPosToWorld(Vector2Int chunk, Vector3 localPos)
+    {
+        Vector3 min = ChunkGrid.CellToWorld(new Vector3Int(chunk.x, chunk.y, 0));
+
+        return min + localPos;
     }
 
 

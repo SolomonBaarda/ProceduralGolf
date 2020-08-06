@@ -34,9 +34,22 @@ public static class Utils
 
 
 
+    public static bool IsWithinArrayBounds<T>(int x, int y, in T[,] array)
+    {
+        if (array != null)
+        {
+            int width = array.GetLength(0), height = array.GetLength(1);
+
+            return x >= 0 && y >= 0 && x < width && y < height;
+        }
+
+        return false;
+    }
+
+
 
     public static void EMPTY() { }
     public static void EMPTY<T>(T _) { }
 
-    
+
 }

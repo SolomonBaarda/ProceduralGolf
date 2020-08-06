@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using TMPro.EditorUtilities;
 using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
@@ -121,7 +120,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
                     else
                     {
-                        bunkerShapeMask[x, y] = TerrainMapGenerator.TerrainMap.Point.Empty;
+                        bunkerShapeMask[x, y] = TerrainMap.Point.Empty;
                     }
 
                     // Hole
@@ -131,7 +130,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
                     else
                     {
-                        holeShapeMask[x, y] = TerrainMapGenerator.TerrainMap.Point.Empty;
+                        holeShapeMask[x, y] = TerrainMap.Point.Empty;
                     }
                 }
             }
@@ -139,7 +138,30 @@ public class TerrainGenerator : MonoBehaviour
             //Debug.Log("bunker after " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerShapeMask));
 
             // Get the terrain map
-            TerrainMapGenerator.TerrainMap terrainMap = new TerrainMapGenerator.TerrainMap(width, height, localVertexPositions, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
+            TerrainMap terrainMap = new TerrainMap(width, height, localVertexPositions, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
+
+            
+            /*
+            List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
+            Debug.Log(holesInThisChunk.Count + " holes in chunk " + chunk.ToString());
+
+            foreach(Hole h in holesInThisChunk)
+            {
+                float holeHeight = h.EvaluateHeight();
+
+                // Overwrite all the heights for this hole
+                foreach(TerrainMap.Point p in h.HoleVertices)
+                {
+                    p.Height = holeHeight;
+                }
+
+                // World pos of the centre of the hole
+                Vector3 holeCentre = chunkBounds.center + h.EvaluateMidpointLocal();
+
+                Debug.DrawLine(holeCentre, holeCentre + UP * 100, Color.red, 100);
+            }
+            */
+            
 
             TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
         }

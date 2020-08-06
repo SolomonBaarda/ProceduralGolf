@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
         HUDLoaded = false;
 
         CourseManager.AllTerrain = TerrainGenerator.TerrainChunkManager;
+
     }
 
     private void OnDestroy()
