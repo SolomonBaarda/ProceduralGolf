@@ -143,7 +143,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
             List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
-            Debug.Log(holesInThisChunk.Count + " holes in chunk " + chunk.ToString());
+            //Debug.Log(holesInThisChunk.Count + " holes in chunk " + chunk.ToString());
 
             foreach (Hole h in holesInThisChunk)
             {
@@ -160,9 +160,9 @@ public class TerrainGenerator : MonoBehaviour
                 }
 
                 // World pos of the centre of the hole
-                Vector3 holeCentre = chunkBounds.center + h.EvaluateMidpointLocal();
+                h.Centre = chunkBounds.center + h.EvaluateMidpointLocal();
 
-                Debug.DrawRay(holeCentre, UP * 25, Color.red, 100);
+                Debug.DrawRay(h.Centre, UP * 25, Color.red, 100);
             }
 
 

@@ -100,4 +100,10 @@ public class TerrainChunk
     {
         meshObject.SetActive(visible);
     }
+
+
+
+
+
+
 }

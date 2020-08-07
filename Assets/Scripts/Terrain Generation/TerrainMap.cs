@@ -31,8 +31,10 @@ public class TerrainMap
         {
             for (int x = 0; x < width; x++)
             {
+
+
                 // Assign the terrain point
-                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], rawHeights[x, y], bunkersMask[x, y], holesMask[x, y]);
+                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], rawHeights[x, y], bunkersMask[x, y], holesMask[x, y], false);
             }
         }
         // Now set each neighbour
@@ -77,6 +79,8 @@ public class TerrainMap
         // Calculate the point of the vertex
         public Vector3 LocalVertexPosition => LocalVertexBasePosition + (TerrainGenerator.UP * Height);
 
+        public bool IsAtEdgeOfMesh;
+
         private readonly float rawHeight;
         private readonly float rawBunker;
         private readonly float rawHole;
@@ -91,12 +95,14 @@ public class TerrainMap
         public List<Point> Neighbours;
 
 
-        public Point(TerrainSettings settings, Vector3 localVertexPos, float rawHeight, float rawBunker, float rawHole)
+        public Point(TerrainSettings settings, Vector3 localVertexPos, float rawHeight, float rawBunker, float rawHole, bool isAtEdgeOfMesh)
         {
             LocalVertexBasePosition = localVertexPos;
             this.rawHeight = rawHeight;
             this.rawBunker = rawBunker;
             this.rawHole = rawHole;
+
+            IsAtEdgeOfMesh = isAtEdgeOfMesh;
 
             Neighbours = new List<Point>();
 

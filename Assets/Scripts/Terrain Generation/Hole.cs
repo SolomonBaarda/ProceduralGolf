@@ -5,6 +5,7 @@ using UnityEngine;
 public class Hole
 {
     public List<TerrainMap.Point> Vertices;
+    public Vector3 Centre;
 
     public Hole()
     {
