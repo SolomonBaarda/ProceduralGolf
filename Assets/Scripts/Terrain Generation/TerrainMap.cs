@@ -40,40 +40,24 @@ public class TerrainMap
         {
             for (int x = 0; x < width; x++)
             {
-                // Assign each neighbour direction
-                if (Utils.IsWithinArrayBounds(x - 1, y, in Map))
-                {
-                    Map[x, y].Neighbours.Add(Map[x - 1, y]);
-                }
-                if (Utils.IsWithinArrayBounds(x + 1, y, in Map))
-                {
-                    Map[x, y].Neighbours.Add(Map[x + 1, y]);
-                }
-                if (Utils.IsWithinArrayBounds(x, y - 1, in Map))
-                {
-                    Map[x, y].Neighbours.Add(Map[x, y - 1]);
-                }
-                if (Utils.IsWithinArrayBounds(x, y + 1, in Map))
-                {
-                    Map[x, y].Neighbours.Add(Map[x, y + 1]);
-                }
 
+                // Add the 3x3 of points as neighbours
+                for (int j = -1; j <= 1; j++)
+                {
+                    for (int i = -1; i <= 1; i++)
+                    {
+                        int pointX = x + i, pointY = y + j;
 
-                if (Utils.IsWithinArrayBounds(x - 1, y - 1, in Map))
-                {
-                    Map[x, y].Neighbours.Add(Map[x - 1, y - 1]);
-                }
-                if (Utils.IsWithinArrayBounds(x + 1, y + 1, in Map))
-                {
-                    Map[x, y].Neighbours.Add(Map[x + 1, y + 1]);
-                }
-                if (Utils.IsWithinArrayBounds(x + 1, y - 1, in Map))
-                {
-                    Map[x, y].Neighbours.Add(Map[x + 1, y - 1]);
-                }
-                if (Utils.IsWithinArrayBounds(x - 1, y + 1, in Map))
-                {
-                    Map[x, y].Neighbours.Add(Map[x - 1, y + 1]);
+                        // Ensure within the array bounds
+                        if (Utils.IsWithinArrayBounds(pointX, pointY, in Map))
+                        {
+                            // Don't add its self
+                            if (pointX != x || pointY != y)
+                            {
+                                Map[x, y].Neighbours.Add(Map[pointX, pointY]);
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviour
     public bool DoEndlessTerrain = true;
     public float ViewDistanceWorld = 200;
 
+    public Material Skybox;
+
 
     private void Awake()
     {
@@ -25,6 +27,7 @@ public class GameManager : MonoBehaviour
 
         CourseManager.AllTerrain = TerrainGenerator.TerrainChunkManager;
 
+        RenderSettings.skybox = Skybox;
     }
 
     private void OnDestroy()

@@ -347,11 +347,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Golf Ball
       objectReference: {fileID: 0}
-    - target: {fileID: 4213627502347566067, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: m_Icon
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 4213627502347566079, guid: 8b5ace1036e996949aaff71ced827337,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -406,101 +401,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.ctime0
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key1.r
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key1.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key1.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key2.r
-      value: 0.3679245
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key2.g
-      value: 0.2481755
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key2.b
-      value: 0.2481755
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.ctime1
-      value: 38541
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.ctime2
-      value: 65535
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.m_NumColorKeys
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key0.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key1.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.atime1
-      value: 46187
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.atime2
-      value: 65535
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.m_NumAlphaKeys
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key3.r
-      value: 0.38679248
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key3.g
-      value: 0.21711464
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.key3.b
-      value: 0.21711464
-      objectReference: {fileID: 0}
-    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
-        type: 3}
-      propertyPath: LineColour.ctime3
-      value: 65535
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
@@ -780,6 +680,7 @@ MonoBehaviour:
   HUD: {fileID: 0}
   DoEndlessTerrain: 1
   ViewDistanceWorld: 200
+  Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
 --- !u!4 &2130833001
 Transform:
   m_ObjectHideFlags: 0

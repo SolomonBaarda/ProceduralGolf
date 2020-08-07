@@ -14,7 +14,7 @@ public class Follower : MonoBehaviour
 
     // Views
     public static readonly ViewPreset ViewPresetBehind = new ViewPreset(true, true, true, false, false, 0, 1f, 0.25f, 0f, Vector3.zero, Vector3.zero);
-    public static readonly ViewPreset ViewPresetAbove = new ViewPreset(true, true, true, true, true, 7.5f, 1.5f, 1f, 0f, Vector3.zero, Vector3.zero);
+    public static readonly ViewPreset ViewPresetAbove = new ViewPreset(true, true, true, true, true, 5f, 1.5f, 1f, 0f, Vector3.zero, Vector3.zero);
     /// <summary>
     /// View for setting the shot rotation.
     /// </summary>
@@ -22,11 +22,11 @@ public class Follower : MonoBehaviour
     /// <summary>
     /// View for setting the shot angle.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingLeft = new ViewPreset(true, false, true, true, true, 10, 0f, 0.5f, 3f, new Vector3(0, 0.5f, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingLeft = new ViewPreset(true, false, true, true, true, 7.5f, 0f, 0.5f, 3f, new Vector3(0, 0.5f, 0), Vector3.zero);
     /// <summary>
     /// View for setting the shot power.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 10, 5f, 2f, 2f, new Vector3(0, 2, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 7.5f, 5f, 2f, 2f, new Vector3(0, 2, 0), Vector3.zero);
 
 
 

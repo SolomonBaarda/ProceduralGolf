@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public static class Utils
 {
@@ -44,6 +46,13 @@ public static class Utils
         }
 
         return false;
+    }
+
+
+
+    public static bool ContainsAll<T>(List<T> a, List<T> b)
+    {
+        return !b.Except(a).Any();
     }
 
 

@@ -108,7 +108,7 @@ public class TerrainGenerator : MonoBehaviour
             //Debug.Log("bunker before " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerRaw));
 
             // Create masks from the bunkers and holes
-            float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width,height];
+            float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width, height];
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -140,28 +140,31 @@ public class TerrainGenerator : MonoBehaviour
             // Get the terrain map
             TerrainMap terrainMap = new TerrainMap(width, height, localVertexPositions, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
 
-            
-            /*
+
+
             List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
             Debug.Log(holesInThisChunk.Count + " holes in chunk " + chunk.ToString());
 
-            foreach(Hole h in holesInThisChunk)
+            foreach (Hole h in holesInThisChunk)
             {
                 float holeHeight = h.EvaluateHeight();
 
+                Color c = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+
                 // Overwrite all the heights for this hole
-                foreach(TerrainMap.Point p in h.HoleVertices)
+                foreach (TerrainMap.Point p in h.Vertices)
                 {
                     p.Height = holeHeight;
+
+                    //Debug.DrawRay(chunkBounds.center + p.LocalVertexPosition, UP, c, 100);
                 }
 
                 // World pos of the centre of the hole
                 Vector3 holeCentre = chunkBounds.center + h.EvaluateMidpointLocal();
 
-                Debug.DrawLine(holeCentre, holeCentre + UP * 100, Color.red, 100);
+                Debug.DrawRay(holeCentre, UP * 25, Color.red, 100);
             }
-            */
-            
+
 
             TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
         }

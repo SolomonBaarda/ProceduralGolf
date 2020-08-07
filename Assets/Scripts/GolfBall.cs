@@ -6,12 +6,13 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 {
     // Constants 
     public readonly static RigidPreset Air = new RigidPreset(0f, 0f);
-    public readonly static RigidPreset Grass = new RigidPreset(0.75f, 1f);
+    public readonly static RigidPreset Grass = new RigidPreset(2.5f, 1f);
+    public readonly static RigidPreset Sand = new RigidPreset(7f, 10f);
 
     // States
     public PlayState State;
-    public bool IsOnGround;
-    public bool IsFrozen;
+    public bool IsOnGround = false;
+    public bool IsFrozen = false;
 
     // Statistics
     public Stats GameStats;
@@ -47,7 +48,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     // Settings
     public const float FullPower = 50;
-    public const float VelocityMagnitudeCutoffThreshold = 0.25f;
+    public const float SpeedCutoffThreshold = 0.5f;
+    public const float SecondsRequiredBelowSpeedThreshold = 1f;
+    private float stopRollingTimer;
 
     [Header("Control settings")]
     [Range(0, 1)] public float Power;
@@ -55,7 +58,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public float Angle;
 
 
-    private const float Scale = 0.25f;
+    private float Scale => (transform.localScale.x + transform.localScale.y + transform.localScale.z) / 3;
     public float Radius => Scale / 2;
 
     /// <summary>
@@ -96,16 +99,50 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     private void FixedUpdate()
     {
-        // Update the state
-        PlayState stateLastFrame = State;
-        State = UpdateState(ref IsOnGround);
+        // Get the onground value
+        IsOnGround = GroundCheck.IsOnGround(transform.position, sphereCollider.radius + GroundCheck.DEFAULT_RADIUS);
 
-        // Check if this is the first frame where the player can start shooting
-        if (stateLastFrame == PlayState.Rolling && State == PlayState.Shooting)
+        PlayState lastFrame = State;
+
+        // Update the state
+        // On the ground
+        if (IsOnGround)
         {
-            WaitForNextShot();
-            OnRollingFinished.Invoke();
+            float speed = rigid.velocity.magnitude;
+
+            // Speed is below the threshold
+            if (speed < SpeedCutoffThreshold)
+            {
+                stopRollingTimer += Time.fixedDeltaTime;
+                if (stopRollingTimer >= SecondsRequiredBelowSpeedThreshold)
+                {
+                    State = PlayState.Shooting;
+
+                    // First frame of shooting
+                    if (lastFrame == PlayState.Rolling && State == PlayState.Shooting)
+                    {
+                        WaitForNextShot();
+                        OnRollingFinished.Invoke();
+                    }
+                }
+            }
+            // Still above it
+            else
+            {
+                stopRollingTimer = 0;
+                State = PlayState.Rolling;
+            }
+
         }
+        // In the air
+        else
+        {
+            State = PlayState.Flying;
+        }
+
+
+
+
 
         // Update the rigidbody properties
         RigidPreset r = Air;
@@ -119,6 +156,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         rigid.angularDrag = r.AngularDrag;
         rigid.drag = r.Drag;
     }
+
 
 
     public void Shoot()
@@ -147,6 +185,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
+
+
     public void WaitForNextShot()
     {
         Reset();
@@ -162,8 +202,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     {
         Freeze(true);
 
-        int shotsBefore = GameStats.Shots;
 
+        // Freeze until a shot has been taken
+        int shotsBefore = GameStats.Shots;
         while (shotsBefore == GameStats.Shots)
         {
             yield return null;
@@ -187,35 +228,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         rigid.constraints = c;
     }
-
-
-
-    private PlayState UpdateState(ref bool onGround)
-    {
-        onGround = GroundCheck.IsOnGround(transform.position, sphereCollider.radius + GroundCheck.DEFAULT_RADIUS);
-        float velocityMagnitude = rigid.velocity.magnitude;
-        PlayState newState;
-
-        if (!onGround)
-        {
-            newState = PlayState.Flying;
-        }
-        else
-        {
-            if (velocityMagnitude < VelocityMagnitudeCutoffThreshold)
-            {
-                newState = PlayState.Shooting;
-            }
-            else
-            {
-                newState = PlayState.Rolling;
-            }
-        }
-
-        return newState;
-    }
-
-
 
 
     public void SetShotPreview(bool useRotation, bool useAngle, bool usePower, float lengthMultiplier)

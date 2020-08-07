@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class Hole
 {
-    public List<TerrainMap.Point> HoleVertices;
+    public List<TerrainMap.Point> Vertices;
 
     public Hole()
     {
-        HoleVertices = new List<TerrainMap.Point>();
+        Vertices = new List<TerrainMap.Point>();
     }
 
 
@@ -17,9 +17,9 @@ public class Hole
 
     public Vector3 EvaluateMidpointLocal()
     {
-        Vector3 min = HoleVertices[0].LocalVertexPosition, max = HoleVertices[0].LocalVertexPosition;
+        Vector3 min = Vertices[0].LocalVertexPosition, max = Vertices[0].LocalVertexPosition;
 
-        foreach (TerrainMap.Point p in HoleVertices)
+        foreach (TerrainMap.Point p in Vertices)
         {
             Vector3 v = p.LocalVertexPosition;
 
@@ -30,8 +30,7 @@ public class Hole
             if (v.z > max.z) { max.z = v.z; }
         }
 
-        Vector3 centreOffset = (max - min) / 2;
-        centreOffset.y = EvaluateHeight();
+        Vector3 centreOffset = (max + min) / 2;
 
         return centreOffset;
     }
@@ -39,14 +38,15 @@ public class Hole
 
     public float EvaluateHeight()
     {
-        int total = HoleVertices.Count;
+        int total = Vertices.Count;
 
         float totalHeight = 0;
-        foreach (TerrainMap.Point p in HoleVertices)
+        foreach (TerrainMap.Point p in Vertices)
         {
             totalHeight += p.Height;
         }
 
+        // Get the average height for all points in the Hole
         return totalHeight / total;
     }
 
@@ -63,48 +63,55 @@ public class Hole
     {
         List<TerrainMap.Point> pointsAlreadyChecked = new List<TerrainMap.Point>();
 
-        // Check the root first
-        if (PointHasHole(ref pointsAlreadyChecked, p, out h))
+        if (p.Biome == TerrainSettings.Biome.Hole)
         {
-            return true;
+            // Check the root first
+            if (PointHasHole(ref pointsAlreadyChecked, p, out h))
+            {
+                return true;
+            }
+            // Now the recursive case
+            else
+            {
+                return CheckAllNeighboursForHoleRecursive(ref pointsAlreadyChecked, p.Neighbours, out h);
+            }
         }
-        // Now the recursive case
-        else
-        {
-            return CheckAllNeighboursForHoleRecursive(ref pointsAlreadyChecked, p.Neighbours, out h);
-        }
+
+        h = null;
+        return false;
     }
 
 
     private static bool CheckAllNeighboursForHoleRecursive(ref List<TerrainMap.Point> pointsAlreadyChecked, List<TerrainMap.Point> neighbours, out Hole h)
     {
         // Check neighbours for holes
-        foreach (TerrainMap.Point p in neighbours)
+        foreach (TerrainMap.Point neighbour in neighbours)
         {
-            // Don't bother checking non holes
-            if (p.Biome != TerrainSettings.Biome.Hole)
-            {
-                pointsAlreadyChecked.Add(p);
-                continue;
-            }
-
-            // This neighbour has a hole
-            if (PointHasHole(ref pointsAlreadyChecked, p, out h))
+            // This neighbour has a hole assigned
+            if (PointHasHole(ref pointsAlreadyChecked, neighbour, out h))
             {
                 return true;
             }
         }
 
         // Check neighbours neighbours recursively
-        foreach (TerrainMap.Point p in neighbours)
+        foreach (TerrainMap.Point neighbour in neighbours)
         {
-            if (!pointsAlreadyChecked.Contains(p))
+            List<TerrainMap.Point> neighboursNotChecked = new List<TerrainMap.Point>();
+
+            // Get all the neighbours that have not already been checked
+            foreach (TerrainMap.Point neighbourOfNeighbour in neighbour.Neighbours)
             {
-                // Doesn't have a hole - recursive case
-                if (CheckAllNeighboursForHoleRecursive(ref pointsAlreadyChecked, p.Neighbours, out h))
+                if (neighbourOfNeighbour.Biome == TerrainSettings.Biome.Hole && !pointsAlreadyChecked.Contains(neighbourOfNeighbour))
                 {
-                    return true;
+                    neighboursNotChecked.Add(neighbourOfNeighbour);
                 }
+            }
+
+            // Doesn't have a hole - recursive case
+            if (CheckAllNeighboursForHoleRecursive(ref pointsAlreadyChecked, neighboursNotChecked, out h))
+            {
+                return true;
             }
         }
 
@@ -120,17 +127,20 @@ public class Hole
         {
             alreadyChecked.Add(p);
         }
-
-        // This point needs to be checked
-        if (!alreadyChecked.Contains(p))
+        // It is a hole
+        else
         {
-            alreadyChecked.Add(p);
-
-            // If there is a hole
-            if (p.Hole != null)
+            // This point needs to be checked
+            if (!alreadyChecked.Contains(p))
             {
-                h = p.Hole;
-                return true;
+                alreadyChecked.Add(p);
+
+                // If there is a hole assigned to that point
+                if (p.Hole != null)
+                {
+                    h = p.Hole;
+                    return true;
+                }
             }
         }
 
@@ -159,7 +169,7 @@ public class Hole
                     }
 
                     // Add the vertex to this hole
-                    h.HoleVertices.Add(t.Map[x, y]);
+                    h.Vertices.Add(t.Map[x, y]);
 
                     // Add the hole to the point
                     t.Map[x, y].Hole = h;
