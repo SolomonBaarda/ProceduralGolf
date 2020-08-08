@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class TerrainGenerator : MonoBehaviour
 {
     public static readonly Vector3 UP = Vector3.up;
 
     public TerrainChunkManager TerrainChunkManager;
+    public List<Hole> GolfHoles = new List<Hole>();
+
+    private UnityAction<Vector2Int> OnChunkGenerated;
+    private UnityAction<List<TerrainChunk>> OnChunkTerrainMapsChanged;
 
     public bool IsGenerating { get; private set; } = false;
 
@@ -31,6 +36,12 @@ public class TerrainGenerator : MonoBehaviour
     public PhysicMaterial PhysicsGrass;
 
 
+    private void Awake()
+    {
+        OnChunkGenerated += CheckChunkAddEdgeNeighbours;
+        OnChunkTerrainMapsChanged += CheckUpdatedChunksForHoles;
+    }
+
     public void GenerateInitialTerrain()
     {
         if (!IsGenerating)
@@ -50,6 +61,7 @@ public class TerrainGenerator : MonoBehaviour
         if (!IsGenerating)
         {
             TerrainChunkManager.Clear();
+            GolfHoles.Clear();
         }
     }
 
@@ -149,29 +161,107 @@ public class TerrainGenerator : MonoBehaviour
             {
                 float holeHeight = h.EvaluateHeight();
 
-                Color c = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
-
                 // Overwrite all the heights for this hole
                 foreach (TerrainMap.Point p in h.Vertices)
                 {
                     p.Height = holeHeight;
-
-                    //Debug.DrawRay(chunkBounds.center + p.LocalVertexPosition, UP, c, 100);
                 }
 
                 // World pos of the centre of the hole
                 h.Centre = chunkBounds.center + h.EvaluateMidpointLocal();
 
                 Debug.DrawRay(h.Centre, UP * 25, Color.red, 100);
+
+                GolfHoles.Add(h);
+            }
+
+            foreach(TerrainMap.Point p in terrainMap.Map)
+            {
+                if(p.IsAtEdgeOfMesh)
+                {
+                    Debug.DrawRay(chunkBounds.center + p.LocalVertexPosition, UP * 25, Color.yellow, 100);
+                }
             }
 
 
             TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
+
+            OnChunkGenerated.Invoke(chunk);
         }
     }
 
 
 
+    private void CheckChunkAddEdgeNeighbours(Vector2Int pos)
+    {
+        TerrainChunk newChunk = TerrainChunkManager.GetChunk(pos);
+
+        // List of the neighbour positions of this chunk
+        List<Vector2Int> neighbourPos = new List<Vector2Int>(new Vector2Int[]
+        {
+            new Vector2Int(pos.x-1, pos.y-1), new Vector2Int(pos.x, pos.y-1), new Vector2Int(pos.x+1, pos.y-1),
+            new Vector2Int(pos.x-1, pos.y), new Vector2Int(pos.x+1, pos.y),
+            new Vector2Int(pos.x-1, pos.y+1), new Vector2Int(pos.x, pos.y+1), new Vector2Int(pos.x+1, pos.y+1),
+        }
+        );
+
+        // Get all the neighbours
+        List<(TerrainChunk, Vector2Int)> relativeNeighbours = new List<(TerrainChunk, Vector2Int)>();
+        foreach (Vector2Int relativePos in neighbourPos)
+        {
+            TerrainChunk c = TerrainChunkManager.GetChunk(pos + relativePos);
+            if (c != null)
+            {
+                relativeNeighbours.Add((c, relativePos));
+            }
+        }
+
+
+        // Record which chunks have changed
+        List<TerrainChunk> chunksUpdated = new List<TerrainChunk>();
+
+        // Update the edge references for both the new and existing chunk
+        foreach ((TerrainChunk, Vector2Int) chunk in relativeNeighbours)
+        {
+            // New chunk
+            newChunk.TerrainMap.AddEdgeNeighbours(chunk.Item2.x, chunk.Item2.y, ref chunk.Item1.TerrainMap, out bool needsUpdating);
+            if (needsUpdating)
+            {
+                if (!chunksUpdated.Contains(newChunk))
+                {
+                    chunksUpdated.Add(newChunk);
+                }
+            }
+
+            Debug.Log(needsUpdating);
+
+            // Existing chunk
+            chunk.Item1.TerrainMap.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, ref newChunk.TerrainMap, out needsUpdating);
+            if (needsUpdating)
+            {
+                if (!chunksUpdated.Contains(chunk.Item1))
+                {
+                    chunksUpdated.Add(chunk.Item1);
+                }
+            }
+            Debug.Log(needsUpdating);
+        }
+
+        Debug.Log(chunksUpdated.Count);
+
+        // Call the event
+        OnChunkTerrainMapsChanged.Invoke(chunksUpdated);
+    }
+
+
+    private void CheckUpdatedChunksForHoles(List<TerrainChunk> chunksUpdated)
+    {
+        foreach(TerrainChunk c in chunksUpdated)
+        {
+
+            List<Hole> holesInThisChunk = Hole.CalculateHoles(ref c.TerrainMap);
+        }
+    }
 
 
     public void CheckNearbyChunks(Vector3 position, float viewDistanceWorldUnits)
@@ -247,6 +337,7 @@ public class TerrainGenerator : MonoBehaviour
 
         return roughVertices;
     }
+
 
     public static Vector3[,] CalculateLocalVertexPointsForChunk(in Vector3[,] worldPoints, in Vector3 centre)
     {

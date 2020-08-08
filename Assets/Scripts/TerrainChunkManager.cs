@@ -65,6 +65,20 @@ public class TerrainChunkManager : MonoBehaviour
         return val;
     }
 
+    public List<TerrainChunk> GetChunks(List<Vector2Int> chunks)
+    {
+        List<TerrainChunk> values = new List<TerrainChunk>();
+        foreach (Vector2Int key in chunks)
+        {
+            if (TerrainChunks.TryGetValue(key, out TerrainChunk val))
+            {
+                values.Add(val);
+            }
+        }
+
+        return values;
+    }
+
 
     public void SetVisibleChunks(List<Vector2Int> visible)
     {

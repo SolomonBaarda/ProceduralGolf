@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class TerrainChunk
 {
-    private Vector2Int position;
+    public Vector2Int Position { get; }
     public Bounds Bounds { get; }
 
     private GameObject meshObject;
@@ -23,7 +23,7 @@ public class TerrainChunk
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
             MeshGenerator.MeshData data, TerrainMap terrainMap)
     {
-        this.position = position;
+        this.Position = position;
         Bounds = bounds;
 
         // Set the GameObject
@@ -56,9 +56,9 @@ public class TerrainChunk
         meshFilter.mesh = MeshData.GenerateMesh(visual);
         
         
-        for (int y = 0; y < TerrainMap.Height; y += visual.SimplificationIncrement)
+        for (int y = 0; y < TerrainMap.Height; y += 1)
         {
-            for (int x = 0; x < TerrainMap.Width; x += visual.SimplificationIncrement)
+            for (int x = 0; x < TerrainMap.Width; x += 1)
             {
                 switch (TerrainMap.Map[x, y].Biome)
                 {

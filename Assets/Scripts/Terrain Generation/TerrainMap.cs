@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 
+
 public class TerrainMap
 {
     public int Width, Height;
@@ -15,6 +16,8 @@ public class TerrainMap
     // Settings
     public TerrainSettings TerrainSettings;
 
+    public List<Point.NeighbourDirection> EdgeNeighboursAdded;
+
     public TerrainMap(int width, int height, Vector3[,] baseVertices,
         float[,] rawHeights, float[,] bunkersMask, float[,] holesMask, TerrainSettings terrainSettings)
     {
@@ -22,6 +25,7 @@ public class TerrainMap
         Height = height;
 
         TerrainSettings = terrainSettings;
+        EdgeNeighboursAdded = new List<Point.NeighbourDirection>();
 
         // Create the map
         Map = new Point[width, height];
@@ -31,12 +35,13 @@ public class TerrainMap
         {
             for (int x = 0; x < width; x++)
             {
-
+                bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
 
                 // Assign the terrain point
-                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], rawHeights[x, y], bunkersMask[x, y], holesMask[x, y], false);
+                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], rawHeights[x, y], bunkersMask[x, y], holesMask[x, y], atEdge);
             }
         }
+
         // Now set each neighbour
         for (int y = 0; y < height; y++)
         {
@@ -66,8 +71,160 @@ public class TerrainMap
     }
 
 
+    public void AddEdgeNeighbours(int dirX, int dirY, ref TerrainMap map, out bool mapNeedsUpdating)
+    {
+        dirX = Mathf.Clamp(dirX, -1, 1);
+        dirY = Mathf.Clamp(dirY, -1, 1);
 
+        Point.NeighbourDirection d = Point.NeighbourDirection.Up;
 
+        // Sides
+        if (dirX != dirY)
+        {
+            if (dirX == -1)
+            {
+                d = Point.NeighbourDirection.Left;
+            }
+            else if (dirX == 1)
+            {
+                d = Point.NeighbourDirection.Right;
+            }
+            else if (dirY == -1)
+            {
+                d = Point.NeighbourDirection.Up;
+            }
+            else if (dirY == 1)
+            {
+                d = Point.NeighbourDirection.Down;
+            }
+        }
+        // Corners
+        else
+        {
+            if (dirX == -1 && dirY == -1)
+            {
+                d = Point.NeighbourDirection.UpLeft;
+            }
+            else if (dirX == 1 && dirY == -1)
+            {
+                d = Point.NeighbourDirection.UpRight;
+            }
+            else if (dirX == -1 && dirY == 1)
+            {
+                d = Point.NeighbourDirection.DownLeft;
+            }
+            else if (dirX == 1 && dirY == 1)
+            {
+                d = Point.NeighbourDirection.DownRight;
+            }
+        }
+
+        AddEdgeNeighbours(d, ref map, out mapNeedsUpdating);
+    }
+
+    public void AddEdgeNeighbours(Point.NeighbourDirection direction, ref TerrainMap map, out bool mapNeedsUpdating)
+    {
+        mapNeedsUpdating = false;
+
+        if (Width == map.Width && Height == map.Height)
+        {
+            // Only add the neighbours if it has not been done already
+            if (!EdgeNeighboursAdded.Contains(direction))
+            {
+                EdgeNeighboursAdded.Add(direction);
+
+                // Neighbour is above
+                if (direction == Point.NeighbourDirection.Up)
+                {
+                    for (int x = 0; x < Width; x++)
+                    {
+                        AddNeighbourForEdge(ref Map[x, 0], ref map.Map[x, Height - 1], out bool updated);
+                        mapNeedsUpdating |= updated;
+                    }
+                }
+                // Neighbour is below
+                else if (direction == Point.NeighbourDirection.Down)
+                {
+                    for (int x = 0; x < Width; x++)
+                    {
+                        AddNeighbourForEdge(ref Map[x, Height - 1], ref map.Map[x, 0], out bool updated);
+                        mapNeedsUpdating |= updated;
+                    }
+                }
+                // Neighbour is left
+                else if (direction == Point.NeighbourDirection.Left)
+                {
+                    for (int y = 0; y < Height; y++)
+                    {
+                        AddNeighbourForEdge(ref Map[0, y], ref map.Map[Width - 1, y], out bool updated);
+                        mapNeedsUpdating |= updated;
+                    }
+                }
+                // Neighbour is right
+                else if (direction == Point.NeighbourDirection.Right)
+                {
+                    for (int y = 0; y < Height; y++)
+                    {
+                        AddNeighbourForEdge(ref Map[Width - 1, y], ref map.Map[0, y], out bool updated);
+                        mapNeedsUpdating |= updated;
+                    }
+                }
+
+                // Neighbour is diagonal up left
+                if (direction == Point.NeighbourDirection.UpLeft)
+                {
+                    AddNeighbourForEdge(ref Map[0, 0], ref map.Map[Width - 1, Height - 1], out bool updated);
+                    mapNeedsUpdating |= updated;
+                }
+                // Neighbour is diagonal up right
+                else if (direction == Point.NeighbourDirection.UpRight)
+                {
+                    AddNeighbourForEdge(ref Map[Width - 1, 0], ref map.Map[0, Height - 1], out bool updated);
+                    mapNeedsUpdating |= updated;
+                }
+                // Neighbour is diagonal down left
+                else if (direction == Point.NeighbourDirection.DownLeft)
+                {
+                    AddNeighbourForEdge(ref Map[0, Height - 1], ref map.Map[Width - 1, 0], out bool updated);
+                    mapNeedsUpdating |= updated;
+                }
+                // Neighbour is diagonal down right
+                else if (direction == Point.NeighbourDirection.DownLeft)
+                {
+                    AddNeighbourForEdge(ref Map[Width - 1, Height - 1], ref map.Map[0, 0], out bool updated);
+                    mapNeedsUpdating |= updated;
+                }
+
+            }
+        }
+        else
+        {
+            Debug.LogError("Trying to add edge neighbours for TerrainMaps of different size.");
+        }
+    }
+
+    private void AddNeighbourForEdge(ref Point p, ref Point neighbour, out bool terrainNeedsUpdating)
+    {
+        terrainNeedsUpdating = false;
+        if (p.IsAtEdgeOfMesh && neighbour.IsAtEdgeOfMesh)
+        {
+            if (!p.Neighbours.Contains(neighbour))
+            {
+                p.Neighbours.Add(neighbour);
+
+                // These neighbours are the same hole that is split by the chunk border
+                if (p.Biome == TerrainSettings.Biome.Hole && neighbour.Biome == TerrainSettings.Biome.Hole )
+                {
+                    Debug.Log("found a hole on the border");
+                    if (p.Hole != neighbour.Hole)
+                    {
+                        terrainNeedsUpdating = true;
+                        p.Hole.Merge(ref neighbour.Hole);
+                    }
+                }
+            }
+        }
+    }
 
 
     public class Point
@@ -161,6 +318,13 @@ public class TerrainMap
 
             return height;
         }
+
+        public enum NeighbourDirection
+        {
+            Up, Down, Left, Right,
+            UpLeft, UpRight, DownLeft, DownRight,
+        }
+
     }
 
     public static string DebugMinMax(float[,] array)
@@ -191,6 +355,10 @@ public class TerrainMap
 
         return "";
     }
+
+
+
+
 }
 
 
