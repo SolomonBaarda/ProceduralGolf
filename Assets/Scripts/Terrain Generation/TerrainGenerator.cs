@@ -62,6 +62,8 @@ public class TerrainGenerator : MonoBehaviour
     {
         if (!IsGenerating)
         {
+            
+
             TerrainChunkManager.Clear();
             GolfHoles.Clear();
         }

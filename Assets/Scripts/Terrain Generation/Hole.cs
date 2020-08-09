@@ -54,7 +54,7 @@ public class Hole
         float totalHeight = 0;
         foreach (TerrainMap.Point p in Vertices)
         {
-            totalHeight += p.Height;
+            totalHeight += p.OriginalHeight;
         }
 
         // Get the average height for all points in the Hole

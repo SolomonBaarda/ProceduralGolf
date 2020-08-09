@@ -48,7 +48,7 @@ public static class TextureGenerator
 
 
 
-    public static Texture2D GenerateTexture(TerrainMap terrainMap)
+    public static Texture2D GenerateTexture(in TerrainMap terrainMap)
     {
         return GenerateTexture(GenerateColourMap(terrainMap), terrainMap.Width, terrainMap.Height);
     }

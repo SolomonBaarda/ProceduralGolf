@@ -262,6 +262,7 @@ public class TerrainMap
 
         public TerrainSettings.Biome Biome;
         public float Height;
+        public float OriginalHeight;
 
         /// <summary>
         /// If this point is part of a Hole.
@@ -284,6 +285,7 @@ public class TerrainMap
 
             Biome = CalculateBiome(settings);
             Height = CalculateFinalHeight(settings);
+            OriginalHeight = Height;
         }
 
 
