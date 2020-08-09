@@ -56,10 +56,12 @@ public class Hole
 
     public void Merge(ref Hole hole)
     {
-        Debug.Log("trying to merge hole " + Centre.ToString() + " with " + hole.Centre.ToString());
         if (this != hole)
         {
-            
+            Debug.Log("trying to merge hole " + Centre.ToString() + " with " + hole.Centre.ToString());
+
+
+
         }
 
     }

@@ -77,6 +77,17 @@ public class TerrainChunk
                         Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.white, 100);
                         break;
                 }
+
+
+                if(TerrainMap.Map[x,y].IsAtEdgeOfMesh)
+                {
+                    Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.black, 500);
+
+                    if(TerrainMap.Map[x,y].Biome == TerrainSettings.Biome.Hole)
+                    {
+                        //Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.green, 1000);
+                    }
+                }
             }
         }
         

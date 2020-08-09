@@ -175,15 +175,6 @@ public class TerrainGenerator : MonoBehaviour
                 GolfHoles.Add(h);
             }
 
-            foreach(TerrainMap.Point p in terrainMap.Map)
-            {
-                if(p.IsAtEdgeOfMesh)
-                {
-                    Debug.DrawRay(chunkBounds.center + p.LocalVertexPosition, UP * 25, Color.yellow, 100);
-                }
-            }
-
-
             TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
 
             OnChunkGenerated.Invoke(chunk);
@@ -196,23 +187,25 @@ public class TerrainGenerator : MonoBehaviour
     {
         TerrainChunk newChunk = TerrainChunkManager.GetChunk(pos);
 
-        // List of the neighbour positions of this chunk
-        List<Vector2Int> neighbourPos = new List<Vector2Int>(new Vector2Int[]
-        {
-            new Vector2Int(pos.x-1, pos.y-1), new Vector2Int(pos.x, pos.y-1), new Vector2Int(pos.x+1, pos.y-1),
-            new Vector2Int(pos.x-1, pos.y), new Vector2Int(pos.x+1, pos.y),
-            new Vector2Int(pos.x-1, pos.y+1), new Vector2Int(pos.x, pos.y+1), new Vector2Int(pos.x+1, pos.y+1),
-        }
-        );
-
-        // Get all the neighbours
         List<(TerrainChunk, Vector2Int)> relativeNeighbours = new List<(TerrainChunk, Vector2Int)>();
-        foreach (Vector2Int relativePos in neighbourPos)
+
+        // Check the 3x3 of nearby chunks
+        for (int y = -1; y <= 1; y++)
         {
-            TerrainChunk c = TerrainChunkManager.GetChunk(pos + relativePos);
-            if (c != null)
+            for (int x = -1; x <= 1; x++)
             {
-                relativeNeighbours.Add((c, relativePos));
+                Vector2Int relativePos = new Vector2Int(x, y);
+                Vector2Int neighbour = pos + relativePos;
+                // Don't add its self
+                if (!(neighbour.x == pos.x && neighbour.y == pos.y))
+                {
+                    // Get the neighbour chunk
+                    TerrainChunk c = TerrainChunkManager.GetChunk(neighbour);
+                    if (c != null)
+                    {
+                        relativeNeighbours.Add((c, relativePos));
+                    }
+                }
             }
         }
 
@@ -233,8 +226,6 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
 
-            Debug.Log(needsUpdating);
-
             // Existing chunk
             chunk.Item1.TerrainMap.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, ref newChunk.TerrainMap, out needsUpdating);
             if (needsUpdating)
@@ -244,22 +235,24 @@ public class TerrainGenerator : MonoBehaviour
                     chunksUpdated.Add(chunk.Item1);
                 }
             }
-            Debug.Log(needsUpdating);
         }
 
-        Debug.Log(chunksUpdated.Count);
-
         // Call the event
-        OnChunkTerrainMapsChanged.Invoke(chunksUpdated);
+        if (chunksUpdated.Count > 0)
+        {
+            OnChunkTerrainMapsChanged.Invoke(chunksUpdated);
+        }
     }
 
 
     private void CheckUpdatedChunksForHoles(List<TerrainChunk> chunksUpdated)
     {
-        foreach(TerrainChunk c in chunksUpdated)
+        Debug.Log(chunksUpdated.Count + " chunks need to be updated.");
+
+        foreach (TerrainChunk c in chunksUpdated)
         {
 
-            List<Hole> holesInThisChunk = Hole.CalculateHoles(ref c.TerrainMap);
+            //List<Hole> holesInThisChunk = Hole.CalculateHoles(ref c.TerrainMap);
         }
     }
 
