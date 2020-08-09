@@ -1,11 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Hole
 {
+    public int Number;
+
     public List<TerrainMap.Point> Vertices;
-    public Vector3 Centre;
+    public Vector3 Centre => EvaluateMidpointLocal();
+
+    public GameObject Flag;
 
     public Hole()
     {
@@ -15,14 +18,21 @@ public class Hole
 
 
 
+    public void Destroy()
+    {
+        Vertices.Clear();
+        Object.Destroy(Flag);
+    }
+
+
 
     public Vector3 EvaluateMidpointLocal()
     {
-        Vector3 min = Vertices[0].LocalVertexPosition, max = Vertices[0].LocalVertexPosition;
+        Vector3 min = Vertices[0].LocalVertexPosition + Vertices[0].Offset, max = min;
 
         foreach (TerrainMap.Point p in Vertices)
         {
-            Vector3 v = p.LocalVertexPosition;
+            Vector3 v = p.LocalVertexPosition + p.Offset;
 
             if (v.x < min.x) { min.x = v.x; }
             if (v.z < min.z) { min.z = v.z; }
@@ -52,22 +62,47 @@ public class Hole
     }
 
 
+    public void UpdateHole()
+    {
+        // Update the heights
+        SetAllPointHeights();
+
+        Flag.transform.position = Centre + (TerrainGenerator.UP * Flag.GetComponent<Collider>().bounds.extents.y);
+    }
+
 
 
     public void Merge(ref Hole hole)
     {
         if (this != hole)
         {
-            Debug.Log("trying to merge hole " + Centre.ToString() + " with " + hole.Centre.ToString());
+            Debug.Log("trying to merge hole " + Number + " with " + hole.Number);
 
+            // Add all the vertices to this hole and remove it from the other
+            Vertices.AddRange(hole.Vertices);
+            hole.Vertices.Clear();
+            hole.Destroy();
 
+            // Assign the points hole to be this
+            foreach (TerrainMap.Point p in Vertices)
+            {
+                p.Hole = this;
+            }
 
+            UpdateHole();
         }
-
     }
 
 
+    public void SetAllPointHeights()
+    {
+        float height = EvaluateHeight();
 
+        foreach (TerrainMap.Point p in Vertices)
+        {
+            p.Height = height;
+        }
+    }
 
 
     private static bool HoleHasBeenCreated(in TerrainMap.Point p, out Hole h)

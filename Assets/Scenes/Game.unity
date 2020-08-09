@@ -299,6 +299,8 @@ MonoBehaviour:
   DoRandomSeed: 0
   MaterialGrass: {fileID: 2100000, guid: 2e701212ddb9e6d448b289804871b680, type: 2}
   PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
+  GolfHoleFlagPrefab: {fileID: 110804456460024580, guid: af95c3459d594514e98b7681ed2c151b,
+    type: 3}
 --- !u!4 &784421682 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4213627502347566079, guid: 8b5ace1036e996949aaff71ced827337,

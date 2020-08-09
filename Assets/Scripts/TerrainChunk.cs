@@ -23,7 +23,7 @@ public class TerrainChunk
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
             MeshGenerator.MeshData data, TerrainMap terrainMap)
     {
-        this.Position = position;
+        Position = position;
         Bounds = bounds;
 
         // Set the GameObject
@@ -81,7 +81,7 @@ public class TerrainChunk
 
                 if(TerrainMap.Map[x,y].IsAtEdgeOfMesh)
                 {
-                    Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.black, 500);
+                    //Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.black, 500);
 
                     if(TerrainMap.Map[x,y].Biome == TerrainSettings.Biome.Hole)
                     {
@@ -90,8 +90,6 @@ public class TerrainChunk
                 }
             }
         }
-        
-        
     }
 
 
@@ -105,6 +103,9 @@ public class TerrainChunk
 
         meshCollider.sharedMesh = m;
     }
+
+
+
 
 
     public void SetVisible(bool visible)

@@ -18,11 +18,12 @@ public class TerrainMap
 
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
-    public TerrainMap(int width, int height, Vector3[,] baseVertices,
+    public TerrainMap(int width, int height, Vector3[,] baseVertices, Vector3 chunkOffset,
         float[,] rawHeights, float[,] bunkersMask, float[,] holesMask, TerrainSettings terrainSettings)
     {
         Width = width;
         Height = height;
+        Offset = chunkOffset;
 
         TerrainSettings = terrainSettings;
         EdgeNeighboursAdded = new List<Point.NeighbourDirection>();
@@ -38,7 +39,7 @@ public class TerrainMap
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
 
                 // Assign the terrain point
-                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], rawHeights[x, y], bunkersMask[x, y], holesMask[x, y], atEdge);
+                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], chunkOffset, rawHeights[x, y], bunkersMask[x, y], holesMask[x, y], atEdge);
             }
         }
 
@@ -251,6 +252,7 @@ public class TerrainMap
         public Vector3 LocalVertexBasePosition;
         // Calculate the point of the vertex
         public Vector3 LocalVertexPosition => LocalVertexBasePosition + (TerrainGenerator.UP * Height);
+        public Vector3 Offset;
 
         public bool IsAtEdgeOfMesh;
 
@@ -268,9 +270,10 @@ public class TerrainMap
         public List<Point> Neighbours;
 
 
-        public Point(TerrainSettings settings, Vector3 localVertexPos, float rawHeight, float rawBunker, float rawHole, bool isAtEdgeOfMesh)
+        public Point(TerrainSettings settings, Vector3 localVertexPos, Vector3 offset, float rawHeight, float rawBunker, float rawHole, bool isAtEdgeOfMesh)
         {
             LocalVertexBasePosition = localVertexPos;
+            Offset = offset;
             this.rawHeight = rawHeight;
             this.rawBunker = rawBunker;
             this.rawHole = rawHole;

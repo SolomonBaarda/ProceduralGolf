@@ -35,6 +35,8 @@ public class TerrainGenerator : MonoBehaviour
     [Header("Physics")]
     public PhysicMaterial PhysicsGrass;
 
+    [Header("Prefabs")]
+    public GameObject GolfHoleFlagPrefab;
 
     private void Awake()
     {
@@ -147,34 +149,24 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
 
-            //Debug.Log("bunker after " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerShapeMask));
 
             // Get the terrain map
-            TerrainMap terrainMap = new TerrainMap(width, height, localVertexPositions, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
+            TerrainMap terrainMap = new TerrainMap(width, height, localVertexPositions, chunkBounds.center, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
 
 
-
+            // Get the bunkers
             List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
-            //Debug.Log(holesInThisChunk.Count + " holes in chunk " + chunk.ToString());
-
+            // Update them all
             foreach (Hole h in holesInThisChunk)
             {
-                float holeHeight = h.EvaluateHeight();
+                h.Flag = Instantiate(GolfHoleFlagPrefab, transform);
 
-                // Overwrite all the heights for this hole
-                foreach (TerrainMap.Point p in h.Vertices)
-                {
-                    p.Height = holeHeight;
-                }
-
-                // World pos of the centre of the hole
-                h.Centre = chunkBounds.center + h.EvaluateMidpointLocal();
-
-                Debug.DrawRay(h.Centre, UP * 25, Color.red, 100);
+                h.UpdateHole();
 
                 GolfHoles.Add(h);
             }
 
+            // Create the new chunk
             TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
 
             OnChunkGenerated.Invoke(chunk);
@@ -217,19 +209,19 @@ public class TerrainGenerator : MonoBehaviour
         foreach ((TerrainChunk, Vector2Int) chunk in relativeNeighbours)
         {
             // New chunk
-            newChunk.TerrainMap.AddEdgeNeighbours(chunk.Item2.x, chunk.Item2.y, ref chunk.Item1.TerrainMap, out bool needsUpdating);
-            if (needsUpdating)
+            newChunk.TerrainMap.AddEdgeNeighbours(chunk.Item2.x, chunk.Item2.y, ref chunk.Item1.TerrainMap, out bool needsUpdateA);
+
+            // Existing chunk
+            chunk.Item1.TerrainMap.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, ref newChunk.TerrainMap, out bool needsUpdateB);
+
+
+            // If there was an update then both chunks need to have their meshes re generated
+            if (needsUpdateA || needsUpdateB)
             {
                 if (!chunksUpdated.Contains(newChunk))
                 {
                     chunksUpdated.Add(newChunk);
                 }
-            }
-
-            // Existing chunk
-            chunk.Item1.TerrainMap.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, ref newChunk.TerrainMap, out needsUpdating);
-            if (needsUpdating)
-            {
                 if (!chunksUpdated.Contains(chunk.Item1))
                 {
                     chunksUpdated.Add(chunk.Item1);
@@ -249,10 +241,23 @@ public class TerrainGenerator : MonoBehaviour
     {
         Debug.Log(chunksUpdated.Count + " chunks need to be updated.");
 
+        // Create new meshes for each chunk that needs updating
         foreach (TerrainChunk c in chunksUpdated)
         {
+            c.MeshData = MeshGenerator.GenerateMeshData(c.TerrainMap);
+            c.UpdateVisualMesh(MeshSettingsVisual);
+            c.UpdateColliderMesh(MeshSettingsCollider, UseSameMesh);
+        }
 
-            //List<Hole> holesInThisChunk = Hole.CalculateHoles(ref c.TerrainMap);
+
+        // Remove any golf holes that no longer have any vertices
+        for(int i = 0; i < GolfHoles.Count; i++)
+        {
+            Hole h = GolfHoles[i];
+            if(h.Vertices.Count == 0)
+            {
+                GolfHoles.Remove(h);
+            }
         }
     }
 
