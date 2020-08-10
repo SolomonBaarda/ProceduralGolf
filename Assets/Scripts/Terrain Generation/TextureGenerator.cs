@@ -14,7 +14,7 @@ public static class TextureGenerator
 
 
 
-    public static Color[] GenerateColourMap(TerrainMap map)
+    public static Color[] GenerateColourMap(in TerrainMap map)
     {
         Color[] colours = new Color[map.Width * map.Height];
 
@@ -30,6 +30,9 @@ public static class TextureGenerator
                         break;
                     case TerrainSettings.Biome.Sand:
                         c = Color.yellow;
+                        break;
+                    case TerrainSettings.Biome.Hole:
+                        c = Color.red;
                         break;
                     case TerrainSettings.Biome.Water:
                         c = Color.blue;
@@ -55,13 +58,12 @@ public static class TextureGenerator
 
 
 
-    public static Texture2D GenerateTexture(Color[] colourMap, int width, int height)
+    public static Texture2D GenerateTexture(in Color[] colourMap, int width, int height)
     {
         Texture2D t = new Texture2D(width, height)
         {
             filterMode = FilterMode.Point,
             wrapMode = TextureWrapMode.Clamp,
-
         };
 
 

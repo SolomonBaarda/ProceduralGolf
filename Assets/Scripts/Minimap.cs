@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class Map
+public static class Minimap
 {
 
 
 
-    public static Texture2D DrawMap(in TerrainMap[,] nearbyMaps, Vector3 currentCentre, float viewDistanceWorld, float scale, int textureWidth, int textureHeight)
+
+
+
+    public static Texture2D GenerateFullMap(in TerrainMap[,] nearbyMaps)
     {
         if (nearbyMaps != null && nearbyMaps.Length > 0)
         {

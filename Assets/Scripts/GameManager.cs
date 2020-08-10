@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     public Material Skybox;
 
+    private bool drawMap;
 
     private void Awake()
     {
@@ -72,13 +74,33 @@ public class GameManager : MonoBehaviour
     }
 
 
+    private void OnGUI()
+    {
+        if (drawMap)
+        {
+            Bounds mapVisual = RectTransformUtility.CalculateRelativeRectTransformBounds(HUD.Canvas.transform, HUD.MapVisual);
+            Rect r = new Rect(mapVisual.center, mapVisual.size);
+
+            Texture2D t = TerrainGenerator.TerrainChunkManager.GetChunk(new Vector2Int(0, 0)).Texture;
+
+            GUI.DrawTexture(r, t, ScaleMode.ScaleToFit);
+        }
+    }
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             TerrainGenerator.GenerateInitialTerrain();
         }
+
+        drawMap = Input.GetKey(KeyCode.Tab);
+
+        if (HUD != null)
+        {
+            HUD.MapParent.gameObject.SetActive(drawMap);
+        }
+
 
         // Taking a shot
         bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;

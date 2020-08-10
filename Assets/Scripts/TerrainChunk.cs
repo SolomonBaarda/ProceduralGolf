@@ -20,6 +20,8 @@ public class TerrainChunk
     public MeshGenerator.MeshData MeshData;
     public TerrainMap TerrainMap;
 
+    public Texture2D Texture;
+
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
             MeshGenerator.MeshData data, TerrainMap terrainMap)
     {
@@ -48,6 +50,8 @@ public class TerrainChunk
         // Set the maps
         MeshData = data;
         TerrainMap = terrainMap;
+
+        Texture = TextureGenerator.GenerateTexture(terrainMap);
     }
 
 
@@ -55,7 +59,7 @@ public class TerrainChunk
     {
         meshFilter.mesh = MeshData.GenerateMesh(visual);
         
-        /*
+        
         
         for (int y = 0; y < TerrainMap.Height; y += 1)
         {
@@ -92,7 +96,7 @@ public class TerrainChunk
             }
         }
 
-    */
+    
     }
 
 

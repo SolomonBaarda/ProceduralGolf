@@ -12,6 +12,8 @@ public class HUD : MonoBehaviour
     public UnityAction OnRestartPressed;
     public UnityAction OnQuitPressed;
 
+    public Canvas Canvas;
+
     [Header("Shooting Window")]
     public GameObject ShootingWindow;
     public Button Shoot;
@@ -24,12 +26,16 @@ public class HUD : MonoBehaviour
     public float SliderBackgroundAlpha = 0.75f;
 
 
-    [Header("Other Buttons")]
+    [Header("Main UI")]
     public Button Restart;
     public Button Quit;
-
-    [Header("Other Display")]
     public TMP_Text Shots;
+
+
+    [Header("Map")]
+    public Transform MapParent;
+    public RectTransform MapVisual;
+
 
 
     private void Start()
