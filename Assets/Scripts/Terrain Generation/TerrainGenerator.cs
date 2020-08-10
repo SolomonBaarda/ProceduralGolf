@@ -6,12 +6,14 @@ using UnityEngine.Events;
 public class TerrainGenerator : MonoBehaviour
 {
     public static readonly Vector3 UP = Vector3.up;
+    public static readonly Vector3 ORIGIN = Vector3.zero;
 
     public TerrainChunkManager TerrainChunkManager;
     public List<Hole> GolfHoles = new List<Hole>();
 
     private UnityAction<Vector2Int> OnChunkGenerated;
     private UnityAction<List<TerrainChunk>> OnChunkTerrainMapsChanged;
+    public UnityAction OnChunksUpdated;
 
     public bool IsGenerating { get; private set; } = false;
 
@@ -42,6 +44,14 @@ public class TerrainGenerator : MonoBehaviour
     {
         OnChunkGenerated += CheckChunkAddEdgeNeighbours;
         OnChunkTerrainMapsChanged += CheckUpdatedChunksForHoles;
+        OnChunksUpdated += Utils.EMPTY;
+    }
+
+    private void OnDestroy()
+    {
+        OnChunkGenerated -= CheckChunkAddEdgeNeighbours;
+        OnChunkTerrainMapsChanged -= CheckUpdatedChunksForHoles;
+        OnChunksUpdated -= Utils.EMPTY;
     }
 
     public void GenerateInitialTerrain()
@@ -62,8 +72,6 @@ public class TerrainGenerator : MonoBehaviour
     {
         if (!IsGenerating)
         {
-            
-
             TerrainChunkManager.Clear();
             GolfHoles.Clear();
         }
@@ -241,7 +249,7 @@ public class TerrainGenerator : MonoBehaviour
 
     private void CheckUpdatedChunksForHoles(List<TerrainChunk> chunksUpdated)
     {
-        Debug.Log(chunksUpdated.Count + " chunks need to be updated.");
+        //Debug.Log(chunksUpdated.Count + " chunks need to be updated.");
 
         // Create new meshes for each chunk that needs updating
         foreach (TerrainChunk c in chunksUpdated)
@@ -253,14 +261,16 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Remove any golf holes that no longer have any vertices
-        for(int i = 0; i < GolfHoles.Count; i++)
+        for (int i = 0; i < GolfHoles.Count; i++)
         {
             Hole h = GolfHoles[i];
-            if(h.Vertices.Count == 0)
+            if (h.Vertices.Count == 0)
             {
                 GolfHoles.Remove(h);
             }
         }
+
+        OnChunksUpdated.Invoke();
     }
 
 

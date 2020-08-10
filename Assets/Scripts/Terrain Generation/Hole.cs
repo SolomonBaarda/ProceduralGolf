@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class Hole
 {
-    public int Number;
+    public const int NotAssignedHoleNumber = -1;
+    public int Number = NotAssignedHoleNumber;
 
     public List<TerrainMap.Point> Vertices;
     public Vector3 Centre => EvaluateMidpointLocal();
@@ -21,7 +22,11 @@ public class Hole
     public void Destroy()
     {
         Vertices.Clear();
-        Object.Destroy(Flag);
+
+        if(Flag != null)
+        {
+            Object.Destroy(Flag);
+        }
     }
 
 
@@ -76,8 +81,6 @@ public class Hole
     {
         if (this != hole)
         {
-            Debug.Log("trying to merge hole " + Number + " with " + hole.Number);
-
             // Add all the vertices to this hole and remove it from the other
             Vertices.AddRange(hole.Vertices);
             hole.Vertices.Clear();

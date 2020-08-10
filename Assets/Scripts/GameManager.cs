@@ -26,6 +26,9 @@ public class GameManager : MonoBehaviour
         HUDLoaded = false;
 
         CourseManager.AllTerrain = TerrainGenerator.TerrainChunkManager;
+        CourseManager.GolfHoles = TerrainGenerator.GolfHoles;
+
+        TerrainGenerator.OnChunksUpdated += CourseManager.UpdateGolfHolesOrder;
 
         RenderSettings.skybox = Skybox;
     }
@@ -39,6 +42,9 @@ public class GameManager : MonoBehaviour
 
         HUD.OnRestartPressed -= CourseManager.RespawnGolfBall;
         HUD.OnQuitPressed -= Application.Quit;
+
+
+        TerrainGenerator.OnChunksUpdated -= CourseManager.UpdateGolfHolesOrder;
     }
 
 
