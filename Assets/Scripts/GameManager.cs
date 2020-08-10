@@ -1,7 +1,8 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -81,7 +82,10 @@ public class GameManager : MonoBehaviour
             Bounds mapVisual = RectTransformUtility.CalculateRelativeRectTransformBounds(HUD.Canvas.transform, HUD.MapVisual);
             Rect r = new Rect(mapVisual.center, mapVisual.size);
 
-            Texture2D t = TerrainGenerator.TerrainChunkManager.GetChunk(new Vector2Int(0, 0)).Texture;
+            List<Vector2Int> nearbyChunks = TerrainGenerator.GetAllNearbyChunks(GolfBall.transform.position, 0);
+
+            
+            Texture2D t = TerrainGenerator.TerrainChunkManager.GetChunk(TerrainGenerator.TerrainChunkManager.WorldToChunk(GolfBall.transform.position)).Texture;
 
             GUI.DrawTexture(r, t, ScaleMode.ScaleToFit);
         }
@@ -174,7 +178,7 @@ public class GameManager : MonoBehaviour
     {
         if (DoEndlessTerrain)
         {
-            TerrainGenerator.CheckNearbyChunks(GolfBall.Position, ViewDistanceWorld);
+            TerrainGenerator.TryGenerateNearbyChunks(GolfBall.Position, ViewDistanceWorld);
         }
     }
 

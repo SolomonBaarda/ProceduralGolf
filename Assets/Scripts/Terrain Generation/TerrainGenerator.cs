@@ -274,11 +274,12 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    public void CheckNearbyChunks(Vector3 position, float viewDistanceWorldUnits)
+
+    public List<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, float radius)
     {
         // Calculate the centre chunk
         Vector2Int centre = TerrainChunkManager.WorldToChunk(position);
-        int chunks = Mathf.RoundToInt(viewDistanceWorldUnits / TerrainChunkManager.ChunkSizeWorldUnits);
+        int chunks = Mathf.RoundToInt(radius / TerrainChunkManager.ChunkSizeWorldUnits);
 
         List<Vector2Int> nearbyChunks = new List<Vector2Int>();
 
@@ -288,8 +289,37 @@ public class TerrainGenerator : MonoBehaviour
             for (int x = -chunks; x <= chunks; x++)
             {
                 Vector2Int chunk = new Vector2Int(centre.x + x, centre.y + y);
-                TryGenerateChunk(chunk, Seed);
                 nearbyChunks.Add(chunk);
+            }
+        }
+
+        return nearbyChunks;
+    }
+
+
+    public List<Vector2Int> GetAllNearbyChunks(Vector3 position, float radius)
+    {
+        // Get all possible
+        List<Vector2Int> allPossible = GetAllPossibleNearbyChunks(position, radius);
+
+        // Remove the ones that haven't been generated yet
+        allPossible.RemoveAll((x) => TerrainChunkManager.GetChunk(x) == null);
+
+        return allPossible;
+    }
+
+
+    public void TryGenerateNearbyChunks(Vector3 position, float viewDistanceWorldUnits)
+    {
+        // Get all possible chunks
+        List<Vector2Int> nearbyChunks = GetAllPossibleNearbyChunks(position, viewDistanceWorldUnits);
+
+        // Try and generate them
+        foreach (Vector2Int chunk in nearbyChunks)
+        {
+            if (TerrainChunkManager.GetChunk(chunk) == null)
+            {
+                TryGenerateChunk(chunk, Seed);
             }
         }
 

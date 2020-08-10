@@ -36,7 +36,7 @@ public class TerrainChunk
 
         // Material stuff
         meshRenderer.material = material;
-        //meshRenderer.material.SetTexture("_BaseMap", texture);
+        
 
         // Physics material
         meshCollider.material = physics;
@@ -52,6 +52,7 @@ public class TerrainChunk
         TerrainMap = terrainMap;
 
         Texture = TextureGenerator.GenerateTexture(terrainMap);
+        //meshRenderer.material.SetTexture("_BaseMap", Texture);
     }
 
 
