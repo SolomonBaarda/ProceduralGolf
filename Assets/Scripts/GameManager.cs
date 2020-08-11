@@ -57,19 +57,24 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        TerrainGenerator.GenerateInitialTerrain();
+        StartCoroutine(WaitUntilGameStart());
 
         InvokeRepeating("CheckTerrainGeneration", 1, 5);
-
-
-        StartCoroutine(WaitForHUDLoadThenStart());
     }
 
 
 
-    private IEnumerator WaitForHUDLoadThenStart()
+    private IEnumerator WaitUntilGameStart()
     {
+        TerrainGenerator.GenerateInitialTerrain();
+
+        // Ensure the hud has loaded
         while (!HUDLoaded)
+        {
+            yield return null;
+        }
+        // Ensure the initial terrain has been fully generated 
+        while(!TerrainGenerator.InitialTerrainGenerated)
         {
             yield return null;
         }

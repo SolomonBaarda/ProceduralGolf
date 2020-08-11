@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,6 +17,9 @@ public class TerrainGenerator : MonoBehaviour
     public UnityAction OnChunksUpdated;
 
     public bool IsGenerating { get; private set; } = false;
+    public bool InitialTerrainGenerated { get; private set; } = false;
+    public const int InitialChunksToGenerateRadius = 1;
+
 
     [Header("Settings")]
     public MeshSettings MeshSettingsVisual;
@@ -66,7 +70,7 @@ public class TerrainGenerator : MonoBehaviour
                 Seed = Noise.RandomSeed;
             }
 
-            GenerateInitialArea(Seed, 1);
+            StartCoroutine(GenerateInitialArea(Seed));
         }
     }
 
@@ -82,12 +86,14 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private void GenerateInitialArea(int seed, int chunksFromOrigin)
+    private IEnumerator GenerateInitialArea(int seed)
     {
         DateTime before = DateTime.Now;
 
+        InitialTerrainGenerated = false;
         IsGenerating = true;
-        chunksFromOrigin = Mathf.Abs(chunksFromOrigin);
+
+        int chunksFromOrigin = Mathf.Abs(InitialChunksToGenerateRadius);
 
         // Reset the whole terrain map
         TerrainChunkManager.Clear();
@@ -98,11 +104,14 @@ public class TerrainGenerator : MonoBehaviour
             for (int x = -chunksFromOrigin; x <= chunksFromOrigin; x++)
             {
                 TryGenerateChunk(new Vector2Int(x, y), seed);
+                yield return null;
             }
         }
 
         Debug.Log("Generated in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
+
         IsGenerating = false;
+        InitialTerrainGenerated = true;
     }
 
 
@@ -111,6 +120,8 @@ public class TerrainGenerator : MonoBehaviour
     {
         if (!TerrainChunkManager.TerrainChunkExists(chunk))
         {
+            IsGenerating = true;
+
             // Get the chunk bounds
             Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
@@ -183,6 +194,7 @@ public class TerrainGenerator : MonoBehaviour
             TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh, MapSettings);
 
             OnChunkGenerated.Invoke(chunk);
+            IsGenerating = false;
         }
     }
 
@@ -252,8 +264,6 @@ public class TerrainGenerator : MonoBehaviour
 
     private void CheckUpdatedChunksForHoles(List<TerrainChunk> chunksUpdated)
     {
-        //Debug.Log(chunksUpdated.Count + " chunks need to be updated.");
-
         // Create new meshes for each chunk that needs updating
         foreach (TerrainChunk c in chunksUpdated)
         {
@@ -264,16 +274,9 @@ public class TerrainGenerator : MonoBehaviour
             c.RecalculateTexture();
         }
 
+        // Remove all holes that have no vertices
+        GolfHoles.RemoveAll((x) => x.Vertices.Count == 0);
 
-        // Remove any golf holes that no longer have any vertices
-        for (int i = 0; i < GolfHoles.Count; i++)
-        {
-            Hole h = GolfHoles[i];
-            if (h.Vertices.Count == 0)
-            {
-                GolfHoles.Remove(h);
-            }
-        }
 
         OnChunksUpdated.Invoke();
     }

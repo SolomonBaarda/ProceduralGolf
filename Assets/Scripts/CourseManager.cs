@@ -30,6 +30,7 @@ public class CourseManager : MonoBehaviour
                 closest.Number = 0;
             }
 
+
             // Sort the holes by number and distance
             GolfHoles.Sort((x, y) => CompareHoles(x, y));
 

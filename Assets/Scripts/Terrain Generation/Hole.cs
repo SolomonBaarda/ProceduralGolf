@@ -7,7 +7,7 @@ public class Hole
     public int Number = NotAssignedHoleNumber;
 
     public List<TerrainMap.Point> Vertices;
-    public Vector3 Centre => EvaluateMidpointLocal();
+    public Vector3 Centre => EvaluateMidpoint();
 
     public GameObject Flag;
 
@@ -31,24 +31,32 @@ public class Hole
 
 
 
-    public Vector3 EvaluateMidpointLocal()
+    public Vector3 EvaluateMidpoint()
     {
-        Vector3 min = Vertices[0].LocalVertexPosition + Vertices[0].Offset, max = min;
-
-        foreach (TerrainMap.Point p in Vertices)
+        if(Vertices.Count > 0)
         {
-            Vector3 v = p.LocalVertexPosition + p.Offset;
+            Vector3 min = Vertices[0].LocalVertexPosition + Vertices[0].Offset, max = min;
 
-            if (v.x < min.x) { min.x = v.x; }
-            if (v.z < min.z) { min.z = v.z; }
+            foreach (TerrainMap.Point p in Vertices)
+            {
+                Vector3 v = p.LocalVertexPosition + p.Offset;
 
-            if (v.x > max.x) { max.x = v.x; }
-            if (v.z > max.z) { max.z = v.z; }
+                if (v.x < min.x) { min.x = v.x; }
+                if (v.z < min.z) { min.z = v.z; }
+
+                if (v.x > max.x) { max.x = v.x; }
+                if (v.z > max.z) { max.z = v.z; }
+            }
+
+            Vector3 centreOffset = (max + min) / 2;
+
+            return centreOffset;
+        }
+        else
+        {
+            return default;
         }
 
-        Vector3 centreOffset = (max + min) / 2;
-
-        return centreOffset;
     }
 
 
