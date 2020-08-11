@@ -71,7 +71,7 @@ public class TerrainChunk
         meshFilter.mesh = MeshData.GenerateMesh(visual);
 
 
-
+        /*
         for (int y = 0; y < TerrainMap.Height; y += 1)
         {
             for (int x = 0; x < TerrainMap.Width; x += 1)
@@ -106,7 +106,7 @@ public class TerrainChunk
                 }
             }
         }
-
+        */
 
     }
 

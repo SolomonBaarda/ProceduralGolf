@@ -2776,6 +2776,7 @@ MonoBehaviour:
   SliderBackgroundAlpha: 0.75
   Restart: {fileID: 724086347}
   Quit: {fileID: 709326676}
+  ShotsDisplayParent: {fileID: 2078249257}
   Shots: {fileID: 446721192}
   MapParent: {fileID: 833348934}
   MapVisual: {fileID: 37052647}

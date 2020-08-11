@@ -7,7 +7,7 @@ public class Minimap : MonoBehaviour
 {
     public Tilemap Tilemap;
     public Grid Grid;
-    public const float CellSize = 5;
+    public const float CellSize = 1;
 
     public Tile BaseTile;
 
@@ -39,6 +39,11 @@ public class Minimap : MonoBehaviour
     }
 
 
+
+    public void SetVisible(bool visible)
+    {
+        gameObject.SetActive(visible);
+    }
 
 
 }

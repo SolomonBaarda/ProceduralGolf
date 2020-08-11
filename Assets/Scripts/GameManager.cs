@@ -79,24 +79,6 @@ public class GameManager : MonoBehaviour
     }
 
 
-    private void OnGUI()
-    {
-        if (drawMap)
-        {
-            Bounds mapVisual = RectTransformUtility.CalculateRelativeRectTransformBounds(HUD.Canvas.transform, HUD.MapVisual);
-            Rect r = new Rect(mapVisual.center, mapVisual.size);
-
-            List<Vector2Int> nearbyChunks = TerrainGenerator.GetAllNearbyChunks(GolfBall.transform.position, 0);
-
-            
-            TerrainChunk c = TerrainGenerator.TerrainChunkManager.GetChunk(TerrainGenerator.TerrainChunkManager.WorldToChunk(GolfBall.transform.position));
-            Texture2D t = c.Texture;
-
-            GUI.DrawTexture(r, t, ScaleMode.ScaleToFit);
-            //Minimap.AddChunk(c.Position, t);
-        }
-    }
-
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
@@ -106,15 +88,9 @@ public class GameManager : MonoBehaviour
 
         drawMap = Input.GetKey(KeyCode.Tab);
 
-        if (HUD != null)
-        {
-            HUD.MapParent.gameObject.SetActive(drawMap);
-        }
-
 
         // Taking a shot
         bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
-        HUD.ShootingWindow.SetActive(isShooting);
         GolfBall.SetShotPreviewVisible(isShooting);
 
 
@@ -177,15 +153,20 @@ public class GameManager : MonoBehaviour
         }
 
 
+        // Make minimap visible
+        Minimap.SetVisible(drawMap);
+        HUD.MapParent.gameObject.SetActive(drawMap);
+        // Disable the shots counter in the minimap
+        HUD.ShotsDisplayParent.SetActive(!drawMap);
 
-
-        // Update the minimap
-        if(drawMap)
-        {
-
-        }
-
+        // Show the shooting window
+        HUD.ShootingWindow.SetActive(!drawMap && isShooting);
     }
+
+
+
+
+
 
 
 
@@ -202,7 +183,7 @@ public class GameManager : MonoBehaviour
     private void ChunksUpdated()
     {
         // Update the map texture for all chunks
-        foreach(TerrainChunk chunk in TerrainGenerator.TerrainChunkManager.GetAllChunks())
+        foreach (TerrainChunk chunk in TerrainGenerator.TerrainChunkManager.GetAllChunks())
         {
             Minimap.AddChunk(chunk.Position, chunk.Texture);
         }

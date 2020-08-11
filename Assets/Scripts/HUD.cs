@@ -29,6 +29,7 @@ public class HUD : MonoBehaviour
     [Header("Main UI")]
     public Button Restart;
     public Button Quit;
+    public GameObject ShotsDisplayParent;
     public TMP_Text Shots;
 
 
