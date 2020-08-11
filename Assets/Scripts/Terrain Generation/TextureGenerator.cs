@@ -14,33 +14,17 @@ public static class TextureGenerator
 
 
 
-    public static Color[] GenerateColourMap(in TerrainMap map)
+    public static Color[] GenerateColourMap(in TerrainMap map, TextureSettings settings)
     {
+        settings.ValidateValues();
+
         Color[] colours = new Color[map.Width * map.Height];
 
         for (int y = 0; y < map.Height; y++)
         {
             for (int x = 0; x < map.Width; x++)
             {
-                Color c = Color.black;
-                switch (map.Map[x, y].Biome)
-                {
-                    case TerrainSettings.Biome.Grass:
-                        c = Color.green;
-                        break;
-                    case TerrainSettings.Biome.Sand:
-                        c = Color.yellow;
-                        break;
-                    case TerrainSettings.Biome.Hole:
-                        c = Color.red;
-                        break;
-                    case TerrainSettings.Biome.Water:
-                        c = Color.blue;
-                        break;
-                    case TerrainSettings.Biome.Ice:
-                        c = Color.white;
-                        break;
-                }
+                Color c = settings.GetColour(map.Map[x, y].Biome);
 
                 colours[y * map.Width + x] = c;
             }
@@ -51,9 +35,9 @@ public static class TextureGenerator
 
 
 
-    public static Texture2D GenerateTexture(in TerrainMap terrainMap)
+    public static Texture2D GenerateTexture(in TerrainMap terrainMap, in TextureSettings settings)
     {
-        return GenerateTexture(GenerateColourMap(terrainMap), terrainMap.Width, terrainMap.Height);
+        return GenerateTexture(GenerateColourMap(terrainMap, settings), terrainMap.Width, terrainMap.Height);
     }
 
 

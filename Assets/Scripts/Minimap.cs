@@ -1,58 +1,41 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
-public static class Minimap
+public class Minimap : MonoBehaviour
 {
+    public Tilemap Tilemap;
+    public Grid Grid;
+    public const float CellSize = 5;
+
+    public Tile BaseTile;
 
 
-
-
-
-
-    public static Texture2D GenerateFullMap(in TerrainMap[,] nearbyMaps)
+    private void Awake()
     {
-        if (nearbyMaps != null && nearbyMaps.Length > 0)
+        Grid.cellSize = new Vector3(CellSize, CellSize, CellSize);
+    }
+
+
+    public void AddChunk(Vector2Int chunk, Texture2D texture)
+    {
+        Vector3Int pos = new Vector3Int(chunk.x, chunk.y, 0);
+
+        Sprite s = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), (texture.width + texture.height) / 2 / CellSize);
+        s.name = "Chunk texture for " + chunk.ToString();
+
+        // Set the tile if it has not already been set
+        if (Tilemap.GetTile<Tile>(pos) == null)
         {
-            int mapsX = nearbyMaps.GetLength(0), mapsY = nearbyMaps.GetLength(1);
-            int width = nearbyMaps[0, 0].Width, height = nearbyMaps[0, 0].Height;
-            int totalWidth = width * mapsX, totalHeight = height * mapsY;
-
-            Color[] colours = new Color[totalWidth * totalHeight];
-
-            // Loop over each map
-            for (int y = 0; y < mapsY; y++)
-            {
-                for (int x = 0; x < mapsX; x++)
-                {
-                    TerrainMap m = nearbyMaps[x, y];
-
-                    // Generate the texture
-                    Texture2D t = TextureGenerator.GenerateTexture(in m);
-
-                    Color[] mapPixels = t.GetPixels();
-                    for(int i = 0; i < mapPixels.Length; i++)
-                    {
-                        //int index = i / width 
-                    }
-
-                }
-            }
-
-
-
-
-
-            // Create the texture
-            Texture2D combined = new Texture2D(totalWidth, totalHeight);
-            combined.SetPixels(colours);
-
-            combined.Apply();
-
-            return combined;
+            Tilemap.SetTile(pos, Instantiate(BaseTile));
         }
 
-        return null;
+        // Update the tile sprite
+        Tile t = Tilemap.GetTile<Tile>(pos);
+        t.sprite = s;
+
+        Tilemap.RefreshTile(pos);
     }
 
 

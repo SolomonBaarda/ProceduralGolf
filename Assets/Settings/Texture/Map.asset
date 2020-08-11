@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 444fdcb3cfb66f549b0959b58f1ad96f, type: 3}
+  m_Name: Map
+  m_EditorClassIdentifier: 
+  Colours:
+  - Biome: 0
+    Colour: {r: 0.069620624, g: 0.4811321, b: 0.056737266, a: 1}
+  - Biome: 2
+    Colour: {r: 0.14413491, g: 0.745283, b: 0.23168075, a: 1}
+  - Biome: 1
+    Colour: {r: 0.6886792, g: 0.5567403, b: 0.10070309, a: 1}
+  - Biome: 3
+    Colour: {r: 0.1211468, g: 0.057271298, b: 0.9339623, a: 1}
+  - Biome: 4
+    Colour: {r: 0.06741722, g: 0.9528302, b: 0.9238533, a: 1}

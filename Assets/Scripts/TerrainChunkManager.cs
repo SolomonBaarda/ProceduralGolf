@@ -34,7 +34,7 @@ public class TerrainChunkManager : MonoBehaviour
 
 
     public void AddNewChunk(Vector2Int position, TerrainMap terrain, Material material, PhysicMaterial physics,
-        int terrainLayer, MeshSettings meshSettingsVisual, MeshSettings meshSettingsCollider, bool useSameMesh)
+        int terrainLayer, MeshSettings meshSettingsVisual, MeshSettings meshSettingsCollider, bool useSameMesh, TextureSettings mapSettings)
     {
         if (!TerrainChunkExists(position))
         {
@@ -44,7 +44,7 @@ public class TerrainChunkManager : MonoBehaviour
             Bounds newChunkBounds = CalculateTerrainChunkBounds(position);
 
             TerrainChunk chunk = new TerrainChunk(position, newChunkBounds, material, physics, ChunkParent, terrainLayer,
-                MeshGenerator.GenerateMeshData(terrain), terrain);
+                MeshGenerator.GenerateMeshData(terrain), terrain, mapSettings);
 
             chunk.UpdateVisualMesh(meshSettingsVisual);
             chunk.UpdateColliderMesh(meshSettingsCollider, useSameMesh);
@@ -64,6 +64,13 @@ public class TerrainChunkManager : MonoBehaviour
         TerrainChunks.TryGetValue(chunk, out TerrainChunk val);
         return val;
     }
+
+
+    public IEnumerable<TerrainChunk> GetAllChunks()
+    {
+        return TerrainChunks.Values;
+    }
+
 
     public List<TerrainChunk> GetChunks(List<Vector2Int> chunks)
     {

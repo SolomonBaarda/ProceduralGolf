@@ -28,6 +28,9 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainSettings TerrainSettings_Green;
 
     [Space]
+    public TextureSettings MapSettings;
+
+    [Space]
     public int Seed = 0;
     public bool DoRandomSeed = false;
 
@@ -177,7 +180,7 @@ public class TerrainGenerator : MonoBehaviour
             }
 
             // Create the new chunk
-            TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh);
+            TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh, MapSettings);
 
             OnChunkGenerated.Invoke(chunk);
         }
@@ -257,6 +260,8 @@ public class TerrainGenerator : MonoBehaviour
             c.MeshData = MeshGenerator.GenerateMeshData(c.TerrainMap);
             c.UpdateVisualMesh(MeshSettingsVisual);
             c.UpdateColliderMesh(MeshSettingsCollider, UseSameMesh);
+
+            c.RecalculateTexture();
         }
 
 

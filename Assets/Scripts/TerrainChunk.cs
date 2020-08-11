@@ -21,9 +21,10 @@ public class TerrainChunk
     public TerrainMap TerrainMap;
 
     public Texture2D Texture;
+    private TextureSettings mapSettings;
 
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
-            MeshGenerator.MeshData data, TerrainMap terrainMap)
+            MeshGenerator.MeshData data, TerrainMap terrainMap, TextureSettings mapSettings)
     {
         Position = position;
         Bounds = bounds;
@@ -36,7 +37,7 @@ public class TerrainChunk
 
         // Material stuff
         meshRenderer.material = material;
-        
+
 
         // Physics material
         meshCollider.material = physics;
@@ -51,17 +52,26 @@ public class TerrainChunk
         MeshData = data;
         TerrainMap = terrainMap;
 
-        Texture = TextureGenerator.GenerateTexture(terrainMap);
+        this.mapSettings = mapSettings;
+
+        RecalculateTexture();
         //meshRenderer.material.SetTexture("_BaseMap", Texture);
+    }
+
+
+
+    public void RecalculateTexture()
+    {
+        Texture = TextureGenerator.GenerateTexture(TerrainMap, mapSettings);
     }
 
 
     public void UpdateVisualMesh(MeshSettings visual)
     {
         meshFilter.mesh = MeshData.GenerateMesh(visual);
-        
-        
-        
+
+
+
         for (int y = 0; y < TerrainMap.Height; y += 1)
         {
             for (int x = 0; x < TerrainMap.Width; x += 1)
@@ -85,11 +95,11 @@ public class TerrainChunk
                 }
 
 
-                if(TerrainMap.Map[x,y].IsAtEdgeOfMesh)
+                if (TerrainMap.Map[x, y].IsAtEdgeOfMesh)
                 {
                     //Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.black, 500);
 
-                    if(TerrainMap.Map[x,y].Biome == TerrainSettings.Biome.Hole)
+                    if (TerrainMap.Map[x, y].Biome == TerrainSettings.Biome.Hole)
                     {
                         //Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.green, 1000);
                     }
@@ -97,7 +107,7 @@ public class TerrainChunk
             }
         }
 
-    
+
     }
 
 

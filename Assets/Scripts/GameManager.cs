@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
 {
     public TerrainGenerator TerrainGenerator;
     public CourseManager CourseManager;
+    public Minimap Minimap;
 
     public GolfBall GolfBall;
     public Follower BallFollower;
@@ -32,6 +33,7 @@ public class GameManager : MonoBehaviour
         CourseManager.GolfHoles = TerrainGenerator.GolfHoles;
 
         TerrainGenerator.OnChunksUpdated += CourseManager.UpdateGolfHolesOrder;
+        TerrainGenerator.OnChunksUpdated += ChunksUpdated;
 
         RenderSettings.skybox = Skybox;
     }
@@ -48,6 +50,8 @@ public class GameManager : MonoBehaviour
 
 
         TerrainGenerator.OnChunksUpdated -= CourseManager.UpdateGolfHolesOrder;
+        TerrainGenerator.OnChunksUpdated -= ChunksUpdated;
+
     }
 
 
@@ -85,9 +89,11 @@ public class GameManager : MonoBehaviour
             List<Vector2Int> nearbyChunks = TerrainGenerator.GetAllNearbyChunks(GolfBall.transform.position, 0);
 
             
-            Texture2D t = TerrainGenerator.TerrainChunkManager.GetChunk(TerrainGenerator.TerrainChunkManager.WorldToChunk(GolfBall.transform.position)).Texture;
+            TerrainChunk c = TerrainGenerator.TerrainChunkManager.GetChunk(TerrainGenerator.TerrainChunkManager.WorldToChunk(GolfBall.transform.position));
+            Texture2D t = c.Texture;
 
             GUI.DrawTexture(r, t, ScaleMode.ScaleToFit);
+            //Minimap.AddChunk(c.Position, t);
         }
     }
 
@@ -170,6 +176,15 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
+
+
+
+        // Update the minimap
+        if(drawMap)
+        {
+
+        }
+
     }
 
 
@@ -184,7 +199,14 @@ public class GameManager : MonoBehaviour
 
 
 
-
+    private void ChunksUpdated()
+    {
+        // Update the map texture for all chunks
+        foreach(TerrainChunk chunk in TerrainGenerator.TerrainChunkManager.GetAllChunks())
+        {
+            Minimap.AddChunk(chunk.Position, chunk.Texture);
+        }
+    }
 
     private void SetHud(HUD hud)
     {
