@@ -18,13 +18,13 @@ public class TerrainChunk
 
 
     public MeshGenerator.MeshData MeshData;
-    public TerrainMap TerrainMap;
+    public TerrainMapGenerator.TerrainMap TerrainMap;
 
     public Texture2D Texture;
     private TextureSettings mapSettings;
 
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
-            MeshGenerator.MeshData data, TerrainMap terrainMap, TextureSettings mapSettings)
+            MeshGenerator.MeshData data, TerrainMapGenerator.TerrainMap terrainMap, TextureSettings mapSettings)
     {
         Position = position;
         Bounds = bounds;
@@ -135,5 +135,12 @@ public class TerrainChunk
 
 
 
+
+    public struct Data
+    {
+        public Vector2Int Chunk;
+        public Bounds Bounds;
+        public TerrainMapGenerator.TerrainMap TerrainMap;
+    }
 
 }

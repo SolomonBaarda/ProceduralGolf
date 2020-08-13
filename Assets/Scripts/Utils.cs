@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public static class Utils
@@ -61,4 +62,26 @@ public static class Utils
     public static void EMPTY<T>(T _) { }
 
 
+
+    public struct V3
+    {
+        public float x, y, z;
+
+        public V3(float x, float y, float z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    public static V3 ToV3(Vector3 v)
+    {
+        return new V3(v.x, v.y, v.z);
+    }
+
+    public static Vector3 FromV3(V3 v)
+    {
+        return new Vector3(v.x, v.y, v.z);
+    }
 }
