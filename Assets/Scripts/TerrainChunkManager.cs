@@ -33,7 +33,7 @@ public class TerrainChunkManager : MonoBehaviour
 
 
 
-    public void AddNewChunk(Vector2Int position, Bounds bounds, TerrainMapGenerator.TerrainMap terrain, Material material, PhysicMaterial physics,
+    public void AddNewChunk(Vector2Int position, Bounds bounds, TerrainMap terrain, Material material, PhysicMaterial physics,
         int terrainLayer, MeshGenerator.MeshData meshData, MeshSettings meshSettings, TextureSettings mapSettings)
     {
         if (!TerrainChunkExists(position))

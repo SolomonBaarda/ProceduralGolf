@@ -4,7 +4,7 @@ using UnityEngine;
 public static class MeshGenerator
 {
 
-    public static MeshData GenerateMeshData(TerrainMapGenerator.TerrainMap terrainMap)
+    public static MeshData GenerateMeshData(TerrainMap terrainMap)
     {
         MeshData data = new MeshData(terrainMap.Width, terrainMap.Height);
 
@@ -13,7 +13,7 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                data.SetVertex(x, y, Utils.FromV3(terrainMap.Map[x,y].LocalVertexPosition));
+                data.SetVertex(x, y, terrainMap.Map[x,y].LocalVertexPosition);
             }
         }
 
