@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -14,7 +12,7 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainChunkManager TerrainChunkManager;
     public List<Hole> GolfHoles = new List<Hole>();
 
-    private UnityAction<TerrainMapGenerator.TerrainMapData, Vector2Int> OnTerrainMapDataCreated;
+    private UnityAction<TerrainMap, Vector2Int> OnTerrainMapDataCreated;
     private UnityAction<Vector2Int> OnChunkGenerated;
     private UnityAction<List<TerrainChunk>> OnChunkTerrainMapsChanged;
     public UnityAction OnChunksUpdated;
@@ -129,9 +127,58 @@ public class TerrainGenerator : MonoBehaviour
 
             // Get the chunk bounds
             Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
+            Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
 
-            StartChunkGenerationJob(chunk, seed, chunkBounds, TerrainSettings_Green, NoiseSettings_Green, NoiseSettings_Bunker,
-                NoiseSettings_Holes, MeshSettings, MapSettings);
+            // Get the vertices
+            Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
+            Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
+
+            int width = vertices.GetLength(0), height = vertices.GetLength(1);
+
+            // Heights
+            float[,] heightsRaw = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
+
+            // Bunkers
+            int bunkerSeed = Noise.Seed(seed.ToString());
+            float[,] bunkerRaw = Noise.Perlin(NoiseSettings_Bunker, bunkerSeed, noiseSamplePoints);
+
+            // Holes
+            int holeSeed = Noise.Seed(bunkerSeed.ToString());
+            float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
+
+            // Create masks from the bunkers and holes
+            float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width, height];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    // Bunker
+                    if (bunkerRaw[x, y] >= TerrainSettings_Green.BunkerNoiseThresholdMinMax.x && bunkerRaw[x, y] <= TerrainSettings_Green.BunkerNoiseThresholdMinMax.y)
+                    {
+                        bunkerShapeMask[x, y] = bunkerRaw[x, y];
+                    }
+                    else
+                    {
+                        bunkerShapeMask[x, y] = TerrainMap.Point.Empty;
+                    }
+
+                    // Hole
+                    if (holesRaw[x, y] >= TerrainSettings_Green.HoleNoiseThresholdMinMax.x && holesRaw[x, y] <= TerrainSettings_Green.HoleNoiseThresholdMinMax.y)
+                    {
+                        holeShapeMask[x, y] = holesRaw[x, y];
+                    }
+                    else
+                    {
+                        holeShapeMask[x, y] = TerrainMap.Point.Empty;
+                    }
+                }
+            }
+
+            TerrainMap terrainMap = TerrainMapGenerator.Generate(width, height, vertices, chunkBounds, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
+
+
+            // Call the event
+            OnTerrainMapDataCreated.Invoke(terrainMap, chunk);
         }
     }
 
@@ -343,10 +390,8 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private void InstantiateTerrainChunk(TerrainMapGenerator.TerrainMapData d, Vector2Int chunk)
+    private void InstantiateTerrainChunk(TerrainMap terrainMap, Vector2Int chunk)
     {
-        TerrainMap terrainMap = new TerrainMap(d);
-
         Bounds bounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
 
@@ -376,131 +421,5 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private void StartChunkGenerationJob(Vector2Int chunk, int seed, Bounds chunkBounds, TerrainSettings courseSettings, NoiseSettings courseNoiseSettings,
-        NoiseSettings bunkerNoiseSettings, NoiseSettings holeNoiseSettings, MeshSettings meshSettings, TextureSettings textureSettings)
-    {
-        // Create the new job and add all the data it needs
-        GenerateChunkJob j = new GenerateChunkJob();
-        j.AddSettings(courseSettings, courseNoiseSettings, bunkerNoiseSettings, holeNoiseSettings, meshSettings, textureSettings);
-        j.Adddata(chunk, seed, chunkBounds);
-
-
-        // Create the memory for the result
-        NativeArray<TerrainMapGenerator.TerrainMapData> result = new NativeArray<TerrainMapGenerator.TerrainMapData>(1, Allocator.TempJob);
-        j.ChunkData = result;
-
-        // Schedule the job
-        JobHandle handle = j.Schedule();
-        // Wait for it to complete
-        handle.Complete();
-
-
-        // Access the result
-        TerrainMapGenerator.TerrainMapData data = result[0];
-        // Free the memory
-        result.Dispose();
-
-
-        // Call the event
-        OnTerrainMapDataCreated.Invoke(data, chunk);
-    }
-
-
-
-
-    private struct GenerateChunkJob : IJob
-    {
-        public NativeArray<TerrainMapGenerator.TerrainMapData> ChunkData;
-
-        private TerrainSettings courseSettings;
-        private NoiseSettings courseNoiseSettings;
-        private NoiseSettings bunkerNoiseSettings;
-        private NoiseSettings holeNoiseSettings;
-        private MeshSettings meshSettings;
-        private TextureSettings textureSettings;
-
-        private Vector2Int chunk;
-        private int seed;
-        private Bounds chunkBounds;
-
-        public void AddSettings(TerrainSettings courseSettings, NoiseSettings courseNoiseSettings, NoiseSettings bunkerNoiseSettings, NoiseSettings holeNoiseSettings,
-            MeshSettings meshSettings, TextureSettings textureSettings)
-        {
-            this.courseSettings = courseSettings;
-            this.courseNoiseSettings = courseNoiseSettings;
-            this.bunkerNoiseSettings = bunkerNoiseSettings;
-            this.holeNoiseSettings = holeNoiseSettings;
-            this.meshSettings = meshSettings;
-            this.textureSettings = textureSettings;
-        }
-
-
-
-        public void Adddata(Vector2Int chunk, int seed, Bounds chunkBounds)
-        {
-            this.chunk = chunk;
-            this.seed = seed;
-            this.chunkBounds = chunkBounds;
-        }
-
-
-
-
-
-        public void Execute()
-        {
-            courseSettings.ValidateValues();
-
-            // Get the vertex points
-            Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, courseSettings);
-            Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
-            Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
-
-            int width = vertices.GetLength(0), height = vertices.GetLength(1);
-
-            // Heights
-            float[,] heightsRaw = Noise.Perlin(courseNoiseSettings, seed, noiseSamplePoints);
-
-            // Bunkers
-            int bunkerSeed = Noise.Seed(seed.ToString());
-            float[,] bunkerRaw = Noise.Perlin(bunkerNoiseSettings, bunkerSeed, noiseSamplePoints);
-
-            // Holes
-            int holeSeed = Noise.Seed(bunkerSeed.ToString());
-            float[,] holesRaw = Noise.Perlin(holeNoiseSettings, holeSeed, noiseSamplePoints);
-
-            // Create masks from the bunkers and holes
-            float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width, height];
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    // Bunker
-                    if (bunkerRaw[x, y] >= courseSettings.BunkerNoiseThresholdMinMax.x && bunkerRaw[x, y] <= courseSettings.BunkerNoiseThresholdMinMax.y)
-                    {
-                        bunkerShapeMask[x, y] = bunkerRaw[x, y];
-                    }
-                    else
-                    {
-                        bunkerShapeMask[x, y] = TerrainMapGenerator.PointData.Empty;
-                    }
-
-                    // Hole
-                    if (holesRaw[x, y] >= courseSettings.HoleNoiseThresholdMinMax.x && holesRaw[x, y] <= courseSettings.HoleNoiseThresholdMinMax.y)
-                    {
-                        holeShapeMask[x, y] = holesRaw[x, y];
-                    }
-                    else
-                    {
-                        holeShapeMask[x, y] = TerrainMapGenerator.PointData.Empty;
-                    }
-                }
-            }
-
-
-            // Now assign the data to the result
-            ChunkData[0] = TerrainMapGenerator.Generate(width, height, localVertexPositions, chunkBounds.center, heightsRaw, bunkerShapeMask, holeShapeMask, courseSettings);
-        }
-    }
 
 }
