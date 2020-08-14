@@ -6,10 +6,15 @@ public class Hole
     public const int NotAssignedHoleNumber = -1;
     public int Number = NotAssignedHoleNumber;
 
-    public List<TerrainMapGenerator.Point> Vertices = new List<TerrainMapGenerator.Point>();
+    public List<TerrainMap.Point> Vertices;
     public Vector3 Centre => EvaluateMidpoint();
 
     public GameObject Flag;
+
+    public Hole()
+    {
+        Vertices = new List<TerrainMap.Point>();
+    }
 
 
 
@@ -30,11 +35,11 @@ public class Hole
     {
         if(Vertices.Count > 0)
         {
-            Vector3 min = Utils.FromV3(Vertices[0].LocalVertexPosition) + Utils.FromV3(Vertices[0].Offset), max = min;
+            Vector3 min = Vertices[0].LocalVertexPosition + Vertices[0].Offset, max = min;
 
-            foreach (TerrainMapGenerator.Point p in Vertices)
+            foreach (TerrainMap.Point p in Vertices)
             {
-                Vector3 v = Utils.FromV3(p.LocalVertexPosition) + Utils.FromV3(p.Offset);
+                Vector3 v = p.LocalVertexPosition + p.Offset;
 
                 if (v.x < min.x) { min.x = v.x; }
                 if (v.z < min.z) { min.z = v.z; }
@@ -60,7 +65,7 @@ public class Hole
         int total = Vertices.Count;
 
         float totalHeight = 0;
-        foreach (TerrainMapGenerator.Point p in Vertices)
+        foreach (TerrainMap.Point p in Vertices)
         {
             totalHeight += p.OriginalHeight;
         }
@@ -90,11 +95,9 @@ public class Hole
             hole.Destroy();
 
             // Assign the points hole to be this
-            for (int i = 0; i < Vertices.Count; i++)
+            foreach (TerrainMap.Point p in Vertices)
             {
-                TerrainMapGenerator.Point p = Vertices[i];
-                p.Hole = hole;
-                Vertices[i] = p;
+                p.Hole = this;
             }
 
             UpdateHole();
@@ -106,18 +109,16 @@ public class Hole
     {
         float height = EvaluateHeight();
 
-        for (int i = 0; i < Vertices.Count; i++)
+        foreach (TerrainMap.Point p in Vertices)
         {
-            TerrainMapGenerator.Point p = Vertices[i];
             p.Height = height;
-            Vertices[i] = p;
         }
     }
 
 
-    private static bool HoleHasBeenCreated(in TerrainMapGenerator.Point p, out Hole h)
+    private static bool HoleHasBeenCreated(in TerrainMap.Point p, out Hole h)
     {
-        List<TerrainMapGenerator.Point> pointsAlreadyChecked = new List<TerrainMapGenerator.Point>();
+        List<TerrainMap.Point> pointsAlreadyChecked = new List<TerrainMap.Point>();
 
         if (p.Biome == TerrainSettings.Biome.Hole)
         {
@@ -138,10 +139,10 @@ public class Hole
     }
 
 
-    private static bool CheckAllNeighboursForHoleRecursive(ref List<TerrainMapGenerator.Point> pointsAlreadyChecked, List<TerrainMapGenerator.Point> neighbours, out Hole h)
+    private static bool CheckAllNeighboursForHoleRecursive(ref List<TerrainMap.Point> pointsAlreadyChecked, List<TerrainMap.Point> neighbours, out Hole h)
     {
         // Check neighbours for holes
-        foreach (TerrainMapGenerator.Point neighbour in neighbours)
+        foreach (TerrainMap.Point neighbour in neighbours)
         {
             // This neighbour has a hole assigned
             if (PointHasHole(ref pointsAlreadyChecked, neighbour, out h))
@@ -151,12 +152,12 @@ public class Hole
         }
 
         // Check neighbours neighbours recursively
-        foreach (TerrainMapGenerator.Point neighbour in neighbours)
+        foreach (TerrainMap.Point neighbour in neighbours)
         {
-            List<TerrainMapGenerator.Point> neighboursNotChecked = new List<TerrainMapGenerator.Point>();
+            List<TerrainMap.Point> neighboursNotChecked = new List<TerrainMap.Point>();
 
             // Get all the neighbours that have not already been checked
-            foreach (TerrainMapGenerator.Point neighbourOfNeighbour in neighbour.Neighbours)
+            foreach (TerrainMap.Point neighbourOfNeighbour in neighbour.Neighbours)
             {
                 if (neighbourOfNeighbour.Biome == TerrainSettings.Biome.Hole && !pointsAlreadyChecked.Contains(neighbourOfNeighbour))
                 {
@@ -176,7 +177,7 @@ public class Hole
         return false;
     }
 
-    private static bool PointHasHole(ref List<TerrainMapGenerator.Point> alreadyChecked, TerrainMapGenerator.Point p, out Hole h)
+    private static bool PointHasHole(ref List<TerrainMap.Point> alreadyChecked, TerrainMap.Point p, out Hole h)
     {
         // Don't bother checking if it is not a hole
         if (p.Biome != TerrainSettings.Biome.Hole)
@@ -207,7 +208,7 @@ public class Hole
 
 
 
-    public static List<Hole> CalculateHoles(ref TerrainMapGenerator.TerrainMap t)
+    public static List<Hole> CalculateHoles(ref TerrainMap t)
     {
         List<Hole> holes = new List<Hole>();
 

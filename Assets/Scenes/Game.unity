@@ -389,7 +389,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TerrainChunkManager: {fileID: 1822943190}
-  MeshSettings: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
+  MeshSettingsVisual: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
+  MeshSettingsCollider: {fileID: 11400000, guid: 259a0e8b8e2104042b4702f8b6ab2770,
+    type: 2}
+  UseSameMesh: 1
   NoiseSettings_Green: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3,
     type: 2}
   NoiseSettings_Bunker: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0,
