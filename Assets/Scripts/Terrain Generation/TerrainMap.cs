@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class TerrainMap
 {
     public int Width, Height;
-    public Vector3 Offset;
+    public Bounds Bounds;
 
     /// <summary>
     /// The maximum LOD Terrain data.
@@ -18,12 +18,12 @@ public class TerrainMap
 
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
-    public TerrainMap(int width, int height, Vector3[,] baseVertices, Vector3 chunkOffset,
+    public TerrainMap(int width, int height, Vector3[,] baseVertices, Bounds bounds,
         float[,] rawHeights, float[,] bunkersMask, float[,] holesMask, TerrainSettings terrainSettings)
     {
         Width = width;
         Height = height;
-        Offset = chunkOffset;
+        Bounds = bounds;
 
         TerrainSettings = terrainSettings;
         EdgeNeighboursAdded = new List<Point.NeighbourDirection>();
@@ -39,7 +39,7 @@ public class TerrainMap
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
 
                 // Assign the terrain point
-                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], chunkOffset, rawHeights[x, y], bunkersMask[x, y], holesMask[x, y], atEdge);
+                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], bounds.center, rawHeights[x, y], bunkersMask[x, y], holesMask[x, y], atEdge);
             }
         }
 

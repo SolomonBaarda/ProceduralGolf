@@ -143,8 +143,6 @@ public class TerrainGenerator : MonoBehaviour
             int holeSeed = Noise.Seed(bunkerSeed.ToString());
             float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
 
-            //Debug.Log("bunker before " + chunk.ToString() + TerrainMapGenerator.DebugMinMax(bunkerRaw));
-
             // Create masks from the bunkers and holes
             float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width, height];
             for (int y = 0; y < height; y++)
@@ -175,7 +173,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
             // Get the terrain map
-            TerrainMap terrainMap = new TerrainMap(width, height, localVertexPositions, chunkBounds.center, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
+            TerrainMap terrainMap = new TerrainMap(width, height, localVertexPositions, chunkBounds, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
 
 
             // Get the bunkers
