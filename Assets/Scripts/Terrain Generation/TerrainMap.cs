@@ -9,21 +9,61 @@ public class TerrainMap
     /// The maximum LOD Terrain data.
     /// </summary>
     public Point[,] Map;
-    public Bounds Bounds;
 
+    public Vector3 Offset;
 
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
-    public TerrainMap(int width, int height, Bounds bounds)
+    public TerrainMap(TerrainMapGenerator.TerrainMapData data)
     {
-        Width = width;
-        Height = height;
+        Width = data.Width;
+        Height = data.Height;
 
-        Bounds = bounds;
+        Offset = new Vector3(data.OffsetX, data.OffsetY, data.OffsetZ);
 
         Map = new Point[Width, Height];
 
         EdgeNeighboursAdded = new List<Point.NeighbourDirection>();
+
+
+        // Assign all the terrain point vertices
+        for (int y = 0; y < Height; y++)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                Map[x, y] = new Point();
+
+                // Create the new point using the data
+                Map[x, y] = new Point(data.Map[x, y]);
+            }
+        }
+
+        // Now set each neighbour
+        for (int y = 0; y < Height; y++)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+
+                // Add the 3x3 of points as neighbours
+                for (int j = -1; j <= 1; j++)
+                {
+                    for (int i = -1; i <= 1; i++)
+                    {
+                        int pointX = x + i, pointY = y + j;
+
+                        // Ensure within the array bounds
+                        if (Utils.IsWithinArrayBounds(pointX, pointY, in Map))
+                        {
+                            // Don't add its self
+                            if (pointX != x || pointY != y)
+                            {
+                                Map[x, y].Neighbours.Add(Map[pointX, pointY]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -206,6 +246,56 @@ public class TerrainMap
 
 
 
+    private static TerrainSettings.Biome CalculateBiomeForPoint(TerrainSettings settings, float rawBunker, float rawHole)
+    {
+        TerrainSettings.Biome b = settings.MainBiome;
+
+        // Do a bunker
+        if (settings.DoBunkers && !Mathf.Approximately(rawBunker, Point.Empty))
+        {
+            b = TerrainSettings.Biome.Sand;
+        }
+
+        // Hole is more important
+        if (!Mathf.Approximately(rawHole, Point.Empty))
+        {
+            b = TerrainSettings.Biome.Hole;
+        }
+
+        return b;
+    }
+
+
+    private static float CalculateFinalHeight(TerrainSettings settings, float rawHeight, float rawBunker)
+    {
+        // Calculate the height to use
+        float height = rawHeight;
+        if (settings.UseCurve)
+        {
+            height = settings.HeightDistribution.Evaluate(rawHeight);
+        }
+
+        // And apply the scale
+        height *= settings.HeightMultiplier;
+
+
+        // Add the bunker now
+        if (settings.DoBunkers)
+        {
+            height -= rawBunker * settings.BunkerMultiplier;
+        }
+
+        /*
+        if (Biome == TerrainSettings.Biome.Hole)
+        {
+            height = 0.75f * settings.HeightMultiplier;
+        }
+        */
+
+
+        return height;
+    }
+
 
 
 
@@ -234,19 +324,19 @@ public class TerrainMap
         public List<Point> Neighbours;
 
 
-        public Point(Vector3 localVertex, Vector3 offset, float height, TerrainSettings.Biome biome, bool isAtEdgeOfMesh)
+        public Point(TerrainMapGenerator.PointData data)
         {
-            LocalVertexBasePosition = localVertex;
-            Offset = offset;
+            LocalVertexBasePosition = new Vector3(data.LocalBaseX, data.LocalBaseY, data.LocalBaseZ);
+            Offset = new Vector3(data.OffsetX, data.OffsetY, data.OffsetZ);
 
-            IsAtEdgeOfMesh = isAtEdgeOfMesh;
+            IsAtEdgeOfMesh = data.IsAtEdgeOfMesh;
 
             Neighbours = new List<Point>();
             Hole = null;
 
-            Biome = biome;
+            Biome = data.Biome;
 
-            Height = height;
+            Height = data.OriginalHeight;
             OriginalHeight = Height;
         }
 

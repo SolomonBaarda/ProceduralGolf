@@ -4,16 +4,11 @@ public static class TerrainMapGenerator
 {
 
 
-    public static TerrainMap Generate(int width, int height, Vector3[,] baseVertices, Bounds bounds,
+    public static TerrainMapData Generate(int width, int height, Vector3[,] baseVertices, Vector3 offset,
             float[,] rawHeights, float[,] bunkersMask, float[,] holesMask, TerrainSettings terrainSettings)
     {
-        terrainSettings.ValidateValues();
-
         // Create the map
-        TerrainMap map = new TerrainMap(width, height, bounds)
-        {
-            Map = new TerrainMap.Point[width, height]
-        };
+        PointData[,] map = new PointData[width, height];
 
         // Assign all the terrain point vertices
         for (int y = 0; y < height; y++)
@@ -27,44 +22,44 @@ public static class TerrainMapGenerator
                 TerrainSettings.Biome b = CalculateBiomeForPoint(terrainSettings, bunkersMask[x, y], holesMask[x, y]);
 
                 // Assign the terrain point
-                map.Map[x, y] = new TerrainMap.Point(baseVertices[x, y], bounds.center, pointHeight, b, atEdge);
-            }
-        }
-
-        // Now set each neighbour
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-
-                // Add the 3x3 of points as neighbours
-                for (int j = -1; j <= 1; j++)
-                {
-                    for (int i = -1; i <= 1; i++)
-                    {
-                        int pointX = x + i, pointY = y + j;
-
-                        // Ensure within the array bounds
-                        if (Utils.IsWithinArrayBounds(pointX, pointY, in map.Map))
-                        {
-                            // Don't add its self
-                            if (pointX != x || pointY != y)
-                            {
-                                map.Map[x, y].Neighbours.Add(map.Map[pointX, pointY]);
-                            }
-                        }
-                    }
-                }
+                map[x, y] = new PointData(baseVertices[x, y].x, baseVertices[x, y].y, baseVertices[x, y].z, offset.x, offset.y, offset.z, pointHeight, b, atEdge);
             }
         }
 
 
-        // Return the terrain map 
-        return map;
+        // Return the new terrain map struct
+        return new TerrainMapData(width, height, offset.x, offset.y, offset.z, map);
     }
 
 
 
+
+
+
+    public struct TerrainMapData
+    {
+        public int Width, Height;
+
+        /// <summary>
+        /// The maximum LOD Terrain data.
+        /// </summary>
+        public PointData[,] Map;
+
+        public float OffsetX, OffsetY, OffsetZ;
+
+
+        public TerrainMapData(int width, int height, float offsetX, float offsetY, float offsetZ, PointData[,] map)
+        {
+            Width = width;
+            Height = height;
+
+            OffsetX = offsetX;
+            OffsetY = offsetY;
+            OffsetZ = offsetZ;
+
+            Map = map;
+        }
+    }
 
 
 
@@ -76,13 +71,13 @@ public static class TerrainMapGenerator
         TerrainSettings.Biome b = settings.MainBiome;
 
         // Do a bunker
-        if (settings.DoBunkers && !Mathf.Approximately(rawBunker, TerrainMap.Point.Empty))
+        if (settings.DoBunkers && !Mathf.Approximately(rawBunker, PointData.Empty))
         {
             b = TerrainSettings.Biome.Sand;
         }
 
         // Hole is more important
-        if (!Mathf.Approximately(rawHole, TerrainMap.Point.Empty))
+        if (!Mathf.Approximately(rawHole, PointData.Empty))
         {
             b = TerrainSettings.Biome.Hole;
         }
@@ -122,6 +117,36 @@ public static class TerrainMapGenerator
     }
 
 
+
+
+    public struct PointData
+    {
+        public const float Empty = 0f;
+
+        public float LocalBaseX, LocalBaseY, LocalBaseZ;
+        public float OffsetX, OffsetY, OffsetZ;
+
+
+        public bool IsAtEdgeOfMesh;
+
+        public TerrainSettings.Biome Biome;
+        public float OriginalHeight;
+
+        public PointData(float localX, float localY, float localZ, float offsetX, float offsetY, float offsetZ, float originalHeight, TerrainSettings.Biome biome, bool isAtEdgeOfMesh)
+        {
+            LocalBaseX = localX;
+            LocalBaseY = localY;
+            LocalBaseZ = localZ;
+            OffsetX = offsetX;
+            OffsetY = offsetY;
+            OffsetZ = offsetZ;
+
+            IsAtEdgeOfMesh = isAtEdgeOfMesh;
+
+            Biome = biome;
+            OriginalHeight = originalHeight;
+        }
+    }
 
 
 }
