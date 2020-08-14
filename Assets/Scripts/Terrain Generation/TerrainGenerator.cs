@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -70,7 +71,7 @@ public class TerrainGenerator : MonoBehaviour
                 Seed = Noise.RandomSeed;
             }
 
-            StartCoroutine(GenerateInitialArea(Seed));
+            GenerateInitialArea(Seed);
         }
     }
 
@@ -86,7 +87,23 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private IEnumerator GenerateInitialArea(int seed)
+    private IEnumerator WaitUntiInitialChunksGenerated(List<Vector2Int> initialChunks, DateTime start)
+    {
+        while (initialChunks.Count > 0)
+        {
+            // Remove all chunks that have been generated
+            initialChunks.RemoveAll((x) => TerrainChunkManager.TerrainChunkExists(x));
+
+            yield return null;
+        }
+
+
+        InitialTerrainGenerated = true;
+
+        Debug.Log("Generated in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds.");
+    }
+
+    private void GenerateInitialArea(int seed)
     {
         DateTime before = DateTime.Now;
 
@@ -98,20 +115,23 @@ public class TerrainGenerator : MonoBehaviour
         // Reset the whole terrain map
         TerrainChunkManager.Clear();
 
+        List<Vector2Int> initialChunks = new List<Vector2Int>();
+
         // Generate in that area
         for (int y = -chunksFromOrigin; y <= chunksFromOrigin; y++)
         {
             for (int x = -chunksFromOrigin; x <= chunksFromOrigin; x++)
             {
-                TryGenerateChunk(new Vector2Int(x, y), seed);
-                yield return null;
+                Vector2Int chunk = new Vector2Int(x, y);
+                initialChunks.Add(chunk);
+
+                // Generate the chunk
+                TryGenerateChunk(chunk, seed);
             }
         }
 
-        Debug.Log("Generated in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
-
-        IsGenerating = false;
-        InitialTerrainGenerated = true;
+        // Wait until the chunks have been generated
+        StartCoroutine(WaitUntiInitialChunksGenerated(initialChunks, before));
     }
 
 
@@ -125,75 +145,95 @@ public class TerrainGenerator : MonoBehaviour
             // Get the chunk bounds
             Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-            // Get the vertex points
-            Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
-            Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
-            Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
+            ThreadedDataRequester.RequestData
+            (
+                () => GenerateTerrainMap(chunk, seed, chunkBounds),
+                OnTerrainMapGenerated
+            );
+        }
+    }
 
-            int width = vertices.GetLength(0), height = vertices.GetLength(1);
 
-            // Heights
-            float[,] heightsRaw = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
 
-            // Bunkers
-            int bunkerSeed = Noise.Seed(seed.ToString());
-            float[,] bunkerRaw = Noise.Perlin(NoiseSettings_Bunker, bunkerSeed, noiseSamplePoints);
+    private void OnTerrainMapGenerated(object terrainMapObject)
+    {
+        TerrainMap terrainMap = (TerrainMap)terrainMapObject;
 
-            // Holes
-            int holeSeed = Noise.Seed(bunkerSeed.ToString());
-            float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
+        // Get the bunkers
+        List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
 
-            // Create masks from the bunkers and holes
-            float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width, height];
-            for (int y = 0; y < height; y++)
+        // Update them all
+        foreach (Hole h in holesInThisChunk)
+        {
+            h.Flag = Instantiate(GolfHoleFlagPrefab, transform);
+
+            h.UpdateHole();
+
+            GolfHoles.Add(h);
+        }
+
+        // Create the new chunk
+        TerrainChunkManager.AddNewChunk(terrainMap.Chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh, MapSettings);
+
+        OnChunkGenerated.Invoke(terrainMap.Chunk);
+        IsGenerating = false;
+    }
+
+
+
+    private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, Bounds chunkBounds)
+    {
+        // Get the vertex points
+        Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
+        Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
+        Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
+
+        int width = vertices.GetLength(0), height = vertices.GetLength(1);
+
+        // Heights
+        float[,] heightsRaw = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
+
+        // Bunkers
+        int bunkerSeed = Noise.Seed(seed.ToString());
+        float[,] bunkerRaw = Noise.Perlin(NoiseSettings_Bunker, bunkerSeed, noiseSamplePoints);
+
+        // Holes
+        int holeSeed = Noise.Seed(bunkerSeed.ToString());
+        float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
+
+        // Create masks from the bunkers and holes
+        float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width, height];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
             {
-                for (int x = 0; x < width; x++)
+                // Bunker
+                if (bunkerRaw[x, y] >= TerrainSettings_Green.BunkerNoiseThresholdMinMax.x && bunkerRaw[x, y] <= TerrainSettings_Green.BunkerNoiseThresholdMinMax.y)
                 {
-                    // Bunker
-                    if (bunkerRaw[x, y] >= TerrainSettings_Green.BunkerNoiseThresholdMinMax.x && bunkerRaw[x, y] <= TerrainSettings_Green.BunkerNoiseThresholdMinMax.y)
-                    {
-                        bunkerShapeMask[x, y] = bunkerRaw[x, y];
-                    }
-                    else
-                    {
-                        bunkerShapeMask[x, y] = TerrainMap.Point.Empty;
-                    }
+                    bunkerShapeMask[x, y] = bunkerRaw[x, y];
+                }
+                else
+                {
+                    bunkerShapeMask[x, y] = TerrainMap.Point.Empty;
+                }
 
-                    // Hole
-                    if (holesRaw[x, y] >= TerrainSettings_Green.HoleNoiseThresholdMinMax.x && holesRaw[x, y] <= TerrainSettings_Green.HoleNoiseThresholdMinMax.y)
-                    {
-                        holeShapeMask[x, y] = holesRaw[x, y];
-                    }
-                    else
-                    {
-                        holeShapeMask[x, y] = TerrainMap.Point.Empty;
-                    }
+                // Hole
+                if (holesRaw[x, y] >= TerrainSettings_Green.HoleNoiseThresholdMinMax.x && holesRaw[x, y] <= TerrainSettings_Green.HoleNoiseThresholdMinMax.y)
+                {
+                    holeShapeMask[x, y] = holesRaw[x, y];
+                }
+                else
+                {
+                    holeShapeMask[x, y] = TerrainMap.Point.Empty;
                 }
             }
-
-
-            // Get the terrain map
-            TerrainMap terrainMap = new TerrainMap(width, height, localVertexPositions, chunkBounds, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
-
-
-            // Get the bunkers
-            List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
-            // Update them all
-            foreach (Hole h in holesInThisChunk)
-            {
-                h.Flag = Instantiate(GolfHoleFlagPrefab, transform);
-
-                h.UpdateHole();
-
-                GolfHoles.Add(h);
-            }
-
-            // Create the new chunk
-            TerrainChunkManager.AddNewChunk(chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh, MapSettings);
-
-            OnChunkGenerated.Invoke(chunk);
-            IsGenerating = false;
         }
+
+        TerrainMap terrainMap = new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
+
+
+        // Get the terrain map
+        return terrainMap;
     }
 
 

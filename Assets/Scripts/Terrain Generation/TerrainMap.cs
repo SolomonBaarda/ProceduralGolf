@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 public class TerrainMap
 {
+    public Vector2Int Chunk;
     public int Width, Height;
     public Bounds Bounds;
 
@@ -18,9 +19,11 @@ public class TerrainMap
 
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
-    public TerrainMap(int width, int height, Vector3[,] baseVertices, Bounds bounds,
+    public TerrainMap(Vector2Int chunk, int width, int height, Vector3[,] baseVertices, Bounds bounds,
         float[,] rawHeights, float[,] bunkersMask, float[,] holesMask, TerrainSettings terrainSettings)
     {
+
+        Chunk = chunk;
         Width = width;
         Height = height;
         Bounds = bounds;
