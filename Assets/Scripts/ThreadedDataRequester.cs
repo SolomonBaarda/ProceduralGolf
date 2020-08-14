@@ -21,10 +21,10 @@ public class ThreadedDataRequester : MonoBehaviour
 
     public static void RequestData(Func<object> generateData, Action<object> callback)
     {
-        void threadStart()
+        ThreadStart threadStart = delegate
         {
             Instance.DataThread(generateData, callback);
-        }
+        };
 
         new Thread(threadStart).Start();
     }

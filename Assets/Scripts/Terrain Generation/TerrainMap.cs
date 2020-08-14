@@ -22,6 +22,8 @@ public class TerrainMap
     public TerrainMap(Vector2Int chunk, int width, int height, Vector3[,] baseVertices, Bounds bounds,
         float[,] rawHeights, float[,] bunkersMask, float[,] holesMask, TerrainSettings terrainSettings)
     {
+        terrainSettings.ValidateValues();
+        AnimationCurve copy = new AnimationCurve(terrainSettings.HeightDistribution.keys);
 
         Chunk = chunk;
         Width = width;
@@ -40,9 +42,11 @@ public class TerrainMap
             for (int x = 0; x < width; x++)
             {
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
+                TerrainSettings.Biome biome = CalculateBiome(terrainSettings, bunkersMask[x, y], holesMask[x, y]);
+                float originalHeight = CalculateFinalHeight(terrainSettings, copy, rawHeights[x, y], bunkersMask[x, y]);
 
                 // Assign the terrain point
-                Map[x, y] = new Point(terrainSettings, baseVertices[x, y], bounds.center, rawHeights[x, y], bunkersMask[x, y], holesMask[x, y], atEdge);
+                Map[x, y] = new Point(baseVertices[x, y], bounds.center, originalHeight, biome, atEdge);
             }
         }
 
@@ -123,6 +127,73 @@ public class TerrainMap
     }
 
 
+    private TerrainSettings.Biome CalculateBiome(TerrainSettings settings, float rawBunker, float rawHole)
+    {
+        TerrainSettings.Biome b = settings.MainBiome;
+
+        // Do a bunker
+        if (settings.DoBunkers && !Mathf.Approximately(rawBunker, Point.Empty))
+        {
+            b = TerrainSettings.Biome.Sand;
+        }
+
+        // Hole is more important
+        if (!Mathf.Approximately(rawHole, Point.Empty))
+        {
+            b = TerrainSettings.Biome.Hole;
+        }
+
+        return b;
+    }
+
+
+    private float CalculateFinalHeight(TerrainSettings settings, AnimationCurve multithreadingSafeCurve, float rawHeight, float rawBunker)
+    {
+        // Calculate the height to use
+        float height = rawHeight;
+        if (settings.UseCurve)
+        {
+            height = multithreadingSafeCurve.Evaluate(rawHeight);
+        }
+
+        // And apply the scale
+        height *= settings.HeightMultiplier;
+
+
+        // Add the bunker now
+        if (settings.DoBunkers)
+        {
+            height -= rawBunker * settings.BunkerMultiplier;
+        }
+
+        /*
+        if (Biome == TerrainSettings.Biome.Hole)
+        {
+            height = 0.75f * settings.HeightMultiplier;
+        }
+        */
+
+
+        return height;
+    }
+
+
+
+    public void DebugMinMaxHeight()
+    {
+        float min = Map[0, 0].Height, max = min;
+        foreach (Point p in Map)
+        {
+            min = p.Height < min ? p.Height : min;
+            max = p.Height > max ? p.Height : max;
+        }
+
+        //Debug.Log("Terrain map " + Chunk.ToString() + "min: " + min + " max: " + max);
+    }
+
+
+
+
     public void AddEdgeNeighbours(int dirX, int dirY, ref TerrainMap map, out bool mapNeedsUpdating)
     {
         dirX = Mathf.Clamp(dirX, -1, 1);
@@ -140,10 +211,10 @@ public class TerrainMap
                 EdgeNeighboursAdded.Add(direction);
 
                 // Horizontal case
-                if(direction == Point.NeighbourDirection.Up || direction == Point.NeighbourDirection.Down)
+                if (direction == Point.NeighbourDirection.Up || direction == Point.NeighbourDirection.Down)
                 {
                     int y = 0, neighbourY = Height - 1;
-                    if(direction == Point.NeighbourDirection.Down)
+                    if (direction == Point.NeighbourDirection.Down)
                     {
                         y = Height - 1;
                         neighbourY = 0;
@@ -151,14 +222,14 @@ public class TerrainMap
 
                     for (int x = 0; x < Width; x++)
                     {
-                        for(int i = -1; i <= 1; i++)
+                        for (int i = -1; i <= 1; i++)
                         {
-                            if(Utils.IsWithinArrayBounds(x + i, neighbourY, map.Map)) 
+                            if (Utils.IsWithinArrayBounds(x + i, neighbourY, map.Map))
                             {
                                 AddNeighbourForEdge(ref Map[x, y], ref map.Map[x + i, neighbourY], out bool needsUpdating);
                                 mapNeedsUpdating |= needsUpdating;
                             }
-                            
+
                         }
                     }
                 }
@@ -234,7 +305,7 @@ public class TerrainMap
                 p.Neighbours.Add(neighbour);
 
                 // These neighbours are the same hole that is split by the chunk border
-                if (p.Biome == TerrainSettings.Biome.Hole && neighbour.Biome == TerrainSettings.Biome.Hole )
+                if (p.Biome == TerrainSettings.Biome.Hole && neighbour.Biome == TerrainSettings.Biome.Hole)
                 {
                     if (p.Hole != neighbour.Hole)
                     {
@@ -251,17 +322,12 @@ public class TerrainMap
     {
         public const float Empty = 0f;
 
-
         public Vector3 LocalVertexBasePosition;
         // Calculate the point of the vertex
         public Vector3 LocalVertexPosition => LocalVertexBasePosition + (TerrainGenerator.UP * Height);
         public Vector3 Offset;
 
         public bool IsAtEdgeOfMesh;
-
-        private readonly float rawHeight;
-        private readonly float rawBunker;
-        private readonly float rawHole;
 
         public TerrainSettings.Biome Biome;
         public float Height;
@@ -274,74 +340,20 @@ public class TerrainMap
         public List<Point> Neighbours;
 
 
-        public Point(TerrainSettings settings, Vector3 localVertexPos, Vector3 offset, float rawHeight, float rawBunker, float rawHole, bool isAtEdgeOfMesh)
+        public Point(Vector3 localVertexPos, Vector3 offset, float height, TerrainSettings.Biome biome, bool isAtEdgeOfMesh)
         {
             LocalVertexBasePosition = localVertexPos;
             Offset = offset;
-            this.rawHeight = rawHeight;
-            this.rawBunker = rawBunker;
-            this.rawHole = rawHole;
 
             IsAtEdgeOfMesh = isAtEdgeOfMesh;
 
             Neighbours = new List<Point>();
 
-            Biome = CalculateBiome(settings);
-            Height = CalculateFinalHeight(settings);
+            Biome = biome;
+            Height = height;
             OriginalHeight = Height;
         }
 
-
-
-        private TerrainSettings.Biome CalculateBiome(TerrainSettings settings)
-        {
-            TerrainSettings.Biome b = settings.MainBiome;
-
-            // Do a bunker
-            if (settings.DoBunkers && !Mathf.Approximately(rawBunker, Empty))
-            {
-                b = TerrainSettings.Biome.Sand;
-            }
-
-            // Hole is more important
-            if (!Mathf.Approximately(rawHole, Empty))
-            {
-                b = TerrainSettings.Biome.Hole;
-            }
-
-            return b;
-        }
-
-
-        private float CalculateFinalHeight(TerrainSettings settings)
-        {
-            // Calculate the height to use
-            float height = rawHeight;
-            if (settings.UseCurve)
-            {
-                height = settings.HeightDistribution.Evaluate(rawHeight);
-            }
-
-            // And apply the scale
-            height *= settings.HeightMultiplier;
-
-
-            // Add the bunker now
-            if (settings.DoBunkers)
-            {
-                height -= rawBunker * settings.BunkerMultiplier;
-            }
-
-            /*
-            if (Biome == TerrainSettings.Biome.Hole)
-            {
-                height = 0.75f * settings.HeightMultiplier;
-            }
-            */
-
-
-            return height;
-        }
 
         public enum NeighbourDirection
         {
@@ -351,34 +363,7 @@ public class TerrainMap
 
     }
 
-    public static string DebugMinMax(float[,] array)
-    {
-        if (array != null)
-        {
-            int width = array.GetLength(0), height = array.GetLength(1);
-            float min = array[0, 0], max = array[0, 0];
 
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float curr = array[x, y];
-                    if (curr < min)
-                    {
-                        min = curr;
-                    }
-                    if (curr > max)
-                    {
-                        max = curr;
-                    }
-                }
-            }
-
-            return "min: " + min + " max: " + max;
-        }
-
-        return "";
-    }
 
 
 

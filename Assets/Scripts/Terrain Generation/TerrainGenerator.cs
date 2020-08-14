@@ -159,6 +159,8 @@ public class TerrainGenerator : MonoBehaviour
     {
         TerrainMap terrainMap = (TerrainMap)terrainMapObject;
 
+        terrainMap.DebugMinMaxHeight();
+
         // Get the bunkers
         List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
 
