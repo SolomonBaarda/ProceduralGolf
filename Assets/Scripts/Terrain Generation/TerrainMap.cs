@@ -166,14 +166,6 @@ public class TerrainMap
             height -= rawBunker * settings.BunkerMultiplier;
         }
 
-        /*
-        if (Biome == TerrainSettings.Biome.Hole)
-        {
-            height = 0.75f * settings.HeightMultiplier;
-        }
-        */
-
-
         return height;
     }
 
@@ -188,7 +180,7 @@ public class TerrainMap
             max = p.Height > max ? p.Height : max;
         }
 
-        //Debug.Log("Terrain map " + Chunk.ToString() + "min: " + min + " max: " + max);
+        Debug.Log("Terrain map " + Chunk.ToString() + "min: " + min + " max: " + max);
     }
 
 

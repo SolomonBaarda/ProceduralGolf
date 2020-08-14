@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
         CourseManager.GolfHoles = TerrainGenerator.GolfHoles;
 
         TerrainGenerator.OnChunksUpdated += CourseManager.UpdateGolfHolesOrder;
-        TerrainGenerator.OnChunksUpdated += ChunksUpdated;
+        TerrainGenerator.OnChunkGenerated += NewChunkAdded;
 
         RenderSettings.skybox = Skybox;
     }
@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
 
 
         TerrainGenerator.OnChunksUpdated -= CourseManager.UpdateGolfHolesOrder;
-        TerrainGenerator.OnChunksUpdated -= ChunksUpdated;
+        TerrainGenerator.OnChunkGenerated -= NewChunkAdded;
 
     }
 
@@ -74,7 +74,7 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
         // Ensure the initial terrain has been fully generated 
-        while(!TerrainGenerator.InitialTerrainGenerated)
+        while (!TerrainGenerator.InitialTerrainGenerated)
         {
             yield return null;
         }
@@ -185,14 +185,16 @@ public class GameManager : MonoBehaviour
 
 
 
-    private void ChunksUpdated()
+    private void NewChunkAdded(Vector2Int chunk)
     {
-        // Update the map texture for all chunks
-        foreach (TerrainChunk chunk in TerrainGenerator.TerrainChunkManager.GetAllChunks())
-        {
-            Minimap.AddChunk(chunk.Position, chunk.Texture);
-        }
+        TerrainChunk c = TerrainGenerator.TerrainChunkManager.GetChunk(chunk);
+
+        Texture2D map = TextureGenerator.GenerateTexture(TextureGenerator.GenerateTextureData(c.TerrainMap, TerrainGenerator.Texture_MapSettings));
+        Minimap.AddChunk(chunk, map);
     }
+
+
+
 
     private void SetHud(HUD hud)
     {

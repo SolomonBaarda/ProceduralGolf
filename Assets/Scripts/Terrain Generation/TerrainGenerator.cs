@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainChunkManager TerrainChunkManager;
     public List<Hole> GolfHoles = new List<Hole>();
 
-    private UnityAction<Vector2Int> OnChunkGenerated;
+    public UnityAction<Vector2Int> OnChunkGenerated;
     private UnityAction<List<TerrainChunk>> OnChunkTerrainMapsChanged;
     public UnityAction OnChunksUpdated;
 
@@ -23,9 +24,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
     [Header("Settings")]
-    public MeshSettings MeshSettingsVisual;
-    public MeshSettings MeshSettingsCollider;
-    public bool UseSameMesh = true;
+    public MeshSettings MeshSettings;
     [Space]
     public NoiseSettings NoiseSettings_Green;
     public NoiseSettings NoiseSettings_Bunker;
@@ -33,7 +32,8 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainSettings TerrainSettings_Green;
 
     [Space]
-    public TextureSettings MapSettings;
+    public TextureSettings Texture_GroundSettings;
+    public TextureSettings Texture_MapSettings;
 
     [Space]
     public int Seed = 0;
@@ -159,8 +159,6 @@ public class TerrainGenerator : MonoBehaviour
     {
         TerrainMap terrainMap = (TerrainMap)terrainMapObject;
 
-        terrainMap.DebugMinMaxHeight();
-
         // Get the bunkers
         List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
 
@@ -175,7 +173,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         // Create the new chunk
-        TerrainChunkManager.AddNewChunk(terrainMap.Chunk, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettingsVisual, MeshSettingsCollider, UseSameMesh, MapSettings);
+        TerrainChunkManager.AddNewChunk(terrainMap.Chunk, terrainMap.Bounds, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
 
         OnChunkGenerated.Invoke(terrainMap.Chunk);
         IsGenerating = false;
@@ -302,16 +300,14 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
+
     private void CheckUpdatedChunksForHoles(List<TerrainChunk> chunksUpdated)
     {
         // Create new meshes for each chunk that needs updating
         foreach (TerrainChunk c in chunksUpdated)
         {
-            c.MeshData = MeshGenerator.GenerateMeshData(c.TerrainMap);
-            c.UpdateVisualMesh(MeshSettingsVisual);
-            c.UpdateColliderMesh(MeshSettingsCollider, UseSameMesh);
-
-            c.RecalculateTexture();
+            c.RecalculateMesh(MeshSettings);
+            c.RecalculateTexture(Texture_GroundSettings);
         }
 
         // Remove all holes that have no vertices

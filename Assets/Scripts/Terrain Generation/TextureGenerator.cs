@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor.Experimental.TerrainAPI;
+using UnityEngine;
 
 public static class TextureGenerator
 {
@@ -35,28 +36,41 @@ public static class TextureGenerator
 
 
 
-    public static Texture2D GenerateTexture(in TerrainMap terrainMap, in TextureSettings settings)
+    public static TextureData GenerateTextureData(in TerrainMap terrainMap, in TextureSettings settings)
     {
-        return GenerateTexture(GenerateColourMap(terrainMap, settings), terrainMap.Width, terrainMap.Height);
+        return new TextureData(terrainMap.Width, terrainMap.Height, GenerateColourMap(terrainMap, settings));
     }
 
 
 
-    public static Texture2D GenerateTexture(in Color[] colourMap, int width, int height)
+    public static Texture2D GenerateTexture(in TextureData data)
     {
-        Texture2D t = new Texture2D(width, height)
+        Texture2D t = new Texture2D(data.Width, data.Height)
         {
             filterMode = FilterMode.Point,
             wrapMode = TextureWrapMode.Clamp,
         };
 
 
-        //Debug.Log("Creating texture with width " + width + " and height " + height);
-
-        t.SetPixels(colourMap);
+        t.SetPixels(data.ColourMap);
         t.Apply();
 
         return t;
+    }
+
+
+
+    public struct TextureData
+    {
+        public int Width, Height;
+        public Color[] ColourMap;
+
+        public TextureData(int width, int height, Color[] colours)
+        {
+            Width = width;
+            Height = height;
+            ColourMap = colours;
+        }
     }
 
 }

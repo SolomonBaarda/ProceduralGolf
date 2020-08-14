@@ -389,10 +389,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TerrainChunkManager: {fileID: 1822943190}
-  MeshSettingsVisual: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
-  MeshSettingsCollider: {fileID: 11400000, guid: 259a0e8b8e2104042b4702f8b6ab2770,
-    type: 2}
-  UseSameMesh: 1
+  MeshSettings: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
   NoiseSettings_Green: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3,
     type: 2}
   NoiseSettings_Bunker: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0,
@@ -401,7 +398,10 @@ MonoBehaviour:
     type: 2}
   TerrainSettings_Green: {fileID: 11400000, guid: 392c806505110884192175365aabbd81,
     type: 2}
-  MapSettings: {fileID: 11400000, guid: 8ac845c9b2e54a24eb921a7ea51148dd, type: 2}
+  Texture_GroundSettings: {fileID: 11400000, guid: 8c69bc2d118b0ae49a217aefa19d034a,
+    type: 2}
+  Texture_MapSettings: {fileID: 11400000, guid: 8ac845c9b2e54a24eb921a7ea51148dd,
+    type: 2}
   Seed: 0
   DoRandomSeed: 0
   MaterialGrass: {fileID: 2100000, guid: 2e701212ddb9e6d448b289804871b680, type: 2}
@@ -982,6 +982,8 @@ MonoBehaviour:
   DoEndlessTerrain: 1
   ViewDistanceWorld: 200
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
+  Texture_MapSettings: {fileID: 11400000, guid: 8ac845c9b2e54a24eb921a7ea51148dd,
+    type: 2}
 --- !u!4 &2130833001
 Transform:
   m_ObjectHideFlags: 0

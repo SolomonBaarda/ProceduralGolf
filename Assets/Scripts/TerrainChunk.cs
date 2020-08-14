@@ -18,13 +18,16 @@ public class TerrainChunk
 
 
     public MeshGenerator.MeshData MeshData;
+    private MeshGenerator.LevelOfDetail LOD;
+
+
     public TerrainMap TerrainMap;
 
     public Texture2D Texture;
-    private TextureSettings mapSettings;
+
 
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
-            MeshGenerator.MeshData data, TerrainMap terrainMap, TextureSettings mapSettings)
+            TerrainMap terrainMap, TextureSettings mapSettings)
     {
         Position = position;
         Bounds = bounds;
@@ -49,80 +52,62 @@ public class TerrainChunk
         SetVisible(false);
 
         // Set the maps
-        MeshData = data;
         TerrainMap = terrainMap;
 
-        this.mapSettings = mapSettings;
 
-        RecalculateTexture();
+        RecalculateTexture(mapSettings);
         //meshRenderer.material.SetTexture("_BaseMap", Texture);
     }
 
 
 
-    public void RecalculateTexture()
+    public void RecalculateTexture(TextureSettings mapSettings)
     {
-        Texture = TextureGenerator.GenerateTexture(TerrainMap, mapSettings);
+        // Request the texture and set it afterwards
+        ThreadedDataRequester.RequestData(() => TextureGenerator.GenerateTextureData(TerrainMap, mapSettings), SetTexture);
     }
 
 
-    public void UpdateVisualMesh(MeshSettings visual)
+    private void SetTexture(object textureDataObject)
     {
-        meshFilter.mesh = MeshData.GenerateMesh(visual);
+        TextureGenerator.TextureData data = (TextureGenerator.TextureData)textureDataObject;
 
-
-        /*
-        for (int y = 0; y < TerrainMap.Height; y += 1)
-        {
-            for (int x = 0; x < TerrainMap.Width; x += 1)
-            {
-                switch (TerrainMap.Map[x, y].Biome)
-                {
-                    case TerrainSettings.Biome.Grass:
-                        break;
-                    case TerrainSettings.Biome.Sand:
-                        Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.yellow, 100);
-                        break;
-                    case TerrainSettings.Biome.Hole:
-                        Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.red, 100);
-                        break;
-                    case TerrainSettings.Biome.Water:
-                        Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.blue, 100);
-                        break;
-                    case TerrainSettings.Biome.Ice:
-                        Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.white, 100);
-                        break;
-                }
-
-
-                if (TerrainMap.Map[x, y].IsAtEdgeOfMesh)
-                {
-                    //Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.black, 500);
-
-                    if (TerrainMap.Map[x, y].Biome == TerrainSettings.Biome.Hole)
-                    {
-                        //Debug.DrawRay(Bounds.center + TerrainMap.Map[x, y].LocalVertexPosition, TerrainGenerator.UP, Color.green, 1000);
-                    }
-                }
-            }
-        }
-        */
-
+        // Create the texture from the data
+        Texture = TextureGenerator.GenerateTexture(data);
     }
 
 
-    public void UpdateColliderMesh(MeshSettings collider, bool useSameMesh)
-    {
-        Mesh m = meshFilter.mesh;
-        if (!useSameMesh)
-        {
-            m = MeshData.GenerateMesh(collider);
-        }
 
-        meshCollider.sharedMesh = m;
+    public void RecalculateMesh(MeshSettings settings)
+    {
+        SetVisible(false);
+
+        // Recalculate all the new mesh data then create a new mesh
+        ThreadedDataRequester.RequestData(() => GenerateLOD(settings), RecalculateMesh);
     }
 
 
+    private void RecalculateMesh(object LODObject)
+    {
+        LOD = (MeshGenerator.LevelOfDetail)LODObject;
+
+        // Create the new mesh
+        Mesh mesh = LOD.GenerateMesh();
+        // And set it
+        meshCollider.sharedMesh = mesh;
+        meshFilter.mesh = mesh;
+
+        SetVisible(true);
+    }
+
+
+    private MeshGenerator.LevelOfDetail GenerateLOD(MeshSettings settings)
+    {
+        // Create new mesh data
+        MeshData = MeshGenerator.GenerateMeshData(TerrainMap);
+        // And new level of detail
+        return MeshData.GenerateLOD(settings);
+    }
 
 
 

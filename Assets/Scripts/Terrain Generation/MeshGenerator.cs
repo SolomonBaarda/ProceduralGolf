@@ -4,6 +4,7 @@ using UnityEngine;
 public static class MeshGenerator
 {
 
+
     public static MeshData GenerateMeshData(TerrainMap terrainMap)
     {
         MeshData data = new MeshData(terrainMap.Width, terrainMap.Height);
@@ -13,9 +14,11 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                data.SetVertex(x, y, terrainMap.Map[x,y].LocalVertexPosition);
+                data.SetVertex(x, y, terrainMap.Map[x, y].LocalVertexPosition);
             }
         }
+
+        data.CalculateUVS();
 
         return data;
     }
@@ -59,6 +62,7 @@ public static class MeshGenerator
             }
         }
 
+
         public void CalculateUVS()
         {
             UVs = new Vector2[Vertices.Length];
@@ -91,21 +95,19 @@ public static class MeshGenerator
                     UVs[GetVertexIndex(x, y)] = (max - new Vector2(point.x, point.z)) / size;
                 }
             }
-
         }
 
 
-        public Mesh GenerateMesh(MeshSettings settings)
-        {
-            CalculateUVS();
 
+        public LevelOfDetail GenerateLOD(MeshSettings settings)
+        {
             int i = settings.SimplificationIncrement;
 
-            int newWidthVertices = (MaxVerticesWidth - 1) / i + 1, newHeightVertices = (MaxVerticesHeight - 1) / i + 1;
+            int newWidth = (MaxVerticesWidth - 1) / i + 1, newHeight = (MaxVerticesHeight - 1) / i + 1;
 
-            Vector3[] vertices = new Vector3[newWidthVertices * newHeightVertices];
-            Vector2[] uvs = new Vector2[vertices.Length];
-            int[] triangles = new int[newWidthVertices * newHeightVertices * 6];
+            Vector3[] newVertices = new Vector3[newWidth * newHeight];
+            Vector2[] newUVs = new Vector2[newVertices.Length];
+            int[] newTriangles = new int[newWidth * newHeight * 6];
             int triangleIndex = 0;
 
             // Add all the correct vertices
@@ -114,37 +116,63 @@ public static class MeshGenerator
                 for (int x = 0; x < MaxVerticesWidth; x += i)
                 {
                     int newX = x / i, newY = y / i;
-                    int thisVertexIndex = newY * newWidthVertices + newX;
+                    int thisVertexIndex = newY * newWidth + newX;
                     // Add the vertex
-                    vertices[thisVertexIndex] = Vertices[GetVertexIndex(x, y)];
+                    newVertices[thisVertexIndex] = Vertices[GetVertexIndex(x, y)];
                     // Add the UV
-                    uvs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
+                    newUVs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
 
                     // Set the triangles
-                    if (newX >= 0 && newX < newWidthVertices - 1 && newY >= 0 && newY < newHeightVertices - 1)
+                    if (newX >= 0 && newX < newWidth - 1 && newY >= 0 && newY < newHeight - 1)
                     {
-                        triangles[triangleIndex] = thisVertexIndex;
+                        newTriangles[triangleIndex] = thisVertexIndex;
                         // Below
-                        triangles[triangleIndex + 1] = thisVertexIndex + newWidthVertices;
+                        newTriangles[triangleIndex + 1] = thisVertexIndex + newWidth;
                         // Bottom right
-                        triangles[triangleIndex + 2] = thisVertexIndex + newWidthVertices + 1;
+                        newTriangles[triangleIndex + 2] = thisVertexIndex + newWidth + 1;
                         triangleIndex += 3;
 
-                        triangles[triangleIndex] = thisVertexIndex;
+                        newTriangles[triangleIndex] = thisVertexIndex;
                         // Bottom right
-                        triangles[triangleIndex + 1] = thisVertexIndex + newWidthVertices + 1;
+                        newTriangles[triangleIndex + 1] = thisVertexIndex + newWidth + 1;
                         // Top right
-                        triangles[triangleIndex + 2] = thisVertexIndex + 1;
+                        newTriangles[triangleIndex + 2] = thisVertexIndex + 1;
                         triangleIndex += 3;
                     }
                 }
             }
 
+            return new LevelOfDetail(newWidth, newHeight, newVertices, newUVs, newTriangles);
+        }
+
+    }
+
+
+
+    public class LevelOfDetail
+    {
+        private readonly int Width, Height;
+        public Vector3[] Vertices;
+        public Vector2[] UVs;
+        public int[] Triangles;
+
+        public LevelOfDetail(int width, int height, Vector3[] vertices, Vector2[] uvs, int[] triangles)
+        {
+            Width = width;
+            Height = height;
+
+            Vertices = vertices;
+            UVs = uvs;
+            Triangles = triangles;
+        }
+
+        public Mesh GenerateMesh()
+        {
             Mesh m = new Mesh()
             {
-                vertices = vertices,
-                triangles = triangles,
-                uv = uvs,
+                vertices = Vertices,
+                triangles = Triangles,
+                uv = UVs,
             };
 
             m.RecalculateNormals();
@@ -153,11 +181,6 @@ public static class MeshGenerator
             return m;
         }
 
-
     }
-
-
-
-
 
 }
