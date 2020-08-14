@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class MeshGenerator
@@ -14,11 +16,18 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                data.SetVertex(x, y, terrainMap.Map[x, y].LocalVertexPosition);
+                // Set the vertex depending on the biome
+                MeshData.BiomeData b = data.GetBiomeData(terrainMap.Map[x, y].Biome);
+
+                b.SetVertex(x, y, terrainMap.Map[x, y].LocalVertexPosition);
             }
         }
 
-        data.CalculateUVS();
+        // Recalculate all the UVs
+        foreach(MeshData.BiomeData b in data.Biomes.Values)
+        {
+            b.CalculateUVS();
+        }
 
         return data;
     }
@@ -29,122 +38,164 @@ public static class MeshGenerator
 
     public class MeshData
     {
-        private readonly int MaxVerticesWidth, MaxVerticesHeight;
-        public Vector3[] Vertices;
-        public Vector2[] UVs;
+        private readonly int Width, Height;
+
+        public Dictionary<TerrainSettings.Biome, BiomeData> Biomes = new Dictionary<TerrainSettings.Biome, BiomeData>();
+        public Dictionary<TerrainSettings.Biome, LevelOfDetail> Meshes = new Dictionary<TerrainSettings.Biome, LevelOfDetail>();
 
 
         public MeshData(int verticesX, int verticesY)
         {
-            MaxVerticesWidth = verticesX; MaxVerticesHeight = verticesY;
-
-            // Assign array size
-            Vertices = new Vector3[MaxVerticesWidth * MaxVerticesHeight];
+            Width = verticesX; Height = verticesY;
         }
 
 
-
-        private int GetVertexIndex(int x, int y)
+        public BiomeData GetBiomeData(TerrainSettings.Biome biome)
         {
-            if (x >= 0 && x < MaxVerticesWidth && y >= 0 && y < MaxVerticesHeight)
+            if (!Biomes.TryGetValue(biome, out BiomeData data))
             {
-                return y * MaxVerticesWidth + x;
+                data = new BiomeData(Width, Height, biome);
+                Biomes.Add(biome, data);
             }
-            return -1;
+
+            return data;
         }
 
-        public void SetVertex(int x, int y, Vector3 vertex)
+
+        public void RecalculateAllLODs(MeshSettings settings)
         {
-            int index = GetVertexIndex(x, y);
-            if (index != -1)
+            Meshes.Clear();
+
+            // Calculate the LODs for each biome
+            foreach(BiomeData biome in Biomes.Values)
             {
-                Vertices[index] = vertex;
+                Meshes.Add(biome.Biome, biome.GenerateLOD(settings));
             }
         }
 
 
-        public void CalculateUVS()
+        public class BiomeData
         {
-            UVs = new Vector2[Vertices.Length];
+            private readonly int Width, Height;
+            public TerrainSettings.Biome Biome;
+            public Vector3[] Vertices;
+            public Vector2[] UVs;
 
-            // Get the minimum and maximum points
-            Vector2 min = Vertices[0], max = Vertices[0];
-            for (int y = 0; y < MaxVerticesHeight; y++)
+            public BiomeData(int width, int height, TerrainSettings.Biome biome)
             {
-                for (int x = 0; x < MaxVerticesWidth; x++)
+                Width = width;
+                Height = height;
+                Biome = biome;
+
+                // Assign array size
+                Vertices = new Vector3[Width * Height];
+                UVs = new Vector2[Vertices.Length];
+            }
+
+
+
+
+            private int GetVertexIndex(int x, int y)
+            {
+                if (x >= 0 && x < Width && y >= 0 && y < Height)
                 {
-                    Vector3 v = Vertices[GetVertexIndex(x, y)];
+                    return y * Width + x;
+                }
+                return -1;
+            }
 
-                    if (v.x < min.x) { min.x = v.x; }
-                    if (v.x > max.x) { max.x = v.x; }
-
-                    if (v.z < min.y) { min.y = v.z; }
-                    if (v.z > max.y) { max.y = v.z; }
+            public void SetVertex(int x, int y, Vector3 vertex)
+            {
+                int index = GetVertexIndex(x, y);
+                if (index != -1)
+                {
+                    Vertices[index] = vertex;
                 }
             }
 
-            Vector2 size = max - min;
 
-            // Now assign each UV
-            for (int y = 0; y < MaxVerticesHeight; y++)
+            public void CalculateUVS()
             {
-                for (int x = 0; x < MaxVerticesWidth; x++)
+                UVs = new Vector2[Vertices.Length];
+
+                // Get the minimum and maximum points
+                Vector2 min = Vertices[0], max = Vertices[0];
+                for (int y = 0; y < Height; y++)
                 {
-                    Vector3 point = Vertices[GetVertexIndex(x, y)];
-
-                    UVs[GetVertexIndex(x, y)] = (max - new Vector2(point.x, point.z)) / size;
-                }
-            }
-        }
-
-
-
-        public LevelOfDetail GenerateLOD(MeshSettings settings)
-        {
-            int i = settings.SimplificationIncrement;
-
-            int newWidth = (MaxVerticesWidth - 1) / i + 1, newHeight = (MaxVerticesHeight - 1) / i + 1;
-
-            Vector3[] newVertices = new Vector3[newWidth * newHeight];
-            Vector2[] newUVs = new Vector2[newVertices.Length];
-            int[] newTriangles = new int[newWidth * newHeight * 6];
-            int triangleIndex = 0;
-
-            // Add all the correct vertices
-            for (int y = 0; y < MaxVerticesHeight; y += i)
-            {
-                for (int x = 0; x < MaxVerticesWidth; x += i)
-                {
-                    int newX = x / i, newY = y / i;
-                    int thisVertexIndex = newY * newWidth + newX;
-                    // Add the vertex
-                    newVertices[thisVertexIndex] = Vertices[GetVertexIndex(x, y)];
-                    // Add the UV
-                    newUVs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
-
-                    // Set the triangles
-                    if (newX >= 0 && newX < newWidth - 1 && newY >= 0 && newY < newHeight - 1)
+                    for (int x = 0; x < Width; x++)
                     {
-                        newTriangles[triangleIndex] = thisVertexIndex;
-                        // Below
-                        newTriangles[triangleIndex + 1] = thisVertexIndex + newWidth;
-                        // Bottom right
-                        newTriangles[triangleIndex + 2] = thisVertexIndex + newWidth + 1;
-                        triangleIndex += 3;
+                        Vector3 v = Vertices[GetVertexIndex(x, y)];
 
-                        newTriangles[triangleIndex] = thisVertexIndex;
-                        // Bottom right
-                        newTriangles[triangleIndex + 1] = thisVertexIndex + newWidth + 1;
-                        // Top right
-                        newTriangles[triangleIndex + 2] = thisVertexIndex + 1;
-                        triangleIndex += 3;
+                        if (v.x < min.x) { min.x = v.x; }
+                        if (v.x > max.x) { max.x = v.x; }
+
+                        if (v.z < min.y) { min.y = v.z; }
+                        if (v.z > max.y) { max.y = v.z; }
+                    }
+                }
+
+                Vector2 size = max - min;
+
+                // Now assign each UV
+                for (int y = 0; y < Height; y++)
+                {
+                    for (int x = 0; x < Width; x++)
+                    {
+                        Vector3 point = Vertices[GetVertexIndex(x, y)];
+
+                        UVs[GetVertexIndex(x, y)] = (max - new Vector2(point.x, point.z)) / size;
                     }
                 }
             }
 
-            return new LevelOfDetail(newWidth, newHeight, newVertices, newUVs, newTriangles);
-        }
 
+            public LevelOfDetail GenerateLOD(MeshSettings settings)
+            {
+                int i = settings.SimplificationIncrement;
+
+                int newWidth = (Width - 1) / i + 1, newHeight = (Height - 1) / i + 1;
+
+                Vector3[] newVertices = new Vector3[newWidth * newHeight];
+                Vector2[] newUVs = new Vector2[newVertices.Length];
+                int[] newTriangles = new int[newWidth * newHeight * 6];
+                int triangleIndex = 0;
+
+                // Add all the correct vertices
+                for (int y = 0; y < Height; y += i)
+                {
+                    for (int x = 0; x < Width; x += i)
+                    {
+                        int newX = x / i, newY = y / i;
+                        int thisVertexIndex = newY * newWidth + newX;
+                        // Add the vertex
+                        newVertices[thisVertexIndex] = Vertices[GetVertexIndex(x, y)];
+                        // Add the UV
+                        newUVs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
+
+                        // Set the triangles
+                        if (newX >= 0 && newX < newWidth - 1 && newY >= 0 && newY < newHeight - 1)
+                        {
+                            newTriangles[triangleIndex] = thisVertexIndex;
+                            // Below
+                            newTriangles[triangleIndex + 1] = thisVertexIndex + newWidth;
+                            // Bottom right
+                            newTriangles[triangleIndex + 2] = thisVertexIndex + newWidth + 1;
+                            triangleIndex += 3;
+
+                            newTriangles[triangleIndex] = thisVertexIndex;
+                            // Bottom right
+                            newTriangles[triangleIndex + 1] = thisVertexIndex + newWidth + 1;
+                            // Top right
+                            newTriangles[triangleIndex + 2] = thisVertexIndex + 1;
+                            triangleIndex += 3;
+                        }
+                    }
+                }
+
+                return new LevelOfDetail(newWidth, newHeight, newVertices, newUVs, newTriangles);
+            }
+
+        }
     }
 
 

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -147,8 +145,7 @@ public class TerrainGenerator : MonoBehaviour
 
             ThreadedDataRequester.RequestData
             (
-                () => GenerateTerrainMap(chunk, seed, chunkBounds),
-                OnTerrainMapGenerated
+                () => GenerateTerrainMap(chunk, seed, chunkBounds), OnTerrainMapGenerated
             );
         }
     }

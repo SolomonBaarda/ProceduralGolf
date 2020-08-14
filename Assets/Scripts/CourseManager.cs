@@ -139,6 +139,7 @@ public class CourseManager : MonoBehaviour
         {
             Debug.Log("There are no golf holes nearby so spawning at 0 0 0");
 
+            /*
             TerrainChunk chunk = AllTerrain.GetChunk(Vector2Int.zero);
             Vector3 centre3 = chunk.Bounds.center;
             Vector2 centre = new Vector2(centre3.x, centre3.z);
@@ -162,6 +163,8 @@ public class CourseManager : MonoBehaviour
             closest += normal.normalized * sphereRadius;
 
             return closest;
+            */
+            return Vector3.zero;
         }
     }
 
