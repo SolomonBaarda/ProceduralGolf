@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -14,7 +16,7 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainChunkManager TerrainChunkManager;
     public List<Hole> GolfHoles = new List<Hole>();
 
-    private UnityAction<TerrainMapGenerator.TerrainMapData, Vector2Int> OnTerrainMapDataCreated;
+    private UnityAction<TerrainChunk.Data> OnChunkDataCreated;
     private UnityAction<Vector2Int> OnChunkGenerated;
     private UnityAction<List<TerrainChunk>> OnChunkTerrainMapsChanged;
     public UnityAction OnChunksUpdated;
@@ -50,7 +52,7 @@ public class TerrainGenerator : MonoBehaviour
 
     private void Awake()
     {
-        OnTerrainMapDataCreated += InstantiateTerrainChunk;
+        OnChunkDataCreated += InstantiateTerrainChunk;
 
         OnChunkGenerated += CheckChunkAddEdgeNeighbours;
         OnChunkTerrainMapsChanged += CheckUpdatedChunksForHoles;
@@ -59,7 +61,7 @@ public class TerrainGenerator : MonoBehaviour
 
     private void OnDestroy()
     {
-        OnTerrainMapDataCreated -= InstantiateTerrainChunk;
+        OnChunkDataCreated -= InstantiateTerrainChunk;
 
         OnChunkGenerated -= CheckChunkAddEdgeNeighbours;
         OnChunkTerrainMapsChanged -= CheckUpdatedChunksForHoles;
@@ -171,10 +173,10 @@ public class TerrainGenerator : MonoBehaviour
         foreach ((TerrainChunk, Vector2Int) chunk in relativeNeighbours)
         {
             // New chunk
-            TerrainMap.AddEdgeNeighbours(chunk.Item2.x, chunk.Item2.y, ref newChunk.TerrainMap, in chunk.Item1.TerrainMap, out bool needsUpdateA);
+            TerrainMapGenerator.AddEdgeNeighbours(chunk.Item2.x, chunk.Item2.y, ref newChunk.TerrainMap, in chunk.Item1.TerrainMap, out bool needsUpdateA);
 
             // Existing chunk
-            TerrainMap.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, ref chunk.Item1.TerrainMap, in newChunk.TerrainMap, out bool needsUpdateB);
+            TerrainMapGenerator.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, ref chunk.Item1.TerrainMap, in newChunk.TerrainMap, out bool needsUpdateB);
 
 
             // If there was an update then both chunks need to have their meshes re generated
@@ -343,19 +345,14 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private void InstantiateTerrainChunk(TerrainMapGenerator.TerrainMapData d, Vector2Int chunk)
+    private void InstantiateTerrainChunk(TerrainChunk.Data d)
     {
-        TerrainMap terrainMap = new TerrainMap(d);
-
-        Bounds bounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
-
-
         // Generate the mesh data
-        MeshGenerator.MeshData meshData = MeshGenerator.GenerateMeshData(terrainMap);
+        MeshGenerator.MeshData meshData = MeshGenerator.GenerateMeshData(d.TerrainMap);
 
 
         // Get the holes
-        List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
+        List<Hole> holesInThisChunk = Hole.CalculateHoles(ref d.TerrainMap);
         // Update them all
         foreach (Hole h in holesInThisChunk)
         {
@@ -368,10 +365,10 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Create the new chunk
-        TerrainChunkManager.AddNewChunk(chunk, bounds, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, meshData, MeshSettings, MapSettings);
+        TerrainChunkManager.AddNewChunk(d.Chunk, d.Bounds, d.TerrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, meshData, MeshSettings, MapSettings);
 
         // Call the event
-        OnChunkGenerated.Invoke(chunk);
+        OnChunkGenerated.Invoke(d.Chunk);
     }
 
 
@@ -386,7 +383,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Create the memory for the result
-        NativeArray<TerrainMapGenerator.TerrainMapData> result = new NativeArray<TerrainMapGenerator.TerrainMapData>(1, Allocator.TempJob);
+        NativeArray<TerrainChunk.Data> result = new NativeArray<TerrainChunk.Data>(1, Allocator.TempJob);
         j.ChunkData = result;
 
         // Schedule the job
@@ -396,13 +393,13 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Access the result
-        TerrainMapGenerator.TerrainMapData data = result[0];
+        TerrainChunk.Data data = result[0];
         // Free the memory
         result.Dispose();
 
 
         // Call the event
-        OnTerrainMapDataCreated.Invoke(data, chunk);
+        OnChunkDataCreated.Invoke(data);
     }
 
 
@@ -410,7 +407,7 @@ public class TerrainGenerator : MonoBehaviour
 
     private struct GenerateChunkJob : IJob
     {
-        public NativeArray<TerrainMapGenerator.TerrainMapData> ChunkData;
+        public NativeArray<TerrainChunk.Data> ChunkData;
 
         private TerrainSettings courseSettings;
         private NoiseSettings courseNoiseSettings;
@@ -482,7 +479,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
                     else
                     {
-                        bunkerShapeMask[x, y] = TerrainMapGenerator.PointData.Empty;
+                        bunkerShapeMask[x, y] = TerrainMapGenerator.Point.Empty;
                     }
 
                     // Hole
@@ -492,14 +489,23 @@ public class TerrainGenerator : MonoBehaviour
                     }
                     else
                     {
-                        holeShapeMask[x, y] = TerrainMapGenerator.PointData.Empty;
+                        holeShapeMask[x, y] = TerrainMapGenerator.Point.Empty;
                     }
                 }
             }
 
 
+            // Get the terrain map
+            TerrainMapGenerator.TerrainMap terrainMap = TerrainMapGenerator.Generate(width, height, localVertexPositions, chunkBounds.center, heightsRaw, bunkerShapeMask, holeShapeMask, courseSettings);
+
+
             // Now assign the data to the result
-            ChunkData[0] = TerrainMapGenerator.Generate(width, height, localVertexPositions, chunkBounds.center, heightsRaw, bunkerShapeMask, holeShapeMask, courseSettings);
+            ChunkData[0] = new TerrainChunk.Data
+            {
+                Chunk = chunk,
+                Bounds = chunkBounds,
+                TerrainMap = terrainMap,
+            };
         }
     }
 
