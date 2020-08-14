@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class TerrainChunk
@@ -7,21 +6,24 @@ public class TerrainChunk
     public Vector2Int Position { get; }
     public Bounds Bounds { get; }
 
-    private GameObject ChunkParent;
-    private Dictionary<TerrainSettings.Biome, Layer> Layers = new Dictionary<TerrainSettings.Biome, Layer>();
+    private GameObject meshObject;
+    private MeshRenderer meshRenderer;
+    private MeshFilter meshFilter;
+    private MeshCollider meshCollider;
 
-    public bool IsVisible => ChunkParent.activeSelf;
+    public Mesh Visual => meshFilter.mesh;
+    public Mesh Collider => meshCollider.sharedMesh;
+
+    public bool IsVisible => meshObject.activeSelf;
 
 
     public MeshGenerator.MeshData MeshData;
+    private MeshGenerator.LevelOfDetail LOD;
 
 
     public TerrainMap TerrainMap;
 
     public Texture2D Texture;
-
-    private Material m;
-    private PhysicMaterial p;
 
 
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
@@ -31,22 +33,26 @@ public class TerrainChunk
         Bounds = bounds;
 
         // Set the GameObject
-        ChunkParent = new GameObject("Terrain Chunk " + position.ToString())
-        {
-            // Set position
-            layer = terrainLayer
-        };
+        meshObject = new GameObject("Terrain Chunk " + position.ToString());
+        meshRenderer = meshObject.AddComponent<MeshRenderer>();
+        meshFilter = meshObject.AddComponent<MeshFilter>();
+        meshCollider = meshObject.AddComponent<MeshCollider>();
 
-        ChunkParent.transform.position = Bounds.center;
-        ChunkParent.transform.parent = parent;
+        // Material stuff
+        meshRenderer.material = material;
+
+
+        // Physics material
+        meshCollider.material = physics;
+
+        // Set position
+        meshObject.layer = terrainLayer;
+        meshObject.transform.position = Bounds.center;
+        meshObject.transform.parent = parent;
         SetVisible(false);
 
         // Set the maps
         TerrainMap = terrainMap;
-
-
-        m = material;
-        p = physics;
 
 
         RecalculateTexture(mapSettings);
@@ -81,90 +87,38 @@ public class TerrainChunk
     }
 
 
-
-
-    private Layer GetLayer(TerrainSettings.Biome biome)
+    private void RecalculateMesh(object LODObject)
     {
-        if (!Layers.TryGetValue(biome, out Layer layer))
-        {
-            layer = new Layer(biome, ChunkParent.transform.position, ChunkParent.transform, m, p);
-        }
+        LOD = (MeshGenerator.LevelOfDetail)LODObject;
 
-        return layer;
-    }
-
-
-    private void RecalculateMesh(object meshDataObject)
-    {
-        MeshData = (MeshGenerator.MeshData)meshDataObject;
-
-        // Add all the sub meshes
-        foreach (TerrainSettings.Biome b in MeshData.Meshes.Keys)
-        {
-            if (MeshData.Meshes.TryGetValue(b, out MeshGenerator.LevelOfDetail LOD))
-            {
-                // Create the new mesh
-                Mesh m = LOD.GenerateMesh();
-
-                // Get the correct game object for this biome
-                Layer l = GetLayer(b);
-
-                // And set it
-                l.meshCollider.sharedMesh = m;
-                l.meshFilter.mesh = m;
-            }
-        }
+        // Create the new mesh
+        Mesh mesh = LOD.GenerateMesh();
+        // And set it
+        meshCollider.sharedMesh = mesh;
+        meshFilter.mesh = mesh;
 
         SetVisible(true);
     }
 
 
-    private MeshGenerator.MeshData GenerateLOD(MeshSettings settings)
+    private MeshGenerator.LevelOfDetail GenerateLOD(MeshSettings settings)
     {
         // Create new mesh data
-        MeshGenerator.MeshData m = MeshGenerator.GenerateMeshData(TerrainMap);
-
-        m.RecalculateAllLODs(settings);
-
+        MeshData = MeshGenerator.GenerateMeshData(TerrainMap);
         // And new level of detail
-        return m;
+        return MeshData.GenerateLOD(settings);
     }
 
 
 
     public void SetVisible(bool visible)
     {
-        ChunkParent.SetActive(visible);
+        meshObject.SetActive(visible);
     }
 
 
 
-    private class Layer
-    {
-        public GameObject Object;
 
-        public MeshRenderer meshRenderer;
-        public MeshFilter meshFilter;
-        public MeshCollider meshCollider;
-
-        public Layer(TerrainSettings.Biome biome, Vector3 position, Transform parent, Material material, PhysicMaterial physics)
-        {
-            Object = new GameObject(biome.ToString());
-            Object.transform.parent = parent;
-            Object.transform.position = position;
-
-            // Add the components
-            meshRenderer = Object.AddComponent<MeshRenderer>();
-            meshFilter = Object.AddComponent<MeshFilter>();
-            meshCollider = Object.AddComponent<MeshCollider>();
-
-            // Material stuff
-            meshRenderer.material = material;
-
-            // Physics material
-            meshCollider.material = physics;
-        }
-    }
 
 
 }
