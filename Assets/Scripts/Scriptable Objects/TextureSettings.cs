@@ -10,13 +10,9 @@ public class TextureSettings : VariablePreset
 
 
 
-    public void ApplyToMaterial(Material m)
+    public static void ApplyToMaterial(ref Material m, Texture2D colourMap)
     {
-        /*
-        Texture t = m.GetTexture("_BaseMap");
-        Vector2 scale = new Vector2((float)(width / t.width), (float)(height / t.height));
-        meshRenderer.material.SetTextureScale("_BaseMap", scale);
-        */
+        m.SetTexture("_ColourMap", colourMap);
     }
 
     public override void ValidateValues()

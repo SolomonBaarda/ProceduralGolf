@@ -89,9 +89,9 @@ public class TerrainChunk
         // Create the texture from the data
         Texture = TextureGenerator.GenerateTexture(data);
 
-        meshRenderer.material.SetTexture("_BaseMap", Texture);
-        //meshRenderer.material.SetTexture("_MainTex", Texture);
-        //meshRenderer.UpdateGIMaterials();
+
+        Material m = meshRenderer.material;
+        TextureSettings.ApplyToMaterial(ref m, Texture);
     }
 
 
