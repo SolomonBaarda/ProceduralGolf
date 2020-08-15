@@ -404,7 +404,7 @@ MonoBehaviour:
     type: 2}
   Seed: 0
   DoRandomSeed: 0
-  MaterialGrass: {fileID: 2100000, guid: 2e701212ddb9e6d448b289804871b680, type: 2}
+  MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
   PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
   GolfHoleFlagPrefab: {fileID: 110804456460024580, guid: af95c3459d594514e98b7681ed2c151b,
     type: 3}
@@ -982,8 +982,6 @@ MonoBehaviour:
   DoEndlessTerrain: 1
   ViewDistanceWorld: 200
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
-  Texture_MapSettings: {fileID: 11400000, guid: 8ac845c9b2e54a24eb921a7ea51148dd,
-    type: 2}
 --- !u!4 &2130833001
 Transform:
   m_ObjectHideFlags: 0

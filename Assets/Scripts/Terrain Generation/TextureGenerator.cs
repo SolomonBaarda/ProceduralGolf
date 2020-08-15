@@ -6,15 +6,6 @@ public static class TextureGenerator
 
 
 
-
-
-
-
-
-
-
-
-
     public static Color[] GenerateColourMap(in TerrainMap map, TextureSettings settings)
     {
         settings.ValidateValues();
@@ -49,8 +40,8 @@ public static class TextureGenerator
         {
             filterMode = FilterMode.Point,
             wrapMode = TextureWrapMode.Clamp,
+            
         };
-
 
         t.SetPixels(data.ColourMap);
         t.Apply();

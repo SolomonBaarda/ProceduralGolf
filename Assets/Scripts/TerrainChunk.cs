@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class TerrainChunk
@@ -27,7 +29,7 @@ public class TerrainChunk
 
 
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
-            TerrainMap terrainMap, TextureSettings mapSettings)
+            TerrainMap terrainMap, TextureSettings textureSettings)
     {
         Position = position;
         Bounds = bounds;
@@ -55,16 +57,24 @@ public class TerrainChunk
         TerrainMap = terrainMap;
 
 
-        RecalculateTexture(mapSettings);
-        //meshRenderer.material.SetTexture("_BaseMap", Texture);
+
+        TerrainChunkGizmos g = meshObject.AddComponent<TerrainChunkGizmos>();
+        g.SetMap(TerrainMap);
+
+
+        RecalculateTexture(textureSettings);
     }
 
 
 
-    public void RecalculateTexture(TextureSettings mapSettings)
+
+   
+
+
+    public void RecalculateTexture(TextureSettings settings)
     {
         // Request the texture and set it afterwards
-        ThreadedDataRequester.RequestData(() => TextureGenerator.GenerateTextureData(TerrainMap, mapSettings), SetTexture);
+        ThreadedDataRequester.RequestData(() => TextureGenerator.GenerateTextureData(TerrainMap, settings), SetTexture);
     }
 
 
@@ -72,8 +82,16 @@ public class TerrainChunk
     {
         TextureGenerator.TextureData data = (TextureGenerator.TextureData)textureDataObject;
 
+        // Reverse the colour map - rotates 180 degrees 
+        // For some reason the texture needs this
+        Array.Reverse(data.ColourMap);
+
         // Create the texture from the data
         Texture = TextureGenerator.GenerateTexture(data);
+
+        meshRenderer.material.SetTexture("_BaseMap", Texture);
+        //meshRenderer.material.SetTexture("_MainTex", Texture);
+        //meshRenderer.UpdateGIMaterials();
     }
 
 
@@ -82,12 +100,15 @@ public class TerrainChunk
     {
         SetVisible(false);
 
+        TerrainChunkGizmos g = meshObject.GetComponent<TerrainChunkGizmos>();
+        g.SetLOD(settings);
+
         // Recalculate all the new mesh data then create a new mesh
-        ThreadedDataRequester.RequestData(() => GenerateLOD(settings), RecalculateMesh);
+        ThreadedDataRequester.RequestData(() => GenerateLOD(settings), GenerateMesh);
     }
 
 
-    private void RecalculateMesh(object LODObject)
+    private void GenerateMesh(object LODObject)
     {
         LOD = (MeshGenerator.LevelOfDetail)LODObject;
 

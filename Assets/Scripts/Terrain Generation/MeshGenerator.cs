@@ -73,7 +73,7 @@ public static class MeshGenerator
             {
                 for (int x = 0; x < MaxVerticesWidth; x++)
                 {
-                    Vector3 v = Vertices[GetVertexIndex(x, y)];
+                    Vector3 v = Vertices[y * MaxVerticesWidth + x];
 
                     if (v.x < min.x) { min.x = v.x; }
                     if (v.x > max.x) { max.x = v.x; }
@@ -90,9 +90,9 @@ public static class MeshGenerator
             {
                 for (int x = 0; x < MaxVerticesWidth; x++)
                 {
-                    Vector3 point = Vertices[GetVertexIndex(x, y)];
+                    Vector3 point = Vertices[y * MaxVerticesWidth + x];
 
-                    UVs[GetVertexIndex(x, y)] = (max - new Vector2(point.x, point.z)) / size;
+                    UVs[y * MaxVerticesWidth + x] = (max - new Vector2(point.x, point.z)) / size;
                 }
             }
         }
