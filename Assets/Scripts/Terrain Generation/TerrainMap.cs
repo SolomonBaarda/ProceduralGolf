@@ -42,7 +42,7 @@ public class TerrainMap
             for (int x = 0; x < width; x++)
             {
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
-                TerrainSettings.Biome biome = CalculateBiome(terrainSettings, bunkersMask[x, y], holesMask[x, y]);
+                Biome.Type biome = CalculateBiome(terrainSettings, bunkersMask[x, y], holesMask[x, y]);
                 float originalHeight = CalculateFinalHeight(terrainSettings, copy, rawHeights[x, y], bunkersMask[x, y]);
 
                 // Assign the terrain point
@@ -127,20 +127,20 @@ public class TerrainMap
     }
 
 
-    private TerrainSettings.Biome CalculateBiome(TerrainSettings settings, float rawBunker, float rawHole)
+    private Biome.Type CalculateBiome(TerrainSettings settings, float rawBunker, float rawHole)
     {
-        TerrainSettings.Biome b = settings.MainBiome;
+        Biome.Type b = settings.MainBiome;
 
         // Do a bunker
         if (settings.DoBunkers && !Mathf.Approximately(rawBunker, Point.Empty))
         {
-            b = TerrainSettings.Biome.Sand;
+            b = Biome.Type.Sand;
         }
 
         // Hole is more important
         if (!Mathf.Approximately(rawHole, Point.Empty))
         {
-            b = TerrainSettings.Biome.Hole;
+            b = Biome.Type.Hole;
         }
 
         return b;
@@ -297,7 +297,7 @@ public class TerrainMap
                 p.Neighbours.Add(neighbour);
 
                 // These neighbours are the same hole that is split by the chunk border
-                if (p.Biome == TerrainSettings.Biome.Hole && neighbour.Biome == TerrainSettings.Biome.Hole)
+                if (p.Biome == Biome.Type.Hole && neighbour.Biome == Biome.Type.Hole)
                 {
                     if (p.Hole != neighbour.Hole)
                     {
@@ -308,6 +308,31 @@ public class TerrainMap
             }
         }
     }
+
+
+
+
+    public Point GetClosestTo(Vector3 worldPos)
+    {
+        Point closest = Map[0, 0];
+
+        for (int y = 0; y < Height; y++)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                Point p = Map[x, y];
+                Vector3 pos = p.LocalVertexPosition + p.Offset;
+                if (Vector3.Distance(pos, worldPos) < Vector3.Distance(closest.LocalVertexPosition + closest.Offset, worldPos))
+                {
+                    closest = p;
+                }
+            }
+        }
+
+        return closest;
+    }
+
+
 
 
     public class Point
@@ -321,7 +346,7 @@ public class TerrainMap
 
         public bool IsAtEdgeOfMesh;
 
-        public TerrainSettings.Biome Biome;
+        public Biome.Type Biome;
         public float Height;
         public float OriginalHeight;
 
@@ -332,7 +357,7 @@ public class TerrainMap
         public List<Point> Neighbours;
 
 
-        public Point(Vector3 localVertexPos, Vector3 offset, float height, TerrainSettings.Biome biome, bool isAtEdgeOfMesh)
+        public Point(Vector3 localVertexPos, Vector3 offset, float height, Biome.Type biome, bool isAtEdgeOfMesh)
         {
             LocalVertexBasePosition = localVertexPos;
             Offset = offset;

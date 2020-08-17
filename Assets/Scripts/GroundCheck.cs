@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class GroundCheck : MonoBehaviour
+public static class GroundCheck
 {
     public const string GROUND_LAYER = "Ground";
     public static int GroundLayer => LayerMask.NameToLayer(GROUND_LAYER);
@@ -19,5 +19,7 @@ public class GroundCheck : MonoBehaviour
     {
         return GetGroundCollisions(worldPosition, collisionCheckRadius).Length != 0;
     }
+
+
 
 }

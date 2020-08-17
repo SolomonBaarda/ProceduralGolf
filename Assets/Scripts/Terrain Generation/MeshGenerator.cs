@@ -14,7 +14,7 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                data.SetVertex(x, y, terrainMap.Map[x, y].LocalVertexPosition);
+                data.SetVertex(x, y, terrainMap.Map[x, y].LocalVertexPosition, Biome.BiomeToColour(terrainMap.Map[x, y].Biome));
             }
         }
 
@@ -32,6 +32,7 @@ public static class MeshGenerator
         private readonly int MaxVerticesWidth, MaxVerticesHeight;
         public Vector3[] Vertices;
         public Vector2[] UVs;
+        public Color[] Colours;
 
 
         public MeshData(int verticesX, int verticesY)
@@ -40,6 +41,7 @@ public static class MeshGenerator
 
             // Assign array size
             Vertices = new Vector3[MaxVerticesWidth * MaxVerticesHeight];
+            Colours = new Color[Vertices.Length];
         }
 
 
@@ -53,12 +55,13 @@ public static class MeshGenerator
             return -1;
         }
 
-        public void SetVertex(int x, int y, Vector3 vertex)
+        public void SetVertex(int x, int y, Vector3 vertex, Color colour)
         {
             int index = GetVertexIndex(x, y);
             if (index != -1)
             {
                 Vertices[index] = vertex;
+                Colours[index] = colour;
             }
         }
 
@@ -107,6 +110,7 @@ public static class MeshGenerator
 
             Vector3[] newVertices = new Vector3[newWidth * newHeight];
             Vector2[] newUVs = new Vector2[newVertices.Length];
+            Color[] newColours = new Color[newVertices.Length];
             int[] newTriangles = new int[newWidth * newHeight * 6];
             int triangleIndex = 0;
 
@@ -121,6 +125,8 @@ public static class MeshGenerator
                     newVertices[thisVertexIndex] = Vertices[GetVertexIndex(x, y)];
                     // Add the UV
                     newUVs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
+                    // Add the colour
+                    newColours[thisVertexIndex] = Colours[GetVertexIndex(x, y)];
 
                     // Set the triangles
                     if (newX >= 0 && newX < newWidth - 1 && newY >= 0 && newY < newHeight - 1)
@@ -142,7 +148,7 @@ public static class MeshGenerator
                 }
             }
 
-            return new LevelOfDetail(newWidth, newHeight, newVertices, newUVs, newTriangles);
+            return new LevelOfDetail(newWidth, newHeight, newVertices, newUVs, newColours, newTriangles);
         }
 
     }
@@ -154,15 +160,17 @@ public static class MeshGenerator
         private readonly int Width, Height;
         public Vector3[] Vertices;
         public Vector2[] UVs;
+        public Color[] Colours;
         public int[] Triangles;
 
-        public LevelOfDetail(int width, int height, Vector3[] vertices, Vector2[] uvs, int[] triangles)
+        public LevelOfDetail(int width, int height, Vector3[] vertices, Vector2[] uvs, Color[] colours, int[] triangles)
         {
             Width = width;
             Height = height;
 
             Vertices = vertices;
             UVs = uvs;
+            Colours = colours;
             Triangles = triangles;
         }
 
@@ -173,6 +181,7 @@ public static class MeshGenerator
                 vertices = Vertices,
                 triangles = Triangles,
                 uv = UVs,
+                colors = Colours,
             };
 
             m.RecalculateNormals();

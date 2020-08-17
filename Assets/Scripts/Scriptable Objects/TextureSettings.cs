@@ -17,7 +17,7 @@ public class TextureSettings : VariablePreset
         m.SetVector("_MainTexTiling", tiling);
         m.SetVector("_BunkerTexTiling", tiling);
 
-        m.SetColor("_Sand", GetColour(TerrainSettings.Biome.Sand));
+        m.SetColor("_Sand", GetColour(Biome.Type.Sand));
     }
 
     public override void ValidateValues()
@@ -25,7 +25,7 @@ public class TextureSettings : VariablePreset
     }
 
 
-    public Color GetColour(TerrainSettings.Biome biome)
+    public Color GetColour(Biome.Type biome)
     {
         // Find the colour
         Color c = Colours.Find((x) => x.Biome == biome).Colour;
@@ -42,7 +42,7 @@ public class TextureSettings : VariablePreset
     [System.Serializable]
     public struct BiomeColour
     {
-        public TerrainSettings.Biome Biome;
+        public Biome.Type Biome;
         public Color Colour;
     }
 }

@@ -9,7 +9,7 @@ public class TerrainSettings : VariablePreset
     public float HeightMultiplier = 16;
 
     [Space]
-    public Biome MainBiome;
+    public Biome.Type MainBiome;
 
     [Header("Bunkers")]
     public bool DoBunkers = true;
@@ -31,12 +31,4 @@ public class TerrainSettings : VariablePreset
     }
 
 
-    public enum Biome
-    {
-        Grass,
-        Sand,
-        Hole,
-        Water,
-        Ice,
-    }
 }

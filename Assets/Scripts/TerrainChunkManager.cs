@@ -39,7 +39,9 @@ public class TerrainChunkManager : MonoBehaviour
         if (!TerrainChunkExists(position))
         {
             // Create the chunk
-            TerrainChunk chunk = new TerrainChunk(position, bounds, material, physics, ChunkParent, terrainLayer, terrain, mapSettings);
+            TerrainChunk chunk = new GameObject().AddComponent<TerrainChunk>();
+            chunk.Initialise(position, bounds, material, physics, ChunkParent, terrainLayer, terrain, mapSettings);
+
             // And set the mesh
             chunk.RecalculateMesh(meshSettings);
 

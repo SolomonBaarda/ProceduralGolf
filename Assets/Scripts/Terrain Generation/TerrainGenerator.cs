@@ -154,33 +154,6 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-
-    private void OnTerrainMapGenerated(object terrainMapObject)
-    {
-        TerrainMap terrainMap = (TerrainMap)terrainMapObject;
-
-        // Get the bunkers
-        List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
-
-        // Update them all
-        foreach (Hole h in holesInThisChunk)
-        {
-            h.Flag = Instantiate(GolfHoleFlagPrefab, transform);
-
-            h.UpdateHole();
-
-            GolfHoles.Add(h);
-        }
-
-        // Create the new chunk
-        TerrainChunkManager.AddNewChunk(terrainMap.Chunk, terrainMap.Bounds, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
-
-        OnChunkGenerated.Invoke(terrainMap.Chunk);
-        IsGenerating = false;
-    }
-
-
-
     private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, Bounds chunkBounds)
     {
         // Get the vertex points
@@ -236,6 +209,31 @@ public class TerrainGenerator : MonoBehaviour
         return terrainMap;
     }
 
+
+
+    private void OnTerrainMapGenerated(object terrainMapObject)
+    {
+        TerrainMap terrainMap = (TerrainMap)terrainMapObject;
+
+        // Get the bunkers
+        List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
+
+        // Update them all
+        foreach (Hole h in holesInThisChunk)
+        {
+            h.Flag = Instantiate(GolfHoleFlagPrefab, transform);
+
+            h.UpdateHole();
+
+            GolfHoles.Add(h);
+        }
+
+        // Create the new chunk
+        TerrainChunkManager.AddNewChunk(terrainMap.Chunk, terrainMap.Bounds, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
+
+        OnChunkGenerated.Invoke(terrainMap.Chunk);
+        IsGenerating = false;
+    }
 
 
     private void CheckChunkAddEdgeNeighbours(Vector2Int pos)

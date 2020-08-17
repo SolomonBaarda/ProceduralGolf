@@ -5,14 +5,20 @@ using UnityEngine.Events;
 public class GolfBall : MonoBehaviour, ICanBeFollowed
 {
     // Constants 
-    public readonly static RigidPreset Air = new RigidPreset(0f, 0f);
-    public readonly static RigidPreset Grass = new RigidPreset(2.5f, 1f);
-    public readonly static RigidPreset Sand = new RigidPreset(7f, 10f);
+    public readonly static RigidPreset Preset_Air = new RigidPreset(0f, 0f);
+    public readonly static RigidPreset Preset_Grass = new RigidPreset(2.5f, 1f);
+    public readonly static RigidPreset Preset_GrassHole = new RigidPreset(1.5f, 1f);
+    public readonly static RigidPreset Preset_Sand = new RigidPreset(7f, 10f);
+    public readonly static RigidPreset Preset_Water = new RigidPreset(20f, 50f);
+    public readonly static RigidPreset Preset_Ice = new RigidPreset(0f, 0f);
 
     // States
     public PlayState State;
     public bool IsOnGround = false;
     public bool IsFrozen = false;
+
+    [Space]
+    public Biome.Type CurrentBiome;
 
     // Statistics
     public Stats GameStats;
@@ -100,7 +106,15 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private void FixedUpdate()
     {
         // Get the onground value
-        IsOnGround = GroundCheck.IsOnGround(transform.position, sphereCollider.radius + GroundCheck.DEFAULT_RADIUS);
+        Collider[] groundCollisions = GroundCheck.GetGroundCollisions(transform.position, sphereCollider.radius + GroundCheck.DEFAULT_RADIUS);
+        IsOnGround = groundCollisions.Length > 0;
+        // Get the current biome
+        Collider c = null;
+        if (groundCollisions.Length > 0)
+        {
+            c = groundCollisions[0];
+        }
+        CurrentBiome = Biome.GetBiome(c, Position);
 
         PlayState lastFrame = State;
 
@@ -141,15 +155,30 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
 
 
-
-
-
         // Update the rigidbody properties
-        RigidPreset r = Air;
+        RigidPreset r = Preset_Air;
         // On the ground
-        if (IsOnGround)
+        if (State == PlayState.Rolling)
         {
-            r = Grass;
+            switch (CurrentBiome)
+            {
+                case Biome.Type.Grass:
+                    r = Preset_Grass;
+                    break;
+                case Biome.Type.Sand:
+                    r = Preset_Sand;
+                    break;
+                case Biome.Type.Hole:
+                    r = Preset_GrassHole;
+                    break;
+                case Biome.Type.Water:
+                    r = Preset_Water;
+                    break;
+                case Biome.Type.Ice:
+                    r = Preset_Ice;
+                    break;
+            }
+
         }
 
         // Set the values
@@ -256,8 +285,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     }
 
 
-
-
     public void SetValues(float rotation, float angle, float power)
     {
         Rotation = rotation;
@@ -352,10 +379,4 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     }
 
 
-    public enum Parameters
-    {
-        Rotation,
-        Angle,
-        Power,
-    }
 }

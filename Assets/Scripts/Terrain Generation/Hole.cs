@@ -23,7 +23,7 @@ public class Hole
     {
         Vertices.Clear();
 
-        if(Flag != null)
+        if (Flag != null)
         {
             Object.Destroy(Flag);
         }
@@ -33,7 +33,7 @@ public class Hole
 
     public Vector3 EvaluateMidpoint()
     {
-        if(Vertices.Count > 0)
+        if (Vertices.Count > 0)
         {
             Vector3 min = Vertices[0].LocalVertexPosition + Vertices[0].Offset, max = min;
 
@@ -120,7 +120,7 @@ public class Hole
     {
         List<TerrainMap.Point> pointsAlreadyChecked = new List<TerrainMap.Point>();
 
-        if (p.Biome == TerrainSettings.Biome.Hole)
+        if (p.Biome == Biome.Type.Hole)
         {
             // Check the root first
             if (PointHasHole(ref pointsAlreadyChecked, p, out h))
@@ -159,7 +159,7 @@ public class Hole
             // Get all the neighbours that have not already been checked
             foreach (TerrainMap.Point neighbourOfNeighbour in neighbour.Neighbours)
             {
-                if (neighbourOfNeighbour.Biome == TerrainSettings.Biome.Hole && !pointsAlreadyChecked.Contains(neighbourOfNeighbour))
+                if (neighbourOfNeighbour.Biome == Biome.Type.Hole && !pointsAlreadyChecked.Contains(neighbourOfNeighbour))
                 {
                     neighboursNotChecked.Add(neighbourOfNeighbour);
                 }
@@ -180,7 +180,7 @@ public class Hole
     private static bool PointHasHole(ref List<TerrainMap.Point> alreadyChecked, TerrainMap.Point p, out Hole h)
     {
         // Don't bother checking if it is not a hole
-        if (p.Biome != TerrainSettings.Biome.Hole)
+        if (p.Biome != Biome.Type.Hole)
         {
             alreadyChecked.Add(p);
         }
@@ -217,7 +217,7 @@ public class Hole
             for (int x = 0; x < t.Width; x++)
             {
                 // Vertex is part of a hole
-                if (t.Map[x, y].Biome == TerrainSettings.Biome.Hole)
+                if (t.Map[x, y].Biome == Biome.Type.Hole)
                 {
                     // Need to create a hole
                     if (!HoleHasBeenCreated(t.Map[x, y], out Hole h))

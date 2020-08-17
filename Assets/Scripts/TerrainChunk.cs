@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class TerrainChunk
+public class TerrainChunk : MonoBehaviour
 {
-    public Vector2Int Position { get; }
-    public Bounds Bounds { get; }
+    public Vector2Int Position { get; private set; }
+    public Bounds Bounds { get; private set; }
 
-    private GameObject meshObject;
     private MeshRenderer meshRenderer;
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
@@ -16,7 +13,7 @@ public class TerrainChunk
     public Mesh Visual => meshFilter.mesh;
     public Mesh Collider => meshCollider.sharedMesh;
 
-    public bool IsVisible => meshObject.activeSelf;
+    public bool IsVisible => gameObject.activeSelf;
 
 
     public MeshGenerator.MeshData MeshData;
@@ -24,21 +21,26 @@ public class TerrainChunk
 
 
     public TerrainMap TerrainMap;
-
+    [HideInInspector]
     public Texture2D BiomeColourMap;
 
+    [Header("Gizmos settings")]
+    public bool ShowGizmos = true;
+    [Min(0)] public float Length = 2;
+    public bool GizmosUseLOD = true;
+    private int LODIncrement = 1;
 
-    public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
+    public void Initialise(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
             TerrainMap terrainMap, TextureSettings textureSettings)
     {
         Position = position;
         Bounds = bounds;
 
         // Set the GameObject
-        meshObject = new GameObject("Terrain Chunk " + position.ToString());
-        meshRenderer = meshObject.AddComponent<MeshRenderer>();
-        meshFilter = meshObject.AddComponent<MeshFilter>();
-        meshCollider = meshObject.AddComponent<MeshCollider>();
+        gameObject.name = "Terrain Chunk " + position.ToString();
+        meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshCollider = gameObject.AddComponent<MeshCollider>();
 
         // Material stuff
         meshRenderer.material = material;
@@ -48,19 +50,13 @@ public class TerrainChunk
         meshCollider.material = physics;
 
         // Set position
-        meshObject.layer = terrainLayer;
-        meshObject.transform.position = Bounds.center;
-        meshObject.transform.parent = parent;
+        gameObject.layer = terrainLayer;
+        gameObject.transform.position = Bounds.center;
+        gameObject.transform.parent = parent;
         SetVisible(false);
 
         // Set the maps
         TerrainMap = terrainMap;
-
-
-
-        TerrainChunkGizmos g = meshObject.AddComponent<TerrainChunkGizmos>();
-        g.SetMap(TerrainMap);
-
 
         RecalculateTexture(textureSettings);
     }
@@ -68,7 +64,7 @@ public class TerrainChunk
 
 
 
-   
+
 
 
     public void RecalculateTexture(TextureSettings settings)
@@ -91,7 +87,7 @@ public class TerrainChunk
 
 
         Material m = meshRenderer.material;
-        Vector2 tiling = new Vector2(TerrainMap.Width-1, TerrainMap.Height-1);
+        Vector2 tiling = new Vector2(TerrainMap.Width - 1, TerrainMap.Height - 1);
         data.Settings.ApplyToMaterial(ref m, BiomeColourMap, tiling);
     }
 
@@ -101,8 +97,7 @@ public class TerrainChunk
     {
         SetVisible(false);
 
-        TerrainChunkGizmos g = meshObject.GetComponent<TerrainChunkGizmos>();
-        g.SetLOD(settings);
+        LODIncrement = settings.SimplificationIncrement;
 
         // Recalculate all the new mesh data then create a new mesh
         ThreadedDataRequester.RequestData(() => GenerateLOD(settings), GenerateMesh);
@@ -135,12 +130,53 @@ public class TerrainChunk
 
     public void SetVisible(bool visible)
     {
-        meshObject.SetActive(visible);
+        gameObject.SetActive(visible);
     }
 
 
 
 
+    private void OnDrawGizmosSelected()
+    {
+        if (TerrainMap != null)
+        {
+            if (ShowGizmos)
+            {
+                int i = GizmosUseLOD ? LODIncrement : 1;
 
+                for (int y = 0; y < TerrainMap.Map.GetLength(1); y += i)
+                {
+                    for (int x = 0; x < TerrainMap.Map.GetLength(0); x += i)
+                    {
+                        TerrainMap.Point p = TerrainMap.Map[x, y];
+
+                        Color c = Color.black;
+                        switch (p.Biome)
+                        {
+                            case Biome.Type.Grass:
+                                c = Color.green;
+                                break;
+                            case Biome.Type.Sand:
+                                c = Color.yellow;
+                                break;
+                            case Biome.Type.Hole:
+                                c = Color.gray;
+                                break;
+                            case Biome.Type.Water:
+                                c = Color.blue;
+                                break;
+                            case Biome.Type.Ice:
+                                c = Color.white;
+                                break;
+                        }
+
+                        Gizmos.color = c;
+                        Vector3 pos = p.LocalVertexPosition + TerrainMap.Bounds.center;
+                        Gizmos.DrawLine(pos, pos + (TerrainGenerator.UP * Length));
+                    }
+                }
+            }
+        }
+    }
 
 }
