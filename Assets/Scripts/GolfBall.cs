@@ -19,6 +19,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     [Space]
     public Biome.Type CurrentBiome;
+    private Vector3 biomeSamplePoint;
 
     // Statistics
     public Stats GameStats;
@@ -115,6 +116,13 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
             c = groundCollisions[0];
         }
         CurrentBiome = Biome.GetBiome(c, Position);
+        /*
+        TerrainMap.Point p = Biome.GetPoint(c, Position);
+        if (p != null)
+        {
+            biomeSamplePoint = p.LocalVertexPosition + p.Offset;
+        }
+        */
 
         PlayState lastFrame = State;
 
@@ -339,6 +347,11 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Draw the facing
         Gizmos.color = Color.green;
         Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
+
+        /*
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(biomeSamplePoint, 0.1f);
+        */
     }
 
 

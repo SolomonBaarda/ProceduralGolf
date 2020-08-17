@@ -249,7 +249,7 @@ public class TerrainMap
                     }
                 }
 
-
+                // Diagonal cases - TODO
                 /*
 
                 // Neighbour is diagonal up left
@@ -314,20 +314,36 @@ public class TerrainMap
 
     public Point GetClosestTo(Vector3 worldPos)
     {
-        Point closest = Map[0, 0];
+        int estimatedX = Width - (int)((Bounds.max.x - worldPos.x) / (Bounds.max.x - Bounds.min.x) * Width);
+        int estimatedY = Height - (int)((Bounds.max.z - worldPos.z) / (Bounds.max.z - Bounds.min.z)  * Height);
+        Point closest = Map[estimatedX, estimatedY];
 
-        for (int y = 0; y < Height; y++)
+        int offset = 1;
+
+        // Don't bother checking each vertex
+        for (int y = -offset; y <= offset; y++)
         {
-            for (int x = 0; x < Width; x++)
+            for (int x = -offset; x <= offset; x++)
             {
-                Point p = Map[x, y];
-                Vector3 pos = p.LocalVertexPosition + p.Offset;
-                if (Vector3.Distance(pos, worldPos) < Vector3.Distance(closest.LocalVertexPosition + closest.Offset, worldPos))
+                int i = estimatedX + x, j = estimatedY + y;
+
+                // Valid index
+                if (i >= 0 && j >= 0 && i < Width && j < Height)
                 {
-                    closest = p;
+                    Point p = Map[i, j];
+                    Vector3 pos = p.LocalVertexPosition + p.Offset;
+                    if (Vector3.Distance(pos, worldPos) < Vector3.Distance(closest.LocalVertexPosition + closest.Offset, worldPos))
+                    {
+                        closest = p;
+                    }
                 }
             }
         }
+
+        //Debug.DrawLine(closest.LocalVertexBasePosition + closest.Offset, closest.LocalVertexBasePosition + closest.Offset + (Vector3.up * 100), Color.red, 100);
+
+        //Debug.DrawLine(worldPos, worldPos + (Vector3.up * 100), Color.green, 100);
+
 
         return closest;
     }

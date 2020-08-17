@@ -7,6 +7,21 @@ public static class Biome
 
 
 
+    public static TerrainMap.Point GetPoint(Collider collider, Vector3 worldPos)
+    {
+        if (collider != null)
+        {
+            TerrainChunk c = collider.gameObject.GetComponent<TerrainChunk>();
+
+            if (c != null)
+            {
+                return c.TerrainMap.GetClosestTo(worldPos);
+            }
+        }
+
+        return null;
+    }
+
 
     public static Type GetBiome(Collider collider, Vector3 worldPos)
     {
