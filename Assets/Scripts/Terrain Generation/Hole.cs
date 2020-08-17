@@ -6,6 +6,11 @@ public class Hole
     public const int NotAssignedHoleNumber = -1;
     public int Number = NotAssignedHoleNumber;
 
+
+    public bool ShouldBeDestroyed = false;
+    public bool NeedsUpdating = false;
+
+
     public List<TerrainMap.Point> Vertices;
     public Vector3 Centre => EvaluateMidpoint();
 
@@ -77,6 +82,8 @@ public class Hole
 
     public void UpdateHole()
     {
+        NeedsUpdating = false;
+
         // Update the heights
         SetAllPointHeights();
 
@@ -92,7 +99,8 @@ public class Hole
             // Add all the vertices to this hole and remove it from the other
             Vertices.AddRange(hole.Vertices);
             hole.Vertices.Clear();
-            hole.Destroy();
+
+            hole.ShouldBeDestroyed = true;
 
             // Assign the points hole to be this
             foreach (TerrainMap.Point p in Vertices)
@@ -100,7 +108,8 @@ public class Hole
                 p.Hole = this;
             }
 
-            UpdateHole();
+
+            NeedsUpdating = true;
         }
     }
 

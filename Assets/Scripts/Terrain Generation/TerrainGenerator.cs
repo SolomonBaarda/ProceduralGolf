@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -14,9 +12,10 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainChunkManager TerrainChunkManager;
     public List<Hole> GolfHoles = new List<Hole>();
 
+
     public UnityAction<Vector2Int> OnChunkGenerated;
-    private UnityAction<List<TerrainChunk>> OnChunkTerrainMapsChanged;
     public UnityAction OnChunksUpdated;
+
 
     public bool IsGenerating { get; private set; } = false;
     public bool InitialTerrainGenerated { get; private set; } = false;
@@ -50,15 +49,13 @@ public class TerrainGenerator : MonoBehaviour
 
     private void Awake()
     {
-        OnChunkGenerated += CheckChunkAddEdgeNeighbours;
-        OnChunkTerrainMapsChanged += CheckUpdatedChunksForHoles;
+        OnChunkGenerated += CheckChunkEdges;
         OnChunksUpdated += Utils.EMPTY;
     }
 
     private void OnDestroy()
     {
-        OnChunkGenerated -= CheckChunkAddEdgeNeighbours;
-        OnChunkTerrainMapsChanged -= CheckUpdatedChunksForHoles;
+        OnChunkGenerated -= CheckChunkEdges;
         OnChunksUpdated -= Utils.EMPTY;
     }
 
@@ -236,7 +233,7 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    private void CheckChunkAddEdgeNeighbours(Vector2Int pos)
+    private void CheckChunkEdges(Vector2Int pos)
     {
         TerrainChunk newChunk = TerrainChunkManager.GetChunk(pos);
 
@@ -262,7 +259,18 @@ public class TerrainGenerator : MonoBehaviour
             }
         }
 
+        // Now add the neighbours
+        ThreadedDataRequester.RequestData
+        (
+            () => AddNeighbours(newChunk, relativeNeighbours),
+            CheckChunksAfterAddingNeighbours
+        );
 
+    }
+
+
+    private List<TerrainChunk> AddNeighbours(TerrainChunk newChunk, List<(TerrainChunk, Vector2Int)> relativeNeighbours)
+    {
         // Record which chunks have changed
         List<TerrainChunk> chunksUpdated = new List<TerrainChunk>();
 
@@ -290,17 +298,39 @@ public class TerrainGenerator : MonoBehaviour
             }
         }
 
-        // Call the event
-        if (chunksUpdated.Count > 0)
-        {
-            OnChunkTerrainMapsChanged.Invoke(chunksUpdated);
-        }
+        // Return any chunks that need updating
+        return chunksUpdated;
     }
 
 
 
-    private void CheckUpdatedChunksForHoles(List<TerrainChunk> chunksUpdated)
+    private void CheckChunksAfterAddingNeighbours(object chunksUpdatedObject)
     {
+        // Destroy any holes that need to be
+        foreach(Hole h in GolfHoles)
+        {
+            if(h.ShouldBeDestroyed)
+            {
+                h.Destroy();
+            }
+        }
+
+        // Remove all holes that have no vertices
+        GolfHoles.RemoveAll((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
+
+        // Update any holes
+        foreach (Hole h in GolfHoles)
+        {
+            if (h.NeedsUpdating)
+            {
+                h.UpdateHole();
+            }
+        }
+
+
+        // Get the chunks that need updating
+        List<TerrainChunk> chunksUpdated = (List<TerrainChunk>)chunksUpdatedObject;
+
         // Create new meshes for each chunk that needs updating
         foreach (TerrainChunk c in chunksUpdated)
         {
@@ -308,12 +338,21 @@ public class TerrainGenerator : MonoBehaviour
             c.RecalculateTexture(Texture_GroundSettings);
         }
 
-        // Remove all holes that have no vertices
-        GolfHoles.RemoveAll((x) => x.Vertices.Count == 0);
 
 
         OnChunksUpdated.Invoke();
     }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
