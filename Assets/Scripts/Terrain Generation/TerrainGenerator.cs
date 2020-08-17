@@ -12,6 +12,8 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainChunkManager TerrainChunkManager;
     public List<Hole> GolfHoles = new List<Hole>();
 
+    private List<NeedsUpdating> chunksThatNeedUpdating = new List<NeedsUpdating>();
+    public float ChunkWaitSecondsBeforeUpdate = 0.25f;
 
     public UnityAction<Vector2Int> OnChunkGenerated;
     public UnityAction OnChunksUpdated;
@@ -59,6 +61,44 @@ public class TerrainGenerator : MonoBehaviour
         OnChunksUpdated -= Utils.EMPTY;
     }
 
+
+
+    private void FixedUpdate()
+    {
+
+
+
+        // Loop through each chunk that needs updating
+        for (int i = 0; i < chunksThatNeedUpdating.Count; i++)
+        {
+            NeedsUpdating n = chunksThatNeedUpdating[i];
+            // Add to the timer
+            n.TimeSinceAdded += Time.fixedDeltaTime;
+
+            // Chunk needs updating
+            if (n.TimeSinceAdded >= ChunkWaitSecondsBeforeUpdate)
+            {
+                // Remove it from the list
+                chunksThatNeedUpdating.Remove(n);
+
+                // Update the chunk
+                n.TerrainChunk.RecalculateMesh(MeshSettings);
+                n.TerrainChunk.RecalculateTexture(Texture_GroundSettings);
+
+                // Call the event if something happened
+                OnChunksUpdated.Invoke();
+
+                // Break out of the loop - we don't want to process more than one chunk each tick
+                break;
+            }
+        }
+
+
+
+    }
+
+
+
     public void GenerateInitialTerrain()
     {
         if (!IsGenerating)
@@ -75,11 +115,18 @@ public class TerrainGenerator : MonoBehaviour
 
     public void Clear()
     {
-        if (!IsGenerating)
+        ThreadedDataRequester.Clear();
+
+        TerrainChunkManager.Clear();
+        chunksThatNeedUpdating.Clear();
+
+        foreach(Hole h in GolfHoles)
         {
-            TerrainChunkManager.Clear();
-            GolfHoles.Clear();
+            h.Destroy();
         }
+        GolfHoles.Clear();
+
+        InitialTerrainGenerated = false;
     }
 
 
@@ -306,10 +353,12 @@ public class TerrainGenerator : MonoBehaviour
 
     private void CheckChunksAfterAddingNeighbours(object chunksUpdatedObject)
     {
+        // Update the holes
+
         // Destroy any holes that need to be
-        foreach(Hole h in GolfHoles)
+        foreach (Hole h in GolfHoles)
         {
-            if(h.ShouldBeDestroyed)
+            if (h.ShouldBeDestroyed)
             {
                 h.Destroy();
             }
@@ -328,26 +377,31 @@ public class TerrainGenerator : MonoBehaviour
         }
 
 
+        // Now let the terrain be updated
+
         // Get the chunks that need updating
         List<TerrainChunk> chunksUpdated = (List<TerrainChunk>)chunksUpdatedObject;
 
-        // Create new meshes for each chunk that needs updating
+        // Add the chunks to the queue to be updated
         foreach (TerrainChunk c in chunksUpdated)
         {
-            c.RecalculateMesh(MeshSettings);
-            c.RecalculateTexture(Texture_GroundSettings);
+            // First check if this chunk has already been added
+            NeedsUpdating n = chunksThatNeedUpdating.Find((x) => x.TerrainChunk.Position.Equals(c.Position));
+            // Create a new object and assign the chunk if not
+            if (n == null)
+            {
+                n = new NeedsUpdating
+                {
+                    TerrainChunk = c
+                };
+                // Add it if it does not exist
+                chunksThatNeedUpdating.Add(n);
+            }
+
+            // Reset the timer
+            n.TimeSinceAdded = 0;
         }
-
-
-
-        OnChunksUpdated.Invoke();
     }
-
-
-
-
-
-
 
 
 
@@ -478,5 +532,11 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
+
+    private class NeedsUpdating
+    {
+        public TerrainChunk TerrainChunk;
+        public float TimeSinceAdded;
+    }
 
 }

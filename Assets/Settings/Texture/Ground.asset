@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Ground
   m_EditorClassIdentifier: 
   Colours:
-  - Biome: 0
-    Colour: {r: 0.05999388, g: 0.33962262, b: 0.049341388, a: 1}
-  - Biome: 2
-    Colour: {r: 0.0944108, g: 0.49056602, b: 0.14884438, a: 1}
   - Biome: 1
-    Colour: {r: 0.6349164, g: 0.6698113, b: 0.28688145, a: 1}
+    Colour: {r: 0.05999388, g: 0.33962262, b: 0.049341388, a: 1}
   - Biome: 3
-    Colour: {r: 0.30608073, g: 0.2597365, b: 0.9056604, a: 1}
+    Colour: {r: 0.0944108, g: 0.49056602, b: 0.14884438, a: 1}
+  - Biome: 2
+    Colour: {r: 0.6349164, g: 0.6698113, b: 0.28688145, a: 1}
   - Biome: 4
+    Colour: {r: 0.30608073, g: 0.2597365, b: 0.9056604, a: 1}
+  - Biome: 5
     Colour: {r: 0.06741722, g: 0.9528302, b: 0.9238533, a: 1}

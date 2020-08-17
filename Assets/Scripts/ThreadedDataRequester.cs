@@ -14,9 +14,15 @@ public class ThreadedDataRequester : MonoBehaviour
     public static ThreadedDataRequester Instance;
     private Queue<ThreadInfo> dataQueue = new Queue<ThreadInfo>();
 
-    void Awake()
+    private void Awake()
     {
         Instance = FindObjectOfType<ThreadedDataRequester>();
+    }
+
+
+    public static void Clear()
+    {
+        Instance.dataQueue.Clear();
     }
 
     public static void RequestData(Func<object> generateData, Action<object> callback)

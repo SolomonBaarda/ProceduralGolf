@@ -10,12 +10,12 @@ public class TextureSettings : VariablePreset
 
 
 
-    public void ApplyToMaterial(ref Material m, Texture2D colourMap, Vector2 tiling)
+    public void ApplyToMaterial(ref Material m, Texture2D colourMap, Vector2 maintextureTiling)
     {
         m.SetTexture("_ColourMap", colourMap);
 
-        m.SetVector("_MainTexTiling", tiling);
-        m.SetVector("_BunkerTexTiling", tiling);
+        m.SetVector("_MainTexTiling", maintextureTiling);
+        m.SetVector("_BunkerTexTiling", maintextureTiling);
 
         m.SetColor("_Sand", GetColour(Biome.Type.Sand));
     }
