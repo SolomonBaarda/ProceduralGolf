@@ -25,7 +25,7 @@ public class TerrainChunk
 
     public TerrainMap TerrainMap;
 
-    public Texture2D Texture;
+    public Texture2D BiomeColourMap;
 
 
     public TerrainChunk(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
@@ -87,11 +87,12 @@ public class TerrainChunk
         Array.Reverse(data.ColourMap);
 
         // Create the texture from the data
-        Texture = TextureGenerator.GenerateTexture(data);
+        BiomeColourMap = TextureGenerator.GenerateTexture(data);
 
 
         Material m = meshRenderer.material;
-        TextureSettings.ApplyToMaterial(ref m, Texture);
+        Vector2 tiling = new Vector2(TerrainMap.Width-1, TerrainMap.Height-1);
+        data.Settings.ApplyToMaterial(ref m, BiomeColourMap, tiling);
     }
 
 

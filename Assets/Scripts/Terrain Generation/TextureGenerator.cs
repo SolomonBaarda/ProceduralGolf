@@ -29,7 +29,7 @@ public static class TextureGenerator
 
     public static TextureData GenerateTextureData(in TerrainMap terrainMap, in TextureSettings settings)
     {
-        return new TextureData(terrainMap.Width, terrainMap.Height, GenerateColourMap(terrainMap, settings));
+        return new TextureData(terrainMap.Width, terrainMap.Height, GenerateColourMap(terrainMap, settings), settings);
     }
 
 
@@ -55,12 +55,14 @@ public static class TextureGenerator
     {
         public int Width, Height;
         public Color[] ColourMap;
+        public TextureSettings Settings;
 
-        public TextureData(int width, int height, Color[] colours)
+        public TextureData(int width, int height, Color[] colours, TextureSettings settings)
         {
             Width = width;
             Height = height;
             ColourMap = colours;
+            Settings = settings;
         }
     }
 

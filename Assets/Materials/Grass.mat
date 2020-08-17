@@ -33,16 +33,20 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _BunkerTex:
+        m_Texture: {fileID: 2800000, guid: d2c31fdffead67b4eb4d67537f262607, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _ColourMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 8612294daf5bea84097221c9dda250d3, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3bfeb99272dbd944eac4b1ff7f9fb8ef, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SecondTex:
-        m_Texture: {fileID: 2800000, guid: 3824cb6774fe80645a08286e25f6feb8, type: 3}
+        m_Texture: {fileID: 2800000, guid: d2c31fdffead67b4eb4d67537f262607, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
@@ -52,7 +56,10 @@ Material:
     - _Opacity: 0.5
     - _Strength: 0.5
     m_Colors:
+    - _BiomeGrass: {r: 0, g: 0, b: 0, a: 0}
+    - _BiomeSand: {r: 0.63529414, g: 0.67058825, b: 0.28627452, a: 1}
+    - _BunkerTexTiling: {r: 1, g: 1, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _MainTexTiling: {r: 64, g: 64, b: 0, a: 0}
+    - _MainTexTiling: {r: 1, g: 1, b: 0, a: 0}
     - _SecondTexTiling: {r: 64, g: 64, b: 0, a: 0}
   m_BuildTextureStacks: []
