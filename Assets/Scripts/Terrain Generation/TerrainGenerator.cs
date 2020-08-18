@@ -204,11 +204,7 @@ public class TerrainGenerator : MonoBehaviour
             // Get the chunk bounds
             Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-            ThreadedDataRequester.RequestData
-            (
-                () => GenerateTerrainMap(chunk, seed, chunkBounds),
-                OnTerrainMapGenerated
-            );
+            ThreadedDataRequester.RequestData(() => GenerateTerrainMap(chunk, seed, chunkBounds), OnTerrainMapGenerated);
         }
     }
 
@@ -264,11 +260,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Get the bunkers
-        ThreadedDataRequester.RequestData
-        (
-            () => Hole.CalculateHoles(ref terrainMap),
-            OnTerrainMapUpdated
-        );
+        ThreadedDataRequester.RequestData(() => Hole.CalculateHoles(ref terrainMap), OnTerrainMapUpdated);
     }
 
 
@@ -327,11 +319,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         // Now add the neighbours
-        ThreadedDataRequester.RequestData
-        (
-            () => AddNeighbours(newChunk, relativeNeighbours),
-            CheckChunksAfterAddingNeighbours
-        );
+        ThreadedDataRequester.RequestData(() => AddNeighbours(newChunk, relativeNeighbours), CheckChunksAfterAddingNeighbours);
 
     }
 
