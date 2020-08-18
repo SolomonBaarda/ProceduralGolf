@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Hole
@@ -30,7 +31,7 @@ public class Hole
 
         if (Flag != null)
         {
-            Object.Destroy(Flag);
+            UnityEngine.Object.Destroy(Flag);
         }
     }
 
@@ -217,7 +218,7 @@ public class Hole
 
 
 
-    public static List<Hole> CalculateHoles(ref TerrainMap t)
+    public static NewHoles CalculateHoles(ref TerrainMap t)
     {
         List<Hole> holes = new List<Hole>();
 
@@ -249,9 +250,20 @@ public class Hole
             }
         }
 
-        return holes;
+
+        return new NewHoles(t, holes);
     }
 
+    public struct NewHoles
+    {
+        public TerrainMap TerrainMap;
+        public List<Hole> Holes;
 
+        public NewHoles(TerrainMap t, List<Hole> h)
+        {
+            TerrainMap = t;
+            Holes = h;
+        }
+    }
 
 }

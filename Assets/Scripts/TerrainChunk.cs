@@ -88,7 +88,7 @@ public class TerrainChunk : MonoBehaviour
 
         Material m = meshRenderer.material;
         Vector2 tiling = new Vector2(TerrainMap.Width - 1, TerrainMap.Height - 1);
-        data.Settings.ApplyToMaterial(ref m, BiomeColourMap, tiling);
+        TextureSettings.ApplyToMaterial(ref m, BiomeColourMap, tiling, data.Settings.GetColour(Biome.Type.Grass), data.Settings.GetColour(Biome.Type.Hole), data.Settings.GetColour(Biome.Type.Sand));
     }
 
 

@@ -53,12 +53,14 @@ public class TerrainGenerator : MonoBehaviour
     {
         OnChunkGenerated += CheckChunkEdges;
         OnChunksUpdated += Utils.EMPTY;
+
     }
 
     private void OnDestroy()
     {
         OnChunkGenerated -= CheckChunkEdges;
         OnChunksUpdated -= Utils.EMPTY;
+
     }
 
 
@@ -212,45 +214,33 @@ public class TerrainGenerator : MonoBehaviour
 
         // Bunkers
         int bunkerSeed = Noise.Seed(seed.ToString());
-        float[,] bunkerRaw = Noise.Perlin(NoiseSettings_Bunker, bunkerSeed, noiseSamplePoints);
+        float[,] bunkersRaw = Noise.Perlin(NoiseSettings_Bunker, bunkerSeed, noiseSamplePoints);
 
         // Holes
         int holeSeed = Noise.Seed(bunkerSeed.ToString());
         float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
 
         // Create masks from the bunkers and holes
-        float[,] bunkerShapeMask = new float[width, height], holeShapeMask = new float[width, height];
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                // Bunker
-                if (bunkerRaw[x, y] >= TerrainSettings_Green.BunkerNoiseThresholdMinMax.x && bunkerRaw[x, y] <= TerrainSettings_Green.BunkerNoiseThresholdMinMax.y)
+                // Not a bunker here
+                if (!(bunkersRaw[x, y] >= TerrainSettings_Green.BunkerNoiseThresholdMinMax.x && bunkersRaw[x, y] <= TerrainSettings_Green.BunkerNoiseThresholdMinMax.y))
                 {
-                    bunkerShapeMask[x, y] = bunkerRaw[x, y];
-                }
-                else
-                {
-                    bunkerShapeMask[x, y] = TerrainMap.Point.Empty;
+                    bunkersRaw[x, y] = TerrainMap.Point.Empty;
                 }
 
-                // Hole
-                if (holesRaw[x, y] >= TerrainSettings_Green.HoleNoiseThresholdMinMax.x && holesRaw[x, y] <= TerrainSettings_Green.HoleNoiseThresholdMinMax.y)
+                // Not a hole
+                if (!(holesRaw[x, y] >= TerrainSettings_Green.HoleNoiseThresholdMinMax.x && holesRaw[x, y] <= TerrainSettings_Green.HoleNoiseThresholdMinMax.y))
                 {
-                    holeShapeMask[x, y] = holesRaw[x, y];
-                }
-                else
-                {
-                    holeShapeMask[x, y] = TerrainMap.Point.Empty;
+                    holesRaw[x, y] = TerrainMap.Point.Empty;
                 }
             }
         }
 
-        TerrainMap terrainMap = new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsRaw, bunkerShapeMask, holeShapeMask, TerrainSettings_Green);
-
-
-        // Get the terrain map
-        return terrainMap;
+        // Return the terrain map
+        return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsRaw, bunkersRaw, holesRaw, TerrainSettings_Green);
     }
 
 
@@ -259,25 +249,42 @@ public class TerrainGenerator : MonoBehaviour
     {
         TerrainMap terrainMap = (TerrainMap)terrainMapObject;
 
+
         // Get the bunkers
-        List<Hole> holesInThisChunk = Hole.CalculateHoles(ref terrainMap);
+        ThreadedDataRequester.RequestData
+        (
+            () => Hole.CalculateHoles(ref terrainMap),
+            OnTerrainMapUpdated
+        );
+    }
+
+
+
+    private void OnTerrainMapUpdated(object newHolesObject)
+    {
+        Hole.NewHoles h = (Hole.NewHoles)newHolesObject;
 
         // Update them all
-        foreach (Hole h in holesInThisChunk)
+        foreach (Hole hole in h.Holes)
         {
-            h.Flag = Instantiate(GolfHoleFlagPrefab, transform);
+            hole.Flag = Instantiate(GolfHoleFlagPrefab, transform);
 
-            h.UpdateHole();
+            hole.UpdateHole();
 
-            GolfHoles.Add(h);
+            GolfHoles.Add(hole);
         }
 
         // Create the new chunk
-        TerrainChunkManager.AddNewChunk(terrainMap.Chunk, terrainMap.Bounds, terrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
+        TerrainChunkManager.AddNewChunk(h.TerrainMap.Chunk, h.TerrainMap.Bounds, h.TerrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
 
-        OnChunkGenerated.Invoke(terrainMap.Chunk);
+        // Invoke the event
+        OnChunkGenerated.Invoke(h.TerrainMap.Chunk);
         IsGenerating = false;
     }
+
+
+
+
 
 
     private void CheckChunkEdges(Vector2Int pos)

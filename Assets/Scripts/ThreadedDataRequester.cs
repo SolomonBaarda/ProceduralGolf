@@ -1,9 +1,7 @@
-﻿
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using System;
 using System.Threading;
+using UnityEngine;
 
 public class ThreadedDataRequester : MonoBehaviour
 {
@@ -35,7 +33,7 @@ public class ThreadedDataRequester : MonoBehaviour
         new Thread(threadStart).Start();
     }
 
-    void DataThread(Func<object> generateData, Action<object> callback)
+    private void DataThread(Func<object> generateData, Action<object> callback)
     {
         object data = generateData();
         lock (dataQueue)
@@ -45,7 +43,7 @@ public class ThreadedDataRequester : MonoBehaviour
     }
 
 
-    void Update()
+    private void Update()
     {
         if (dataQueue.Count > 0)
         {
@@ -57,7 +55,7 @@ public class ThreadedDataRequester : MonoBehaviour
         }
     }
 
-    struct ThreadInfo
+    private struct ThreadInfo
     {
         public readonly Action<object> callback;
         public readonly object parameter;

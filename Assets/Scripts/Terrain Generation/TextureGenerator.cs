@@ -1,5 +1,4 @@
-﻿using UnityEditor.Experimental.TerrainAPI;
-using UnityEngine;
+﻿using UnityEngine;
 
 public static class TextureGenerator
 {
