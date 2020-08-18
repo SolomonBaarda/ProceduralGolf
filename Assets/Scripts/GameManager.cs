@@ -67,7 +67,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator WaitUntilGameStart()
     {
-        TerrainGenerator.GenerateInitialTerrain();
+        TerrainGenerator.GenerateInitialTerrain(ViewDistanceWorld);
 
         // Ensure the hud has loaded
         while (!HUDLoaded)
@@ -90,7 +90,7 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             TerrainGenerator.Clear();
-            TerrainGenerator.GenerateInitialTerrain();
+            StartCoroutine(WaitUntilGameStart());
         }
 
         drawMap = Input.GetKey(KeyCode.Tab);

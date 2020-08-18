@@ -21,7 +21,6 @@ public class TerrainGenerator : MonoBehaviour
 
     public bool IsGenerating { get; private set; } = false;
     public bool InitialTerrainGenerated { get; private set; } = false;
-    public const int InitialChunksToGenerateRadius = 1;
 
 
     [Header("Settings")]
@@ -68,8 +67,6 @@ public class TerrainGenerator : MonoBehaviour
     private void Update()
     {
 
-
-
         // Loop through each chunk that needs updating
         for (int i = 0; i < chunksThatNeedUpdating.Count; i++)
         {
@@ -114,7 +111,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public void GenerateInitialTerrain()
+    public void GenerateInitialTerrain(float viewVistanceWorld)
     {
         if (!IsGenerating)
         {
@@ -123,7 +120,7 @@ public class TerrainGenerator : MonoBehaviour
                 Seed = Noise.RandomSeed;
             }
 
-            GenerateInitialArea(Seed);
+            GenerateInitialArea(Seed, viewVistanceWorld);
         }
     }
 
@@ -162,14 +159,14 @@ public class TerrainGenerator : MonoBehaviour
         Debug.Log("Generated in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds.");
     }
 
-    private void GenerateInitialArea(int seed)
+    private void GenerateInitialArea(int seed, float viewVistanceWorld)
     {
         DateTime before = DateTime.Now;
 
         InitialTerrainGenerated = false;
         IsGenerating = true;
 
-        int chunksFromOrigin = Mathf.Abs(InitialChunksToGenerateRadius);
+        int chunksFromOrigin = Mathf.RoundToInt(Mathf.Abs(viewVistanceWorld / TerrainChunkManager.ChunkSizeWorldUnits));
 
         // Reset the whole terrain map
         TerrainChunkManager.Clear();

@@ -316,6 +316,9 @@ public class TerrainMap
     {
         int estimatedX = Width - (int)((Bounds.max.x - worldPos.x) / (Bounds.max.x - Bounds.min.x) * Width);
         int estimatedY = Height - (int)((Bounds.max.z - worldPos.z) / (Bounds.max.z - Bounds.min.z)  * Height);
+
+
+        // TODO - needs to be fixed
         Point closest = Map[estimatedX, estimatedY];
 
         int offset = 1;

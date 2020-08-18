@@ -4,7 +4,7 @@ using UnityEngine;
 public class TerrainChunkManager : MonoBehaviour
 {
     [Min(1)]
-    public float ChunkSizeWorldUnits = 4;
+    public float ChunkSizeWorldUnits = 100f;
 
     [Header("References")]
     public Grid ChunkGrid;
