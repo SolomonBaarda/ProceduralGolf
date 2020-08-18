@@ -15,9 +15,11 @@ public class GameManager : MonoBehaviour
     public HUD HUD;
     private bool HUDLoaded;
 
+    [Space]
     public bool DoEndlessTerrain = true;
     public float ViewDistanceWorld = 200;
 
+    [Space]
     public Material Skybox;
 
     private bool drawMap;

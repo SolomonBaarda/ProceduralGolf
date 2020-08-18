@@ -72,7 +72,7 @@ public static class Noise
     /// <param name="seed"></param>
     /// <param name="sampleStartPoint"></param>
     /// <returns></returns>
-    public static float PerlinPoint(NoiseSettings settings, int seed, Vector2 sampleStartPoint = default)
+    public static float PerlinPoint(in NoiseSettings settings, int seed, Vector2 sampleStartPoint = default)
     {
         float perlin;
 
@@ -116,7 +116,7 @@ public static class Noise
 
 
 
-    public static float[,] Perlin(NoiseSettings settings, int seed, in Vector2[,] samplePoints)
+    public static float[,] Perlin(in NoiseSettings settings, int seed, in Vector2[,] samplePoints)
     {
         int width = samplePoints.GetLength(0), height = samplePoints.GetLength(1);
         float[,] perlin = new float[width, height];

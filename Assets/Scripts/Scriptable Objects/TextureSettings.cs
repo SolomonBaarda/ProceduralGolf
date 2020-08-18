@@ -9,7 +9,7 @@ public class TextureSettings : VariablePreset
 
 
 
-    public static void ApplyToMaterial(ref Material m, Texture2D colourMap, Vector2 maintextureTiling, Color main, Color hole, Color bunker)
+    public static void ApplyToMaterial(ref Material m, in Texture2D colourMap, Vector2 maintextureTiling, in Color main, in Color hole, in Color bunker)
     {
         // Add the colour map
         m.SetTexture("_ColourMap", colourMap);

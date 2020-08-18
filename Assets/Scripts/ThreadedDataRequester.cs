@@ -9,6 +9,7 @@ public class ThreadedDataRequester : MonoBehaviour
     // https://github.com/SebLague/Procedural-Landmass-Generation/blob/master/Proc%20Gen%20E21/Assets/Scripts/ThreadedDataRequester.cs
 
 
+    public int Threads;
     public static ThreadedDataRequester Instance;
     private Queue<ThreadInfo> dataQueue = new Queue<ThreadInfo>();
 
@@ -43,7 +44,7 @@ public class ThreadedDataRequester : MonoBehaviour
     }
 
 
-    private void Update()
+    void Update()
     {
         if (dataQueue.Count > 0)
         {
@@ -53,6 +54,8 @@ public class ThreadedDataRequester : MonoBehaviour
                 threadInfo.callback(threadInfo.parameter);
             }
         }
+
+        Threads = dataQueue.Count;
     }
 
     private struct ThreadInfo

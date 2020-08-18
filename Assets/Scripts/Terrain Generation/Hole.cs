@@ -149,7 +149,7 @@ public class Hole
     }
 
 
-    private static bool CheckAllNeighboursForHoleRecursive(ref List<TerrainMap.Point> pointsAlreadyChecked, List<TerrainMap.Point> neighbours, out Hole h)
+    private static bool CheckAllNeighboursForHoleRecursive(ref List<TerrainMap.Point> pointsAlreadyChecked, in List<TerrainMap.Point> neighbours, out Hole h)
     {
         // Check neighbours for holes
         foreach (TerrainMap.Point neighbour in neighbours)
@@ -187,7 +187,7 @@ public class Hole
         return false;
     }
 
-    private static bool PointHasHole(ref List<TerrainMap.Point> alreadyChecked, TerrainMap.Point p, out Hole h)
+    private static bool PointHasHole(ref List<TerrainMap.Point> alreadyChecked, in TerrainMap.Point p, out Hole h)
     {
         // Don't bother checking if it is not a hole
         if (p.Biome != Biome.Type.Hole)
@@ -259,7 +259,7 @@ public class Hole
         public TerrainMap TerrainMap;
         public List<Hole> Holes;
 
-        public NewHoles(TerrainMap t, List<Hole> h)
+        public NewHoles(in TerrainMap t, in List<Hole> h)
         {
             TerrainMap = t;
             Holes = h;

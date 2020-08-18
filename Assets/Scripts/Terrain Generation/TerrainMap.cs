@@ -19,8 +19,8 @@ public class TerrainMap
 
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
-    public TerrainMap(Vector2Int chunk, int width, int height, Vector3[,] baseVertices, Bounds bounds,
-        float[,] rawHeights, float[,] bunkersMask, float[,] holesMask, TerrainSettings terrainSettings)
+    public TerrainMap(Vector2Int chunk, int width, int height, in Vector3[,] baseVertices, Bounds bounds,
+        in float[,] rawHeights, in float[,] bunkersMask, in float[,] holesMask, in TerrainSettings terrainSettings)
     {
         terrainSettings.ValidateValues();
         AnimationCurve copy = new AnimationCurve(terrainSettings.HeightDistribution.keys);
@@ -127,7 +127,7 @@ public class TerrainMap
     }
 
 
-    private Biome.Type CalculateBiome(TerrainSettings settings, float rawBunker, float rawHole)
+    private Biome.Type CalculateBiome(in TerrainSettings settings, float rawBunker, float rawHole)
     {
         Biome.Type b = settings.MainBiome;
 
@@ -147,7 +147,7 @@ public class TerrainMap
     }
 
 
-    private float CalculateFinalHeight(TerrainSettings settings, AnimationCurve multithreadingSafeCurve, float rawHeight, float rawBunker)
+    private float CalculateFinalHeight(in TerrainSettings settings, in AnimationCurve multithreadingSafeCurve, float rawHeight, float rawBunker)
     {
         // Calculate the height to use
         float height = rawHeight;

@@ -13,7 +13,7 @@ public class TerrainGenerator : MonoBehaviour
     public List<Hole> GolfHoles = new List<Hole>();
 
     private List<NeedsUpdating> chunksThatNeedUpdating = new List<NeedsUpdating>();
-    public float ChunkWaitSecondsBeforeUpdate = 0.25f;
+    public const float ChunkWaitSecondsBeforeUpdate = 0.25f;
 
     public UnityAction<Vector2Int> OnChunkGenerated;
     public UnityAction OnChunksUpdated;
@@ -65,7 +65,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private void FixedUpdate()
+    private void Update()
     {
 
 
@@ -75,13 +75,18 @@ public class TerrainGenerator : MonoBehaviour
         {
             NeedsUpdating n = chunksThatNeedUpdating[i];
             // Add to the timer
-            n.TimeSinceAdded += Time.fixedDeltaTime;
+            n.TimeSinceAdded += Time.deltaTime;
 
             // Chunk needs updating
             if (n.TimeSinceAdded >= ChunkWaitSecondsBeforeUpdate)
             {
                 // Remove it from the list
                 chunksThatNeedUpdating.Remove(n);
+                // Also reset the timers for each other chunk
+                for (int j = 0; j < chunksThatNeedUpdating.Count; j++)
+                {
+                    chunksThatNeedUpdating[j].TimeSinceAdded = 0;
+                }
 
                 // Update the chunk
                 n.TerrainChunk.RecalculateMesh(MeshSettings);
@@ -94,6 +99,14 @@ public class TerrainGenerator : MonoBehaviour
                 break;
             }
         }
+
+
+        /*
+        if (IsGenerating && Time.frameCount % 30 == 0)
+        {
+            GC.Collect();
+        }
+        */
 
 
 
@@ -122,7 +135,7 @@ public class TerrainGenerator : MonoBehaviour
         TerrainChunkManager.Clear();
         chunksThatNeedUpdating.Clear();
 
-        foreach(Hole h in GolfHoles)
+        foreach (Hole h in GolfHoles)
         {
             h.Destroy();
         }
@@ -200,7 +213,7 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, Bounds chunkBounds)
+    private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, in Bounds chunkBounds)
     {
         // Get the vertex points
         Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
@@ -323,7 +336,7 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    private List<TerrainChunk> AddNeighbours(TerrainChunk newChunk, List<(TerrainChunk, Vector2Int)> relativeNeighbours)
+    private List<TerrainChunk> AddNeighbours(in TerrainChunk newChunk, in List<(TerrainChunk, Vector2Int)> relativeNeighbours)
     {
         // Record which chunks have changed
         List<TerrainChunk> chunksUpdated = new List<TerrainChunk>();
@@ -472,7 +485,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private Vector2[,] ConvertWorldPointsToPerlinSample(Vector3[,] points)
+    private Vector2[,] ConvertWorldPointsToPerlinSample(in Vector3[,] points)
     {
         int width = points.GetLength(0), height = points.GetLength(1);
         Vector2[,] points2D = new Vector2[width, height];
@@ -491,7 +504,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public static Vector3 CalculateDistanceBetweenVertices(Bounds b, int divisions)
+    public static Vector3 CalculateDistanceBetweenVertices(in Bounds b, int divisions)
     {
         return (b.max - b.min) / divisions;
     }
@@ -500,7 +513,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public static Vector3[,] CalculateVertexPointsForChunk(in Bounds chunk, TerrainSettings settings)
+    public static Vector3[,] CalculateVertexPointsForChunk(in Bounds chunk, in TerrainSettings settings)
     {
         settings.ValidateValues();
 
