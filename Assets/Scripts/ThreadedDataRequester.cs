@@ -26,6 +26,7 @@ public class ThreadedDataRequester : MonoBehaviour
 
     public static void RequestData(Func<object> generateData, Action<object> callback)
     {
+        // Method for the thread to run
         void threadStart()
         {
             Instance.DataThread(generateData, callback);
@@ -34,13 +35,20 @@ public class ThreadedDataRequester : MonoBehaviour
         new Thread(threadStart).Start();
     }
 
-    private void DataThread(Func<object> generateData, Action<object> callback)
+
+
+
+    private void DataThread(Func<object> function, Action<object> callback)
     {
-        object data = generateData();
+        DateTime t = DateTime.Now;
+        object returnValue = function();
+
         lock (dataQueue)
         {
-            dataQueue.Enqueue(new ThreadInfo(callback, data));
+            dataQueue.Enqueue(new ThreadInfo(callback, returnValue));
         }
+
+        //Debug.Log("Took " + (DateTime.Now - t).Milliseconds + " ms to complete");
     }
 
 

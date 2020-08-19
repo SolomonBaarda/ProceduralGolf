@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Rendering.LookDev;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -166,24 +167,20 @@ public class TerrainGenerator : MonoBehaviour
         InitialTerrainGenerated = false;
         IsGenerating = true;
 
-        int chunksFromOrigin = Mathf.RoundToInt(Mathf.Abs(viewVistanceWorld / TerrainChunkManager.ChunkSizeWorldUnits));
 
         // Reset the whole terrain map
         TerrainChunkManager.Clear();
 
-        List<Vector2Int> initialChunks = new List<Vector2Int>();
+        // Get the chunks
+        List<Vector2Int> initialChunks = GetAllPossibleNearbyChunks(ORIGIN, viewVistanceWorld);
+
+
 
         // Generate in that area
-        for (int y = -chunksFromOrigin; y <= chunksFromOrigin; y++)
+        foreach (Vector2Int chunk in initialChunks)
         {
-            for (int x = -chunksFromOrigin; x <= chunksFromOrigin; x++)
-            {
-                Vector2Int chunk = new Vector2Int(x, y);
-                initialChunks.Add(chunk);
-
-                // Generate the chunk
-                TryGenerateChunk(chunk, seed);
-            }
+            // Generate the chunk
+            TryGenerateChunk(chunk, seed);
         }
 
         // Wait until the chunks have been generated

@@ -318,40 +318,32 @@ public class TerrainMap
 
     public Point GetClosestTo(Vector3 worldPos)
     {
-        int estimatedX = Width - (int)((Bounds.max.x - worldPos.x) / (Bounds.max.x - Bounds.min.x) * Width);
-        int estimatedY = Height - (int)((Bounds.max.z - worldPos.z) / (Bounds.max.z - Bounds.min.z) * Height);
+        // Get the lower bounds of the closest 4 points to the position
+        int estimatedX = Width - 1 - Mathf.RoundToInt((Bounds.max.x - worldPos.x) / (Bounds.max.x - Bounds.min.x) * Width);
+        int estimatedY = Height - 1 - Mathf.RoundToInt((Bounds.max.z - worldPos.z) / (Bounds.max.z - Bounds.min.z) * Height);
 
+        Point closest = Map[Mathf.Clamp(estimatedX, 0, Width), Mathf.Clamp(estimatedY, 0, Height)];
 
-        // TODO - needs to be fixed
-        Point closest = Map[estimatedX, estimatedY];
+        // Problem with this loop for some reason
+        /*
 
-        int offset = 1;
-
-        // Don't bother checking each vertex
-        for (int y = -offset; y <= offset; y++)
+        // Check the closest 4 points to the position
+        for (int y = estimatedY; y <= estimatedY + 1; y++)
         {
-            for (int x = -offset; x <= offset; x++)
+            for (int x = estimatedX; x <= estimatedX + 1; y++)
             {
-                int i = estimatedX + x, j = estimatedY + y;
-
-                // Valid index
-                if (i >= 0 && j >= 0 && i < Width && j < Height)
+                if (x >= 0 && y >= 0 && x < Width && y < Height)
                 {
-                    Point p = Map[i, j];
-                    Vector3 pos = p.LocalVertexPosition + p.Offset;
-                    if (Vector3.Distance(pos, worldPos) < Vector3.Distance(closest.LocalVertexPosition + closest.Offset, worldPos))
+                    // New closest point
+                    if (Vector3.Distance(Map[x, y].LocalVertexPosition, worldPos) < Vector3.Distance(closest.LocalVertexPosition, worldPos))
                     {
-                        closest = p;
+                        closest = Map[x, y];
                     }
                 }
             }
         }
-
-        //Debug.DrawLine(closest.LocalVertexBasePosition + closest.Offset, closest.LocalVertexBasePosition + closest.Offset + (Vector3.up * 100), Color.red, 100);
-
-        //Debug.DrawLine(worldPos, worldPos + (Vector3.up * 100), Color.green, 100);
-
-
+        */
+        
         return closest;
     }
 

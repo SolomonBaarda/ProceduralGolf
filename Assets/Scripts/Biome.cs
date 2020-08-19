@@ -7,7 +7,7 @@ public static class Biome
 
 
 
-    public static TerrainMap.Point GetPoint(Collider collider, Vector3 worldPos)
+    public static TerrainMap.Point GetBiomeSamplePoint(Collider collider, Vector3 worldPos)
     {
         if (collider != null)
         {
@@ -21,6 +21,11 @@ public static class Biome
 
         return null;
     }
+
+
+
+
+
 
 
     public static Type GetBiome(Collider collider, Vector3 worldPos)
