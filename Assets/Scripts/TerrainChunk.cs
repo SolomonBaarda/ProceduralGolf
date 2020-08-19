@@ -17,7 +17,7 @@ public class TerrainChunk : MonoBehaviour
 
 
     public MeshGenerator.MeshData MeshData;
-    private MeshGenerator.LevelOfDetail LOD;
+    private Mesh MainMesh;
 
 
     public TerrainMap TerrainMap;
@@ -100,31 +100,33 @@ public class TerrainChunk : MonoBehaviour
 
         LODIncrement = settings.SimplificationIncrement;
 
-        // Recalculate all the new mesh data then create a new mesh
-        ThreadedDataRequester.RequestData(() => GenerateLOD(settings), GenerateMesh);
+
+        // Request for the mesh data to be updated 
+        ThreadedDataRequester.RequestData(() => UpdateMeshData(settings), UpdateMesh);
     }
 
 
-    private void GenerateMesh(object LODObject)
+    private MeshSettings UpdateMeshData(in MeshSettings settings)
     {
-        LOD = (MeshGenerator.LevelOfDetail)LODObject;
+        // Update the mesh data
+        MeshGenerator.UpdateMeshData(ref MeshData, TerrainMap);
+        // Pass on the settings
+        return settings;
+    }
 
-        // Create the new mesh
-        Mesh mesh = LOD.GenerateMesh();
+
+    private void UpdateMesh(object o)
+    {
+        MeshSettings settings = (MeshSettings)o;
+
+        // Update the mesh to the new vertex values
+        MeshData.UpdateMesh(ref MainMesh, settings);
+
         // And set it
-        meshCollider.sharedMesh = mesh;
-        meshFilter.mesh = mesh;
+        meshFilter.sharedMesh = MainMesh;
+        meshCollider.sharedMesh = MainMesh;
 
         SetVisible(true);
-    }
-
-
-    private MeshGenerator.LevelOfDetail GenerateLOD(MeshSettings settings)
-    {
-        // Create new mesh data
-        MeshData = MeshGenerator.GenerateMeshData(TerrainMap);
-        // And new level of detail
-        return MeshData.GenerateLOD(settings);
     }
 
 

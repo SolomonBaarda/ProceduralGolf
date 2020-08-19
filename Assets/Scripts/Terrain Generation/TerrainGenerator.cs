@@ -87,7 +87,7 @@ public class TerrainGenerator : MonoBehaviour
 
                 // Update the chunk
                 n.TerrainChunk.RecalculateMesh(MeshSettings);
-                n.TerrainChunk.RecalculateTexture(Texture_GroundSettings);
+                //n.TerrainChunk.RecalculateTexture(Texture_GroundSettings);
 
                 // Call the event if something happened
                 OnChunksUpdated.Invoke();

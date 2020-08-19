@@ -5,9 +5,13 @@ public static class MeshGenerator
 {
 
 
-    public static MeshData GenerateMeshData(TerrainMap terrainMap)
+    public static void UpdateMeshData(ref MeshData data, TerrainMap terrainMap)
     {
-        MeshData data = new MeshData(terrainMap.Width, terrainMap.Height);
+        // Create the data if we need to 
+        if(data == null)
+        {
+            data = new MeshData(terrainMap.Width, terrainMap.Height);
+        }
 
         // Loop through each vertex
         for (int y = 0; y < terrainMap.Height; y++)
@@ -18,12 +22,8 @@ public static class MeshGenerator
             }
         }
 
-        data.CalculateUVS();
-
-        return data;
+        data.UpdateUVS();
     }
-
-
 
 
 
@@ -39,8 +39,9 @@ public static class MeshGenerator
         {
             MaxVerticesWidth = verticesX; MaxVerticesHeight = verticesY;
 
-            // Assign array size
+            // Assign memory for the arrays
             Vertices = new Vector3[MaxVerticesWidth * MaxVerticesHeight];
+            UVs = new Vector2[Vertices.Length];
             Colours = new Color[Vertices.Length];
         }
 
@@ -66,10 +67,8 @@ public static class MeshGenerator
         }
 
 
-        public void CalculateUVS()
+        public void UpdateUVS()
         {
-            UVs = new Vector2[Vertices.Length];
-
             // Get the minimum and maximum points
             Vector2 min = Vertices[0], max = Vertices[0];
             for (int y = 0; y < MaxVerticesHeight; y++)
@@ -102,7 +101,7 @@ public static class MeshGenerator
 
 
 
-        public LevelOfDetail GenerateLOD(MeshSettings settings)
+        public void UpdateMesh(ref Mesh m, in MeshSettings settings)
         {
             int i = settings.SimplificationIncrement;
 
@@ -111,7 +110,7 @@ public static class MeshGenerator
             Vector3[] newVertices = new Vector3[newWidth * newHeight];
             Vector2[] newUVs = new Vector2[newVertices.Length];
             Color[] newColours = new Color[newVertices.Length];
-            int[] newTriangles = new int[newWidth * newHeight * 6];
+            int[] newTriangles = new int[newVertices.Length * 6];
             int triangleIndex = 0;
 
             // Add all the correct vertices
@@ -127,6 +126,7 @@ public static class MeshGenerator
                     newUVs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
                     // Add the colour
                     newColours[thisVertexIndex] = Colours[GetVertexIndex(x, y)];
+
 
                     // Set the triangles
                     if (newX >= 0 && newX < newWidth - 1 && newY >= 0 && newY < newHeight - 1)
@@ -148,48 +148,29 @@ public static class MeshGenerator
                 }
             }
 
-            return new LevelOfDetail(newWidth, newHeight, newVertices, newUVs, newColours, newTriangles);
-        }
-
-    }
 
 
 
-    public class LevelOfDetail
-    {
-        private readonly int Width, Height;
-        public Vector3[] Vertices;
-        public Vector2[] UVs;
-        public Color[] Colours;
-        public int[] Triangles;
 
-        public LevelOfDetail(int width, int height, Vector3[] vertices, Vector2[] uvs, Color[] colours, int[] triangles)
-        {
-            Width = width;
-            Height = height;
-
-            Vertices = vertices;
-            UVs = uvs;
-            Colours = colours;
-            Triangles = triangles;
-        }
-
-        public Mesh GenerateMesh()
-        {
-            Mesh m = new Mesh()
+            // Create the new mesh if we need to
+            if (m == null)
             {
-                vertices = Vertices,
-                triangles = Triangles,
-                uv = UVs,
-                colors = Colours,
-            };
+                m = new Mesh();
+            }
 
+            // Overwrite the current mesh values to prevent extra being allocated then removed
+            m.vertices = newVertices;
+            m.triangles = newTriangles;
+            m.uv = newUVs;
+            m.colors = newColours;
+
+            // Recalculate values
             m.RecalculateNormals();
             m.Optimize();
-
-            return m;
         }
 
     }
+
+
 
 }
