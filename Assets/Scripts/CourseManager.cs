@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 using System.Linq;
 
 public class CourseManager : MonoBehaviour
@@ -169,24 +168,5 @@ public class CourseManager : MonoBehaviour
         }
     }
 
-
-
-    private void OnDrawGizmos()
-    {
-        if (GolfHoles != null)
-        {
-            foreach (Hole h in GolfHoles)
-            {
-                Gizmos.color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
-                foreach(TerrainMap.Point p in h.Vertices)
-                {
-                    Gizmos.DrawLine(p.LocalVertexPosition + p.Offset, p.LocalVertexPosition + p.Offset + Vector3.up * 5);
-                }
-
-                Gizmos.color = Color.red;
-                Gizmos.DrawLine(h.Centre, h.Centre + Vector3.up * 100);
-            }
-        }
-    }
 
 }

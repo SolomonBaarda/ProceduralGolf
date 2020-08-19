@@ -156,7 +156,7 @@ public class TerrainGenerator : MonoBehaviour
 
         InitialTerrainGenerated = true;
 
-        Debug.Log("Generated in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds.");
+        Debug.Log("Generated in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds with " + GolfHoles.Count + " holes.");
     }
 
     private void GenerateInitialArea(int seed, float viewVistanceWorld)
@@ -255,10 +255,8 @@ public class TerrainGenerator : MonoBehaviour
     {
         TerrainMap terrainMap = (TerrainMap)terrainMapObject;
 
-
         // Get the bunkers
-        //ThreadedDataRequester.RequestData(() => Hole.CalculateHoles(ref terrainMap), OnTerrainMapUpdated);
-        OnTerrainMapUpdated(Hole.CalculateHoles(ref terrainMap));
+        ThreadedDataRequester.RequestData(() => Hole.CalculateHoles(ref terrainMap), OnTerrainMapUpdated);
     }
 
 
