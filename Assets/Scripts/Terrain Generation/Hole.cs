@@ -1,5 +1,7 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Hole
@@ -12,16 +14,10 @@ public class Hole
     public bool NeedsUpdating = false;
 
 
-    public List<TerrainMap.Point> Vertices;
+    public HashSet<TerrainMap.Point> Vertices = new HashSet<TerrainMap.Point>();
     public Vector3 Centre => EvaluateMidpoint();
 
     public GameObject Flag;
-
-    public Hole()
-    {
-        Vertices = new List<TerrainMap.Point>();
-    }
-
 
 
 
@@ -41,7 +37,8 @@ public class Hole
     {
         if (Vertices.Count > 0)
         {
-            Vector3 min = Vertices[0].LocalVertexPosition + Vertices[0].Offset, max = min;
+            TerrainMap.Point random = Vertices.FirstOrDefault();
+            Vector3 min = random.LocalVertexPosition + random.Offset, max = min;
 
             foreach (TerrainMap.Point p in Vertices)
             {
@@ -98,7 +95,7 @@ public class Hole
         if (this != hole)
         {
             // Add all the vertices to this hole and remove it from the other
-            Vertices.AddRange(hole.Vertices);
+            Vertices.UnionWith(hole.Vertices);
             hole.Vertices.Clear();
 
             hole.ShouldBeDestroyed = true;
@@ -126,133 +123,117 @@ public class Hole
     }
 
 
-    private static bool HoleHasBeenCreated(in TerrainMap.Point p, out Hole h)
+
+
+
+    private static void CheckNeighboursForHole(TerrainMap.Point p, HashSet<TerrainMap.Point> alreadyChecked, HashSet<Hole> holes)
     {
-        List<TerrainMap.Point> pointsAlreadyChecked = new List<TerrainMap.Point>();
-
-        if (p.Biome == Biome.Type.Hole)
-        {
-            // Check the root first
-            if (PointHasHole(ref pointsAlreadyChecked, p, out h))
-            {
-                return true;
-            }
-            // Now the recursive case
-            else
-            {
-                return CheckAllNeighboursForHoleRecursive(ref pointsAlreadyChecked, p.Neighbours, out h);
-            }
-        }
-
-        h = null;
-        return false;
-    }
-
-
-    private static bool CheckAllNeighboursForHoleRecursive(ref List<TerrainMap.Point> pointsAlreadyChecked, in List<TerrainMap.Point> neighbours, out Hole h)
-    {
-        // Check neighbours for holes
-        foreach (TerrainMap.Point neighbour in neighbours)
-        {
-            // This neighbour has a hole assigned
-            if (PointHasHole(ref pointsAlreadyChecked, neighbour, out h))
-            {
-                return true;
-            }
-        }
-
-        // Check neighbours neighbours recursively
-        foreach (TerrainMap.Point neighbour in neighbours)
-        {
-            List<TerrainMap.Point> neighboursNotChecked = new List<TerrainMap.Point>();
-
-            // Get all the neighbours that have not already been checked
-            foreach (TerrainMap.Point neighbourOfNeighbour in neighbour.Neighbours)
-            {
-                if (neighbourOfNeighbour.Biome == Biome.Type.Hole && !pointsAlreadyChecked.Contains(neighbourOfNeighbour))
-                {
-                    neighboursNotChecked.Add(neighbourOfNeighbour);
-                }
-            }
-
-            // Doesn't have a hole - recursive case
-            if (CheckAllNeighboursForHoleRecursive(ref pointsAlreadyChecked, neighboursNotChecked, out h))
-            {
-                return true;
-            }
-        }
-
-
-        h = null;
-        return false;
-    }
-
-    private static bool PointHasHole(ref List<TerrainMap.Point> alreadyChecked, in TerrainMap.Point p, out Hole h)
-    {
-        // Don't bother checking if it is not a hole
-        if (p.Biome != Biome.Type.Hole)
+        // Check this point - base case
+        if (!alreadyChecked.Contains(p))
         {
             alreadyChecked.Add(p);
-        }
-        // It is a hole
-        else
-        {
-            // This point needs to be checked
-            if (!alreadyChecked.Contains(p))
-            {
-                alreadyChecked.Add(p);
 
-                // If there is a hole assigned to that point
-                if (p.Hole != null)
+            // Vertex is part of a hole
+            if (p.Biome == Biome.Type.Hole)
+            {
+
+                // Hole has not been assigned
+                if (p.Hole == null)
                 {
-                    h = p.Hole;
-                    return true;
+                    // Check all neighbours for a hole
+                    foreach (TerrainMap.Point neighbour in p.Neighbours)
+                    {
+                        // Neighbour has a hole assigned
+                        if (neighbour.Biome == Biome.Type.Hole && neighbour.Hole != null)
+                        {
+                            Hole h = neighbour.Hole;
+                            holes.Add(h);
+
+                            // Add this point to the hole
+                            p.Hole = h;
+                            h.Vertices.Add(p);
+
+                            //alreadyChecked.Add(neighbour);
+
+                            // Only bother checking one hole
+                            break;
+                        }
+                    }
+
+                    // If we get here, then we need to create a new hole
+                    if (p.Hole == null)
+                    {
+                        Hole h = new Hole();
+
+                        // Add this point to the hole
+                        p.Hole = h;
+                        h.Vertices.Add(p);
+
+                        holes.Add(h);
+                    }
+                }
+                // Has been assigned
+                else
+                {
+                    Hole h = p.Hole;
+                    holes.Add(h);
+
+                    // Merge hole with neighbours
+                    bool removedSomeHoles = false;
+                    foreach (TerrainMap.Point neighbour in p.Neighbours)
+                    {
+                        // Neighbour is part of a different hole
+                        if (neighbour.Biome == Biome.Type.Hole && neighbour.Hole != null && neighbour.Hole != h)
+                        {
+                            // Merge the holes together - means we don't need to check them again
+                            h.Merge(ref neighbour.Hole);
+                            alreadyChecked.UnionWith(h.Vertices);
+
+                            Debug.Log("merged some holes");
+
+                            removedSomeHoles = true;
+                        }
+                    }
+
+                    // Do some cleanup if we need to
+                    if (removedSomeHoles)
+                    {
+                        // Remove all holes with no vertices
+                        holes.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
+                    }
                 }
             }
         }
-
-        h = null;
-        return false;
     }
-
-
 
 
     public static NewHoles CalculateHoles(ref TerrainMap t)
     {
-        List<Hole> holes = new List<Hole>();
+        DateTime before = DateTime.Now;
 
+        HashSet<Hole> holes = new HashSet<Hole>();
+        HashSet<TerrainMap.Point> alreadyChecked = new HashSet<TerrainMap.Point>();
+
+        // Check each point
         for (int y = 0; y < t.Height; y++)
         {
-            for (int x = 0; x < t.Width; x++)
+            for(int x = 0; x < t.Width; x++) 
             {
-                // Vertex is part of a hole
-                if (t.Map[x, y].Biome == Biome.Type.Hole)
-                {
-                    // Need to create a hole
-                    if (!HoleHasBeenCreated(t.Map[x, y], out Hole h))
-                    {
-                        h = new Hole();
-                    }
-
-                    // Add the vertex to this hole
-                    h.Vertices.Add(t.Map[x, y]);
-
-                    // Add the hole to the point
-                    t.Map[x, y].Hole = h;
-
-                    // Add this hole if we need to
-                    if (!holes.Contains(h))
-                    {
-                        holes.Add(h);
-                    }
-                }
+                CheckNeighboursForHole(t.Map[x, y], alreadyChecked, holes);
             }
         }
 
 
-        return new NewHoles(t, holes);
+
+        // Remove holes that we don't need
+        holes.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
+
+        //Debug.Log("Took " + (DateTime.Now - before).Milliseconds + " ms to find all " + holes.Count + " holes in chunk.");
+
+        return new NewHoles(t, holes.ToList());
     }
+
+
 
     public struct NewHoles
     {

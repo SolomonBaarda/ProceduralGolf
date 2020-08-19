@@ -10,7 +10,7 @@ public class TerrainGenerator : MonoBehaviour
     public static readonly Vector3 ORIGIN = Vector3.zero;
 
     public TerrainChunkManager TerrainChunkManager;
-    public List<Hole> GolfHoles = new List<Hole>();
+    public HashSet<Hole> GolfHoles = new HashSet<Hole>();
 
     private List<NeedsUpdating> chunksThatNeedUpdating = new List<NeedsUpdating>();
     public const float ChunkWaitSecondsBeforeUpdate = 0.25f;
@@ -257,7 +257,8 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Get the bunkers
-        ThreadedDataRequester.RequestData(() => Hole.CalculateHoles(ref terrainMap), OnTerrainMapUpdated);
+        //ThreadedDataRequester.RequestData(() => Hole.CalculateHoles(ref terrainMap), OnTerrainMapUpdated);
+        OnTerrainMapUpdated(Hole.CalculateHoles(ref terrainMap));
     }
 
 
@@ -370,7 +371,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         // Remove all holes that have no vertices
-        GolfHoles.RemoveAll((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
+        GolfHoles.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
 
         // Update any holes
         foreach (Hole h in GolfHoles)

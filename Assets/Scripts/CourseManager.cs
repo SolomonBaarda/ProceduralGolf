@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
+using System.Linq;
 
 public class CourseManager : MonoBehaviour
 {
@@ -7,7 +9,7 @@ public class CourseManager : MonoBehaviour
 
 
     public TerrainChunkManager AllTerrain;
-    public List<Hole> GolfHoles;
+    public HashSet<Hole> GolfHoles;
 
 
 
@@ -22,8 +24,9 @@ public class CourseManager : MonoBehaviour
     {
         if (GolfHoles.Count > 0)
         {
+            /*
             // We have not assinged the first hole yet
-            if (GolfHoles.Find((x) => x.Number != Hole.NotAssignedHoleNumber) == null)
+            if (GolfHoles.((x) => x.Number != Hole.NotAssignedHoleNumber) == null)
             {
                 // Set the centre hole to be the first hole
                 Hole closest = GetClosestTo(TerrainGenerator.ORIGIN);
@@ -36,14 +39,15 @@ public class CourseManager : MonoBehaviour
 
 
             // Loop through them all
-            for(int i = 0; i < GolfHoles.Count; i++)
+            for (int i = 0; i < GolfHoles.Count; i++)
             {
                 // And assign the number
-                if(GolfHoles[i].Number == Hole.NotAssignedHoleNumber)
+                if (GolfHoles[i].Number == Hole.NotAssignedHoleNumber)
                 {
                     GolfHoles[i].Number = i;
                 }
             }
+            */
         }
     }
 
@@ -104,7 +108,7 @@ public class CourseManager : MonoBehaviour
     {
         if (GolfHoles.Count > 0)
         {
-            Hole closest = GolfHoles[0];
+            Hole closest = GolfHoles.FirstOrDefault();
             foreach (Hole h in GolfHoles)
             {
                 if (Vector3.Distance(h.Centre, pos) < Vector3.Distance(closest.Centre, pos))
@@ -167,6 +171,22 @@ public class CourseManager : MonoBehaviour
 
 
 
+    private void OnDrawGizmos()
+    {
+        if (GolfHoles != null)
+        {
+            foreach (Hole h in GolfHoles)
+            {
+                Gizmos.color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+                foreach(TerrainMap.Point p in h.Vertices)
+                {
+                    Gizmos.DrawLine(p.LocalVertexPosition + p.Offset, p.LocalVertexPosition + p.Offset + Vector3.up * 5);
+                }
 
+                Gizmos.color = Color.red;
+                Gizmos.DrawLine(h.Centre, h.Centre + Vector3.up * 100);
+            }
+        }
+    }
 
 }

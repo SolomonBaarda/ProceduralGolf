@@ -55,6 +55,7 @@ public class TerrainMap
         {
             for (int x = 0; x < width; x++)
             {
+                Point p = Map[x, y];
 
                 // Add the 3x3 of points as neighbours
                 for (int j = -1; j <= 1; j++)
@@ -69,7 +70,10 @@ public class TerrainMap
                             // Don't add its self
                             if (pointX != x || pointY != y)
                             {
-                                Map[x, y].Neighbours.Add(Map[pointX, pointY]);
+                                Point neighbour = Map[pointX, pointY];
+
+                                // Add the neighbour
+                                p.Neighbours.Add(neighbour);
                             }
                         }
                     }
@@ -315,7 +319,7 @@ public class TerrainMap
     public Point GetClosestTo(Vector3 worldPos)
     {
         int estimatedX = Width - (int)((Bounds.max.x - worldPos.x) / (Bounds.max.x - Bounds.min.x) * Width);
-        int estimatedY = Height - (int)((Bounds.max.z - worldPos.z) / (Bounds.max.z - Bounds.min.z)  * Height);
+        int estimatedY = Height - (int)((Bounds.max.z - worldPos.z) / (Bounds.max.z - Bounds.min.z) * Height);
 
 
         // TODO - needs to be fixed
