@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Events;
 
 public class CourseManager : MonoBehaviour
 {
@@ -10,10 +11,24 @@ public class CourseManager : MonoBehaviour
     public TerrainChunkManager AllTerrain;
     public HashSet<Hole> GolfHoles;
 
+    public bool HolesHaveBeenOrdered;
 
+    public Hole GetHole(int number) { Holes.TryGetValue(number, out Hole value); return value; }
+    private Dictionary<int, Hole> Holes = new Dictionary<int, Hole>();
 
+    public UnityAction<GolfBall.Stats> OnHoleCompleted;
 
+    public int CurrentHole = 0;
 
+    private void Awake()
+    {
+        OnHoleCompleted += Utils.EMPTY;
+    }
+
+    private void OnDestroy()
+    {
+        OnHoleCompleted -= Utils.EMPTY;
+    }
 
 
 
@@ -23,32 +38,46 @@ public class CourseManager : MonoBehaviour
     {
         if (GolfHoles.Count > 0)
         {
-            /*
-            // We have not assinged the first hole yet
-            if (GolfHoles.((x) => x.Number != Hole.NotAssignedHoleNumber) == null)
+            // Get all the new holes
+            List<Hole> AllHoles = GolfHoles.ToList();
+
+            // If we need to assign the first hole
+            if (GetHole(0) == null)
             {
                 // Set the centre hole to be the first hole
-                Hole closest = GetClosestTo(TerrainGenerator.ORIGIN);
+                Hole closest = GetClosestTo(TerrainGenerator.ORIGIN, AllHoles);
+                AllHoles.Remove(closest);
+
                 closest.Number = 0;
+                Holes.Add(closest.Number, closest);
             }
 
-
-            // Sort the holes by number and distance
-            GolfHoles.Sort((x, y) => CompareHoles(x, y));
+            AllHoles.RemoveAll((x) => Holes.Values.Contains(x));
 
 
-            // Loop through them all
-            for (int i = 0; i < GolfHoles.Count; i++)
+            while (AllHoles.Count > 0)
             {
-                // And assign the number
-                if (GolfHoles[i].Number == Hole.NotAssignedHoleNumber)
-                {
-                    GolfHoles[i].Number = i;
-                }
+                // Sort the holes by number and distance
+                AllHoles.Sort((x, y) => CompareHoles(x, y));
+
+                Hole h = AllHoles[0];
+                AllHoles.Remove(h);
+
+                h.Number = GetNextHoleNumber(Holes.Keys);
+                Holes.Add(h.Number, h);
             }
-            */
+
+            HolesHaveBeenOrdered = true;
         }
     }
+
+
+
+    private int GetNextHoleNumber(IEnumerable<int> currentHoles)
+    {
+        return currentHoles.Max() + 1;
+    }
+
 
 
     private int CompareHoles(Hole a, Hole b)
@@ -71,8 +100,7 @@ public class CourseManager : MonoBehaviour
         // Neither have been assigned
         else if (a.Number == Hole.NotAssignedHoleNumber && b.Number == Hole.NotAssignedHoleNumber)
         {
-            Hole origin = GetClosestTo(TerrainGenerator.ORIGIN);
-            return Vector3.Distance(a.Centre, origin.Centre).CompareTo(Vector3.Distance(b.Centre, origin.Centre));
+            return (TerrainGenerator.ORIGIN - a.Centre).sqrMagnitude.CompareTo((TerrainGenerator.ORIGIN - b.Centre).sqrMagnitude);
         }
         else
         {
@@ -82,17 +110,25 @@ public class CourseManager : MonoBehaviour
 
 
 
-    public void RespawnGolfBall()
+    public void RespawnGolfBall(int hole)
     {
-        RespawnGolfBall(CalculateSpawnPoint(GolfBall.Radius));
+        // Get the next hole
+        Hole next = GetHole(hole + 1);
+        GolfBall.ResetAllStats(next);
+
+        // And move the ball there
+        Vector3 pos = CalculateSpawnPoint(GolfBall.Radius, hole);
+        RespawnGolfBall(pos);
+
+        Debug.Log("Respawned ball at hole " + hole + " and set next hole to be " + next.Number);
     }
+
 
     public void RespawnGolfBall(Vector3 position)
     {
         // Reset
         GolfBall.StopAllCoroutines();
         GolfBall.Reset();
-        GolfBall.GameStats.Reset();
 
         // Position
         GolfBall.transform.position = position;
@@ -103,12 +139,12 @@ public class CourseManager : MonoBehaviour
 
 
 
-    private Hole GetClosestTo(Vector3 pos)
+    private Hole GetClosestTo(Vector3 pos, IEnumerable<Hole> collection)
     {
         if (GolfHoles.Count > 0)
         {
-            Hole closest = GolfHoles.FirstOrDefault();
-            foreach (Hole h in GolfHoles)
+            Hole closest = collection.FirstOrDefault();
+            foreach (Hole h in collection)
             {
                 if (Vector3.Distance(h.Centre, pos) < Vector3.Distance(closest.Centre, pos))
                 {
@@ -124,48 +160,34 @@ public class CourseManager : MonoBehaviour
 
 
 
-    public Vector3 CalculateSpawnPoint(float sphereRadius)
+    public Vector3 CalculateSpawnPoint(float sphereRadius, int hole)
     {
-        if (GolfHoles.Count > 0)
+        Hole h = GetHole(hole);
+        if (h != null)
         {
-            // Find the hole closest to the origin
-            Hole closest = GetClosestTo(TerrainGenerator.ORIGIN);
-
-            Destroy(closest.Flag);
-
-            Vector3 ground = closest.Centre;
-            ground += TerrainGenerator.UP * sphereRadius;
-
-            return ground;
-        }
-        else
-        {
-            Debug.Log("There are no golf holes nearby so spawning at 0 0 0");
-
-            TerrainChunk chunk = AllTerrain.GetChunk(Vector2Int.zero);
-            Vector3 centre3 = chunk.Bounds.center;
-            Vector2 centre = new Vector2(centre3.x, centre3.z);
-
-            Vector3 closest = chunk.Collider.vertices[0];
-            int index = 0;
-
-            for (int i = 0; i < chunk.Collider.vertices.Length; i++)
+            if (h.Flag != null)
             {
-                // Update the closest point
-                if (Vector2.Distance(centre, new Vector2(chunk.Collider.vertices[i].x, chunk.Collider.vertices[i].z)) < Vector3.Distance(centre, new Vector3(closest.x, closest.z)))
-                {
-                    closest = chunk.Collider.vertices[i];
-                    index = i;
-                }
+                Destroy(h.Flag);
             }
 
+            Vector3 groundPos = h.Centre;
+            groundPos += TerrainGenerator.UP * sphereRadius;
 
-            Vector3 normal = chunk.Collider.normals[index];
-            // Move the point in the direction of the normal a little
-            closest += normal.normalized * sphereRadius;
-
-            return closest;
+            return groundPos;
         }
+
+        return default;
+    }
+
+
+
+
+
+
+    public void Clear()
+    {
+        Holes.Clear();
+        HolesHaveBeenOrdered = false;
     }
 
 

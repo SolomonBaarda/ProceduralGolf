@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Rendering.LookDev;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -52,15 +51,12 @@ public class TerrainGenerator : MonoBehaviour
     private void Awake()
     {
         OnChunkGenerated += CheckChunkEdges;
-        OnChunksUpdated += Utils.EMPTY;
 
     }
 
     private void OnDestroy()
     {
         OnChunkGenerated -= CheckChunkEdges;
-        OnChunksUpdated -= Utils.EMPTY;
-
     }
 
 
@@ -92,6 +88,7 @@ public class TerrainGenerator : MonoBehaviour
 
                 // Call the event if something happened
                 OnChunksUpdated.Invoke();
+
 
                 // Break out of the loop - we don't want to process more than one chunk each tick
                 break;
@@ -154,10 +151,11 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
         }
 
+        OnChunksUpdated.Invoke();
 
         InitialTerrainGenerated = true;
 
-        Debug.Log("Generated in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds with " + GolfHoles.Count + " holes.");
+        Debug.Log("Generated initial area in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds with " + GolfHoles.Count + " holes.");
     }
 
     private void GenerateInitialArea(int seed, float viewVistanceWorld)
@@ -182,6 +180,9 @@ public class TerrainGenerator : MonoBehaviour
             // Generate the chunk
             TryGenerateChunk(chunk, seed);
         }
+
+        // Chunks have been updated 
+        OnChunksUpdated.Invoke();
 
         // Wait until the chunks have been generated
         StartCoroutine(WaitUntiInitialChunksGenerated(initialChunks, before));
@@ -330,7 +331,6 @@ public class TerrainGenerator : MonoBehaviour
 
             // Existing chunk
             chunk.Item1.TerrainMap.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, ref newChunk.TerrainMap, out bool needsUpdateB);
-
 
             // If there was an update then both chunks need to have their meshes re generated
             if (needsUpdateA || needsUpdateB)

@@ -41,12 +41,10 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        HUD.OnHudLoaded -= SetHud;
-
         HUD.OnShootPressed -= GolfBall.Shoot;
         HUD.OnShootPressed -= UpdateHUDShotCounter;
 
-        HUD.OnRestartPressed -= CourseManager.RespawnGolfBall;
+        HUD.OnRestartPressed -= ResetGame;
         HUD.OnQuitPressed -= Application.Quit;
 
 
@@ -79,9 +77,16 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
+        // Ensure all of the holes have been correctly numbered
+        while (!CourseManager.HolesHaveBeenOrdered)
+        {
+            yield return null;
+        }
 
         // Start the game
         ResetGame();
+
+        Debug.Log("Game has started.");
     }
 
 
@@ -90,6 +95,7 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             TerrainGenerator.Clear();
+            CourseManager.Clear();
             StartCoroutine(WaitUntilGameStart());
         }
 
@@ -214,13 +220,13 @@ public class GameManager : MonoBehaviour
 
     private void ResetGame()
     {
-        CourseManager.RespawnGolfBall();
+        CourseManager.RespawnGolfBall(0);
         UpdateHUDShotCounter();
     }
 
 
     private void UpdateHUDShotCounter()
     {
-        HUD.Shots.text = GolfBall.GameStats.Shots.ToString();
+        HUD.Shots.text = GolfBall.CurrentHoleStats.ShotsForThisHole.ToString();
     }
 }

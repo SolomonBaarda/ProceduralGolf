@@ -316,7 +316,7 @@ public class TerrainMap
 
 
 
-    public Point GetClosestTo(Vector3 worldPos)
+    public Point GetClosestTo(Vector3 worldPos, bool check3x3 = false)
     {
         // Get the lower bounds of the closest 4 points to the position
         int estimatedX = Width - 1 - Mathf.RoundToInt((Bounds.max.x - worldPos.x) / (Bounds.max.x - Bounds.min.x) * Width);
@@ -324,26 +324,27 @@ public class TerrainMap
 
         Point closest = Map[Mathf.Clamp(estimatedX, 0, Width), Mathf.Clamp(estimatedY, 0, Height)];
 
-        // Problem with this loop for some reason
-        /*
-
-        // Check the closest 4 points to the position
-        for (int y = estimatedY; y <= estimatedY + 1; y++)
+        if (check3x3)
         {
-            for (int x = estimatedX; x <= estimatedX + 1; y++)
+            // Check the 3x3 around the point
+            for (int y = -1; y <= 1; y++)
             {
-                if (x >= 0 && y >= 0 && x < Width && y < Height)
+                for (int x = -1; x <= 1; x++)
                 {
-                    // New closest point
-                    if (Vector3.Distance(Map[x, y].LocalVertexPosition, worldPos) < Vector3.Distance(closest.LocalVertexPosition, worldPos))
+                    int indexX = estimatedX + x, indexY = y + estimatedY;
+                    if (indexX >= 0 && indexY >= 0 && indexX < Width && indexY < Height)
                     {
-                        closest = Map[x, y];
+                        // New closest point
+                        if ((worldPos - Map[indexX, indexY].LocalVertexPosition).sqrMagnitude < (worldPos - closest.LocalVertexPosition).sqrMagnitude)
+                        {
+                            closest = Map[indexX, indexY];
+                        }
+
                     }
                 }
             }
         }
-        */
-        
+
         return closest;
     }
 

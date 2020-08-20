@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -22,7 +24,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private TerrainMap.Point biomeSamplePoint;
 
     // Statistics
-    public Stats GameStats;
+    public Stats CurrentHoleStats;
+    public List<Stats> HolesCompleted = new List<Stats>();
 
 
     private Vector3 Facing
@@ -88,9 +91,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private void Awake()
     {
         transform.localScale = new Vector3(Scale, Scale, Scale);
-
-        GameStats = new Stats();
-        GameStats.Reset();
 
         OnRollingFinished += Utils.EMPTY;
 
@@ -205,7 +205,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Vector3 force = transform.forward * Power * FullPower;
         rigid.AddForce(force, ForceMode.Impulse);
 
-        GameStats.Shots++;
+        CurrentHoleStats.ShotsForThisHole++;
     }
 
 
@@ -241,8 +241,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
         // Freeze until a shot has been taken
-        int shotsBefore = GameStats.Shots;
-        while (shotsBefore == GameStats.Shots)
+        int shotsBefore = CurrentHoleStats.ShotsForThisHole;
+        while (shotsBefore == CurrentHoleStats.ShotsForThisHole)
         {
             yield return null;
         }
@@ -358,16 +358,44 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
+    public Stats HoleCompleted(Hole nextHole)
+    {
+        // Finish the current hole
+        CurrentHoleStats.EndTime = DateTime.Now;
+        HolesCompleted.Add(CurrentHoleStats);
 
+        // Create a new one
+        CurrentHoleStats = new Stats(nextHole);
+        return CurrentHoleStats;
+    }
+
+
+
+
+    public void ResetAllStats(Hole firstHole)
+    {
+        CurrentHoleStats = new Stats(firstHole);
+
+        HolesCompleted.Clear();
+    }
 
 
     public class Stats
     {
-        public int Shots;
+        public Hole Hole;
+        public int ShotsForThisHole;
 
-        public void Reset()
+        public DateTime StartTime;
+        public DateTime EndTime;
+
+        public double SecondsForThisHole { get { DateTime now = EndTime; if (now == null) { now = DateTime.Now; } return (now - StartTime).TotalSeconds; } }
+
+        public Stats(Hole hole)
         {
-            Shots = 0;
+            Hole = hole;
+            StartTime = DateTime.Now;
+
+            ShotsForThisHole = 0;
         }
     }
 
