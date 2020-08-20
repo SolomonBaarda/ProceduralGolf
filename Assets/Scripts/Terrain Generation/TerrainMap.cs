@@ -322,7 +322,7 @@ public class TerrainMap
         int estimatedX = Width - 1 - Mathf.RoundToInt((Bounds.max.x - worldPos.x) / (Bounds.max.x - Bounds.min.x) * Width);
         int estimatedY = Height - 1 - Mathf.RoundToInt((Bounds.max.z - worldPos.z) / (Bounds.max.z - Bounds.min.z) * Height);
 
-        Point closest = Map[Mathf.Clamp(estimatedX, 0, Width), Mathf.Clamp(estimatedY, 0, Height)];
+        Point closest = Map[Mathf.Clamp(estimatedX, 0, Width-1), Mathf.Clamp(estimatedY, 0, Height-1)];
 
         if (check3x3)
         {

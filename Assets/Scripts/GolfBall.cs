@@ -8,9 +8,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 {
     // Constants 
     public readonly static RigidPreset Preset_Air = new RigidPreset(0f, 0f);
-    public readonly static RigidPreset Preset_Grass = new RigidPreset(2.5f, 1f);
+    public readonly static RigidPreset Preset_Grass = new RigidPreset(3f, 1f);
     public readonly static RigidPreset Preset_GrassHole = new RigidPreset(1.5f, 1f);
-    public readonly static RigidPreset Preset_Sand = new RigidPreset(7f, 10f);
+    public readonly static RigidPreset Preset_Sand = new RigidPreset(9f, 12f);
     public readonly static RigidPreset Preset_Water = new RigidPreset(20f, 50f);
     public readonly static RigidPreset Preset_Ice = new RigidPreset(0f, 0f);
 

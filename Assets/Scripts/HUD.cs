@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class HUD : MonoBehaviour
 {
     public const string SceneName = "HUD";
-    public static UnityAction<HUD> OnHudLoaded;
+    public static UnityAction OnHudLoaded;
 
     public UnityAction OnShootPressed;
     public UnityAction OnRestartPressed;
@@ -22,7 +22,7 @@ public class HUD : MonoBehaviour
     public TouchScreenSlider Rotation;
     public TouchScreenSlider Angle;
     public TouchScreenSlider Power;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float SliderBackgroundAlpha = 0.75f;
 
 
@@ -38,10 +38,26 @@ public class HUD : MonoBehaviour
     public RectTransform MapVisual;
 
 
+    public static HUD Instance;
+
+
+    private void Awake()
+    {
+        Instance = FindObjectOfType<HUD>();
+    }
+
+
+
+    public void Active(bool visible)
+    {
+        Canvas.gameObject.SetActive(visible);
+    }
+
+
 
     private void Start()
     {
-        OnHudLoaded.Invoke(this);
+        OnHudLoaded.Invoke();
 
         Shoot.onClick.AddListener(ShootPressed);
         Restart.onClick.AddListener(RestartPressed);

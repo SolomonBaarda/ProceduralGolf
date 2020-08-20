@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
     public Follower BallFollower;
 
     public HUD HUD;
-    private bool HUDLoaded;
+    private bool HUDHasLoaded;
 
     [Space]
     public bool DoEndlessTerrain = true;
@@ -24,11 +24,16 @@ public class GameManager : MonoBehaviour
 
     private bool drawMap;
 
+
+
     private void Awake()
     {
-        HUD.OnHudLoaded += SetHud;
+        HUD.OnHudLoaded += OnHUDLoaded;
+
+        SceneManager.LoadScene(LoadingScreen.SceneName, LoadSceneMode.Additive);
         SceneManager.LoadSceneAsync(HUD.SceneName, LoadSceneMode.Additive);
-        HUDLoaded = false;
+
+        HUDHasLoaded = false;
 
         CourseManager.AllTerrain = TerrainGenerator.TerrainChunkManager;
         CourseManager.GolfHoles = TerrainGenerator.GolfHoles;
@@ -65,18 +70,26 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator WaitUntilGameStart()
     {
+        LoadingScreen.Active(true);
+
         TerrainGenerator.GenerateInitialTerrain(ViewDistanceWorld);
 
         // Ensure the hud has loaded
-        while (!HUDLoaded)
+        while (!HUDHasLoaded)
         {
             yield return null;
         }
+
+        HUD.Active(false);
+
+
         // Ensure the initial terrain has been fully generated 
         while (!TerrainGenerator.InitialTerrainGenerated)
         {
             yield return null;
         }
+
+
         // Ensure all of the holes have been correctly numbered
         while (!CourseManager.HolesHaveBeenOrdered)
         {
@@ -85,6 +98,10 @@ public class GameManager : MonoBehaviour
 
         // Start the game
         ResetGame();
+
+
+        HUD.Active(true);
+        LoadingScreen.Active(false);
 
         Debug.Log("Game has started.");
     }
@@ -168,12 +185,15 @@ public class GameManager : MonoBehaviour
 
         // Make minimap visible
         Minimap.SetVisible(drawMap);
-        HUD.MapParent.gameObject.SetActive(drawMap);
-        // Disable the shots counter in the minimap
-        HUD.ShotsDisplayParent.SetActive(!drawMap);
+        if(HUDHasLoaded)
+        {
+            HUD.MapParent.gameObject.SetActive(drawMap);
+            // Disable the shots counter in the minimap
+            HUD.ShotsDisplayParent.SetActive(!drawMap);
 
-        // Show the shooting window
-        HUD.ShootingWindow.SetActive(!drawMap && isShooting);
+            // Show the shooting window
+            HUD.ShootingWindow.SetActive(!drawMap && isShooting);
+        }
     }
 
 
@@ -204,9 +224,9 @@ public class GameManager : MonoBehaviour
 
 
 
-    private void SetHud(HUD hud)
+    private void OnHUDLoaded()
     {
-        HUD = hud;
+        HUD = HUD.Instance;
 
         HUD.OnShootPressed += GolfBall.Shoot;
         HUD.OnShootPressed += UpdateHUDShotCounter;
@@ -214,7 +234,7 @@ public class GameManager : MonoBehaviour
         HUD.OnRestartPressed += ResetGame;
         HUD.OnQuitPressed += Application.Quit;
 
-        HUDLoaded = true;
+        HUDHasLoaded = true;
     }
 
 
