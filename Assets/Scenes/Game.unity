@@ -374,6 +374,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1822943189}
+  - {fileID: 1412093489}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -390,6 +391,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TerrainChunkManager: {fileID: 1822943190}
+  HolesWorldObjectParent: {fileID: 1412093489}
   MeshSettings: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
   NoiseSettings_Green: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3,
     type: 2}
@@ -408,6 +410,8 @@ MonoBehaviour:
   MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
   PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
   GolfHoleFlagPrefab: {fileID: 110804456460024580, guid: af95c3459d594514e98b7681ed2c151b,
+    type: 3}
+  GolfHolePositionPrefab: {fileID: 515401796162439050, guid: 5e8d16aaab5fabc4a93352f985eb9bb7,
     type: 3}
 --- !u!4 &784421682 stripped
 Transform:
@@ -674,6 +678,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57a29402160f6944aab0dd90e34649d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1412093488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1412093489}
+  m_Layer: 0
+  m_Name: Hole World Objects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1412093489
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1412093488}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 698838601}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1684111219
 GameObject:
   m_ObjectHideFlags: 0

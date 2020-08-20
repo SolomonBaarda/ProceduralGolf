@@ -10,6 +10,7 @@ public class TerrainGenerator : MonoBehaviour
     public static readonly Vector3 ORIGIN = Vector3.zero;
 
     public TerrainChunkManager TerrainChunkManager;
+    public Transform HolesWorldObjectParent;
     public HashSet<Hole> GolfHoles = new HashSet<Hole>();
 
     private List<NeedsUpdating> chunksThatNeedUpdating = new List<NeedsUpdating>();
@@ -47,6 +48,8 @@ public class TerrainGenerator : MonoBehaviour
 
     [Header("Prefabs")]
     public GameObject GolfHoleFlagPrefab;
+    public GameObject GolfHolePositionPrefab;
+
 
     private void Awake()
     {
@@ -266,9 +269,7 @@ public class TerrainGenerator : MonoBehaviour
         // Update them all
         foreach (Hole hole in h.Holes)
         {
-            hole.Flag = Instantiate(GolfHoleFlagPrefab, transform);
-
-            hole.UpdateHole();
+            hole.UpdateHole(HolesWorldObjectParent, GolfHoleFlagPrefab, GolfHolePositionPrefab);
 
             GolfHoles.Add(hole);
         }
@@ -373,7 +374,7 @@ public class TerrainGenerator : MonoBehaviour
         {
             if (h.NeedsUpdating)
             {
-                h.UpdateHole();
+                h.UpdateHole(HolesWorldObjectParent, GolfHoleFlagPrefab, GolfHolePositionPrefab);
             }
         }
 

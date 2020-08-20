@@ -6,6 +6,10 @@ using UnityEngine.Events;
 
 public class GolfBall : MonoBehaviour, ICanBeFollowed
 {
+    public const string LAYER_NAME = "Ball";
+    public static int Layer => LayerMask.NameToLayer(LAYER_NAME);
+    public static int Mask => LayerMask.GetMask(LAYER_NAME);
+
     // Constants 
     public readonly static RigidPreset Preset_Air = new RigidPreset(0f, 0f);
     public readonly static RigidPreset Preset_Grass = new RigidPreset(3f, 1f);
@@ -82,24 +86,19 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public SphereCollider sphereCollider;
 
 
-    [Header("Line Preview")]
-    public Material LinePreviewMaterial;
-    private LineRenderer shotPreview;
-    public Gradient LineColour;
+    [Header("Line Previews")]
+    public LinePreview ShotPreview;
 
 
     private void Awake()
     {
+        gameObject.layer = Layer;
         transform.localScale = new Vector3(Scale, Scale, Scale);
 
         OnRollingFinished += Utils.EMPTY;
 
-        // Set the shot preview
-        shotPreview = gameObject.AddComponent<LineRenderer>();
-        shotPreview.widthCurve = AnimationCurve.Linear(0f, 0.05f, 1f, 0.05f);
-        shotPreview.enabled = false;
-        shotPreview.material = LinePreviewMaterial;
-        shotPreview.colorGradient = LineColour;
+
+        ShotPreview.enabled = false;
     }
 
 
@@ -284,13 +283,10 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         offset *= usePower ? Power : 1;
 
         // Assign the point
-        shotPreview.SetPositions(new Vector3[] { transform.position, transform.position + offset });
+        ShotPreview.SetPoints(transform.position, transform.position + offset);
     }
 
-    public void SetShotPreviewVisible(bool visible)
-    {
-        shotPreview.enabled = visible;
-    }
+
 
 
     public void SetValues(float rotation, float angle, float power)

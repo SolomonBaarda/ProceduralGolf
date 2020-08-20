@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class Hole
 {
     public const int NotAssignedHoleNumber = -1;
-    public int Number = NotAssignedHoleNumber;
+    public const float LinePreviewHeight = 100f;
+    public int Number { get; private set; } = NotAssignedHoleNumber;
+
+    public bool Completed { get; private set; } = false;
 
 
     public bool ShouldBeDestroyed = false;
@@ -16,16 +18,18 @@ public class Hole
     public HashSet<TerrainMap.Point> Vertices = new HashSet<TerrainMap.Point>();
     public Vector3 Centre => EvaluateMidpoint();
 
+    public GameObject WorldObjectParent;
     public GameObject Flag;
+    public LinePreview PositionLine;
 
 
     public void Destroy()
     {
         Vertices.Clear();
 
-        if (Flag != null)
+        if (WorldObjectParent != null)
         {
-            UnityEngine.Object.Destroy(Flag);
+            UnityEngine.Object.Destroy(WorldObjectParent);
         }
     }
 
@@ -61,6 +65,15 @@ public class Hole
     }
 
 
+    public bool BallWasPotted(int layerMask)
+    {
+        float radius = 0.2f;
+
+        return Physics.CheckSphere(Centre, radius, layerMask);
+    }
+
+
+
     public float EvaluateHeight()
     {
         int total = Vertices.Count;
@@ -76,14 +89,71 @@ public class Hole
     }
 
 
-    public void UpdateHole()
+    public void UpdateHole(Transform parent, GameObject flagPrefab, GameObject linePrefab)
     {
         NeedsUpdating = false;
 
         // Update the heights
         SetAllPointHeights();
 
-        Flag.transform.position = Centre + (TerrainGenerator.UP * Flag.GetComponent<Collider>().bounds.extents.y);
+        if (WorldObjectParent == null)
+        {
+            WorldObjectParent = new GameObject("Hole " + Number);
+            WorldObjectParent.transform.parent = parent;
+            WorldObjectParent.transform.position = Centre;
+        }
+
+        if (!Completed)
+        {
+            if (Flag == null)
+            {
+                Flag = UnityEngine.Object.Instantiate(flagPrefab, WorldObjectParent.transform);
+                Flag.transform.localPosition = (TerrainGenerator.UP * Flag.GetComponent<Collider>().bounds.extents.y);
+            }
+
+            if (PositionLine == null)
+            {
+                PositionLine = UnityEngine.Object.Instantiate(linePrefab, WorldObjectParent.transform).GetComponent<LinePreview>();
+                PositionLine.SetPoints(Centre, Centre + (TerrainGenerator.UP * LinePreviewHeight));
+                PositionLine.enabled = false;
+            }
+        }
+
+    }
+
+
+    public void SetNumber(int number)
+    {
+        Number = number;
+
+        if (WorldObjectParent != null)
+        {
+            WorldObjectParent.name = "Hole " + Number;
+        }
+    }
+
+
+
+    public void SetNext()
+    {
+        PositionLine.enabled = true;
+    }
+
+
+
+    public void SetCompleted()
+    {
+        Completed = true;
+
+        if (Flag != null)
+        {
+            UnityEngine.Object.Destroy(Flag);
+        }
+
+        if (PositionLine != null)
+        {
+            PositionLine.enabled = false;
+        }
     }
 
 

@@ -121,7 +121,7 @@ public class GameManager : MonoBehaviour
 
         // Taking a shot
         bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
-        GolfBall.SetShotPreviewVisible(isShooting);
+        GolfBall.ShotPreview.enabled = isShooting;
 
 
         // Update the camera angles
@@ -185,7 +185,7 @@ public class GameManager : MonoBehaviour
 
         // Make minimap visible
         Minimap.SetVisible(drawMap);
-        if(HUDHasLoaded)
+        if (HUDHasLoaded)
         {
             HUD.MapParent.gameObject.SetActive(drawMap);
             // Disable the shots counter in the minimap
@@ -240,7 +240,7 @@ public class GameManager : MonoBehaviour
 
     private void ResetGame()
     {
-        CourseManager.RespawnGolfBall(0);
+        CourseManager.RespawnGolfBall(CourseManager.GetHole(0));
         UpdateHUDShotCounter();
     }
 

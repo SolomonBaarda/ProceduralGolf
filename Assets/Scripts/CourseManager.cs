@@ -11,14 +11,13 @@ public class CourseManager : MonoBehaviour
     public TerrainChunkManager AllTerrain;
     public HashSet<Hole> GolfHoles;
 
-    public bool HolesHaveBeenOrdered;
+    public bool HolesHaveBeenOrdered { get; private set; }
 
     public Hole GetHole(int number) { Holes.TryGetValue(number, out Hole value); return value; }
     private Dictionary<int, Hole> Holes = new Dictionary<int, Hole>();
+    private Hole CurrentNext;
 
     public UnityAction<GolfBall.Stats> OnHoleCompleted;
-
-    public int CurrentHole = 0;
 
     private void Awake()
     {
@@ -32,6 +31,23 @@ public class CourseManager : MonoBehaviour
 
 
 
+
+    private void FixedUpdate()
+    {
+        if (CurrentNext != null)
+        {
+            if (CurrentNext.BallWasPotted(GolfBall.Mask))
+            {
+                CurrentNext.SetCompleted();
+
+                Hole next = GetHole(CurrentNext.Number + 1);
+
+                GolfBall.HoleCompleted(next);
+                RespawnGolfBall(next);
+            }
+        }
+
+    }
 
 
     public void UpdateGolfHolesOrder()
@@ -48,7 +64,7 @@ public class CourseManager : MonoBehaviour
                 Hole closest = GetClosestTo(TerrainGenerator.ORIGIN, AllHoles);
                 AllHoles.Remove(closest);
 
-                closest.Number = 0;
+                closest.SetNumber(0);
                 Holes.Add(closest.Number, closest);
             }
 
@@ -63,7 +79,7 @@ public class CourseManager : MonoBehaviour
                 Hole h = AllHoles[0];
                 AllHoles.Remove(h);
 
-                h.Number = GetNextHoleNumber(Holes.Keys);
+                h.SetNumber(GetNextHoleNumber(Holes.Keys));
                 Holes.Add(h.Number, h);
             }
 
@@ -109,12 +125,13 @@ public class CourseManager : MonoBehaviour
     }
 
 
-
-    public void RespawnGolfBall(int hole)
+    public void RespawnGolfBall(Hole hole)
     {
         // Get the next hole
-        Hole next = GetHole(hole + 1);
+        Hole next = GetHole(hole.Number + 1);
         GolfBall.ResetAllStats(next);
+        next.SetNext();
+        CurrentNext = next;
 
         // And move the ball there
         Vector3 pos = CalculateSpawnPoint(GolfBall.Radius, hole);
@@ -160,17 +177,13 @@ public class CourseManager : MonoBehaviour
 
 
 
-    public Vector3 CalculateSpawnPoint(float sphereRadius, int hole)
+    public Vector3 CalculateSpawnPoint(float sphereRadius, Hole hole)
     {
-        Hole h = GetHole(hole);
-        if (h != null)
+        if (hole != null)
         {
-            if (h.Flag != null)
-            {
-                Destroy(h.Flag);
-            }
+            hole.SetCompleted();
 
-            Vector3 groundPos = h.Centre;
+            Vector3 groundPos = hole.Centre;
             groundPos += TerrainGenerator.UP * sphereRadius;
 
             return groundPos;
@@ -187,6 +200,7 @@ public class CourseManager : MonoBehaviour
     public void Clear()
     {
         Holes.Clear();
+        CurrentNext = null;
         HolesHaveBeenOrdered = false;
     }
 
