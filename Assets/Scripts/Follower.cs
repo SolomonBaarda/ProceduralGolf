@@ -26,7 +26,7 @@ public class Follower : MonoBehaviour
     /// <summary>
     /// View for setting the shot power.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 7.5f, 5f, 2f, 2f, new Vector3(0, 2, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 7.5f, 2.5f, 2f, 2f, new Vector3(0, 2, 0), Vector3.zero);
 
 
 

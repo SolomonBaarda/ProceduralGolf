@@ -15,12 +15,14 @@ public class HUD : MonoBehaviour
     public Canvas Canvas;
 
     [Header("Shooting Window")]
-    public GameObject ShootingWindow;
+    public RectTransform ShootingWindow;
     public Button Shoot;
 
     [Header("Sliders")]
-    public TouchScreenSlider Rotation;
-    public TouchScreenSlider Angle;
+    public HeldButton RotationLess, RotationMore;
+    [Space]
+    public HeldButton AngleLess, AngleMore;
+    [Space]
     public TouchScreenSlider Power;
     [Range(0, 1)]
     public float SliderBackgroundAlpha = 0.75f;

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -133,14 +133,42 @@ public class GameManager : MonoBehaviour
             // Shooting mode
             case GolfBall.PlayState.Shooting:
 
+                int buttonMultiplier = 24;
+
                 // Calculate the deltas for each 
-                Vector2 rotationDelta = Controller.DeltaPosition(HUD.Rotation.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
-                Vector2 angleDelta = Controller.DeltaPosition(HUD.Angle.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
+                Vector2 rotationAndAngleDelta = Controller.DeltaPosition(HUD.ShootingWindow) * Time.deltaTime * Controller.TouchMultiplier;
                 Vector2 powerDelta = Controller.DeltaPosition(HUD.Power.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
 
-                // Calculate the new values (take into consideration the slider height)
-                float rotation = GolfBall.Rotation + rotationDelta.y;
-                float angle = GolfBall.Angle + angleDelta.y;
+                float rotationDelta = rotationAndAngleDelta.x;
+                float angleDelta = rotationAndAngleDelta.y;
+
+                // Rotation
+                // Move less
+                if(HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
+                {
+                    rotationDelta = -buttonMultiplier * Time.deltaTime;
+                }
+                // Move more
+                else if (!HUD.RotationLess.IsPressed && HUD.RotationMore.IsPressed)
+                {
+                    rotationDelta = buttonMultiplier * Time.deltaTime;
+                }
+
+                // Angle
+                // Move less
+                if (HUD.AngleLess.IsPressed && !HUD.AngleMore.IsPressed)
+                {
+                    angleDelta = -buttonMultiplier * Time.deltaTime;
+                }
+                // Move more
+                else if (!HUD.AngleLess.IsPressed && HUD.AngleMore.IsPressed)
+                {
+                    angleDelta = buttonMultiplier * Time.deltaTime;
+                }
+
+                // Calculate the new values
+                float rotation = GolfBall.Rotation + rotationDelta;
+                float angle = GolfBall.Angle + angleDelta;
                 float power = GolfBall.Power + powerDelta.y / 50f;
 
                 // Set the new values
@@ -159,15 +187,9 @@ public class GameManager : MonoBehaviour
 
 
                 // Update the HUD to display the correct values
-                HUD.Rotation.DisplayValue.text = GolfBall.Rotation.ToString("0") + "°";
-                HUD.Angle.DisplayValue.text = GolfBall.Angle.ToString("0") + "°";
+                //HUD.Rotation.DisplayValue.text = GolfBall.Rotation.ToString("0") + "°";
+                //HUD.Angle.DisplayValue.text = GolfBall.Angle.ToString("0") + "°";
                 HUD.Power.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
-
-                // Set the 2 angle sliders to the same colour
-                Color b = HUD.Rotation.Background.color;
-                b.a = HUD.SliderBackgroundAlpha;
-                HUD.Rotation.Background.color = b;
-                HUD.Angle.Background.color = b;
 
                 // Set the power slider colour
                 Color p = HUD.Power.Gradient.Evaluate(GolfBall.Power);
@@ -197,7 +219,7 @@ public class GameManager : MonoBehaviour
             HUD.ShotsDisplayParent.SetActive(!drawMap);
 
             // Show the shooting window
-            HUD.ShootingWindow.SetActive(!drawMap && isShooting);
+            HUD.ShootingWindow.gameObject.SetActive(!drawMap && isShooting);
         }
     }
 
