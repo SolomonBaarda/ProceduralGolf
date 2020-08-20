@@ -230,6 +230,12 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!102 &291345259 stripped
+TextMesh:
+  m_CorrespondingSourceObject: {fileID: 291345259, guid: 8b5ace1036e996949aaff71ced827337,
+    type: 3}
+  m_PrefabInstance: {fileID: 1324745659}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &295252888
 GameObject:
   m_ObjectHideFlags: 0
@@ -604,6 +610,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1684111221}
     m_Modifications:
+    - target: {fileID: 291345258, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 291345258, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -14
+      objectReference: {fileID: 0}
     - target: {fileID: 4213627502347566067, guid: 8b5ace1036e996949aaff71ced827337,
         type: 3}
       propertyPath: m_Name
@@ -664,6 +678,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5612774799315146423, guid: 8b5ace1036e996949aaff71ced827337,
+        type: 3}
+      propertyPath: ShotAnglePreview
+      value: 
+      objectReference: {fileID: 291345259}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
 --- !u!114 &1324745660 stripped

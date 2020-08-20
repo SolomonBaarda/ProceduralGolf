@@ -7,6 +7,7 @@ public class LinePreview : MonoBehaviour
 
     public Gradient LineColour;
     [Min(0)] public float LineWidth = 0.05f;
+    [Min(0)] public float LineLength = 1;
     public Material LineMaterial;
 
 
@@ -24,22 +25,13 @@ public class LinePreview : MonoBehaviour
 
 
 
-    public void SetPoints(Vector3 start, Vector3 end)
+    public void SetPoints(Vector3 start, Vector3 directionNormal)
     {
         Points[0] = start;
-        Points[1] = end;
+        Points[1] = start + (directionNormal * LineLength);
 
         LineRenderer.SetPositions(Points);
     }
 
-
-    private void OnEnable()
-    {
-        LineRenderer.enabled = true;
-    }
-    private void OnDisable()
-    {
-        LineRenderer.enabled = false;
-    }
 
 }

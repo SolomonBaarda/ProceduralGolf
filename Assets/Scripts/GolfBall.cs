@@ -87,7 +87,10 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
     [Header("Line Previews")]
-    public LinePreview ShotPreview;
+    public LinePreview ShotPowerPreview;
+    public LinePreview ShotNormalPreview;
+    public TextMesh ShotAnglePreview;
+
 
 
     private void Awake()
@@ -98,7 +101,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         OnRollingFinished += Utils.EMPTY;
 
 
-        ShotPreview.enabled = false;
+        ShotPowerPreview.enabled = false;
     }
 
 
@@ -266,7 +269,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     }
 
 
-    public void SetShotPreview(bool useRotation, bool useAngle, bool usePower, float lengthMultiplier)
+    public void SetShotPowerPreview(bool useRotation, bool useAngle, bool usePower)
     {
         // Calculate which axis to use
         Vector3 offset = transform.forward;
@@ -277,16 +280,32 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         // Now ensure it is the correct length
         offset.Normalize();
-        offset *= lengthMultiplier;
 
         // Apply power multiplier if we need to
         offset *= usePower ? Power : 1;
 
         // Assign the point
-        ShotPreview.SetPoints(transform.position, transform.position + offset);
+        ShotPowerPreview.SetPoints(transform.position, offset);
     }
 
 
+    public void SetShotNormalPreview()
+    {
+        Vector3 forwardNoYComponent = Forward;
+        forwardNoYComponent.y = 0;
+
+        ShotNormalPreview.SetPoints(transform.position, forwardNoYComponent.normalized);
+    }
+
+
+    public void SetShotAnglePreview(string text)
+    {
+        Vector3 rotation = new Vector3(0, 90, Angle);
+
+        ShotAnglePreview.transform.localEulerAngles = rotation;
+
+        ShotAnglePreview.text = text;
+    }
 
 
     public void SetValues(float rotation, float angle, float power)

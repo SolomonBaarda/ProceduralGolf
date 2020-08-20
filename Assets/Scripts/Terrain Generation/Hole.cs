@@ -19,8 +19,8 @@ public class Hole
     public Vector3 Centre => EvaluateMidpoint();
 
     public GameObject WorldObjectParent;
-    public GameObject Flag;
-    public LinePreview PositionLine;
+    private GameObject Flag;
+    private GameObject LinePreviewObject;
 
 
     public void Destroy()
@@ -111,11 +111,13 @@ public class Hole
                 Flag.transform.localPosition = (TerrainGenerator.UP * Flag.GetComponent<Collider>().bounds.extents.y);
             }
 
-            if (PositionLine == null)
+            if (LinePreviewObject == null)
             {
-                PositionLine = UnityEngine.Object.Instantiate(linePrefab, WorldObjectParent.transform).GetComponent<LinePreview>();
-                PositionLine.SetPoints(Centre, Centre + (TerrainGenerator.UP * LinePreviewHeight));
-                PositionLine.enabled = false;
+                LinePreviewObject = UnityEngine.Object.Instantiate(linePrefab, WorldObjectParent.transform);
+                LinePreview l = LinePreviewObject.GetComponent<LinePreview>();
+                l.SetPoints(Centre, Centre + (TerrainGenerator.UP * LinePreviewHeight));
+
+                LinePreviewObject.SetActive(false);
             }
         }
 
@@ -136,7 +138,7 @@ public class Hole
 
     public void SetNext()
     {
-        PositionLine.enabled = true;
+        LinePreviewObject.SetActive(true);
     }
 
 
@@ -150,9 +152,9 @@ public class Hole
             UnityEngine.Object.Destroy(Flag);
         }
 
-        if (PositionLine != null)
+        if (LinePreviewObject != null)
         {
-            PositionLine.enabled = false;
+            LinePreviewObject.SetActive(false);
         }
     }
 

@@ -121,7 +121,10 @@ public class GameManager : MonoBehaviour
 
         // Taking a shot
         bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
-        GolfBall.ShotPreview.enabled = isShooting;
+        // Set the preview active or not
+        GolfBall.ShotPowerPreview.gameObject.SetActive(isShooting);
+        GolfBall.ShotNormalPreview.gameObject.SetActive(isShooting);
+        GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
 
 
         // Update the camera angles
@@ -147,7 +150,9 @@ public class GameManager : MonoBehaviour
                 // Just use the one camera view for now
 
                 // Update the shot preview
-                GolfBall.SetShotPreview(true, true, true, 16);
+                GolfBall.SetShotPowerPreview(true, true, true);
+                GolfBall.SetShotNormalPreview();
+                GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
 
                 // Update the camera 
                 BallFollower.CurrentView = Follower.View.ShootingBehind;
