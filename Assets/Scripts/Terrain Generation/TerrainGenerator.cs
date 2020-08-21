@@ -209,10 +209,14 @@ public class TerrainGenerator : MonoBehaviour
 
     private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, in Bounds chunkBounds)
     {
+        DateTime before = DateTime.Now;
+
         // Get the vertex points
         Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
         Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
         Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
+
+        DateTime beforeNoise = DateTime.Now;
 
         int width = vertices.GetLength(0), height = vertices.GetLength(1);
 
@@ -226,6 +230,8 @@ public class TerrainGenerator : MonoBehaviour
         // Holes
         int holeSeed = Noise.Seed(bunkerSeed.ToString());
         float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
+
+        DateTime beforeApply = DateTime.Now;
 
         // Create masks from the bunkers and holes
         for (int y = 0; y < height; y++)
@@ -245,6 +251,10 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
         }
+
+        DateTime end = DateTime.Now;
+
+        Debug.Log("1. Sample " + (beforeNoise - before).Milliseconds + " 2. Noise:" + (beforeApply - beforeNoise).Milliseconds + " 3. Apply: " + (end - beforeApply).Milliseconds + " Total:" + (end - before).Milliseconds);
 
         // Return the terrain map
         return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsRaw, bunkersRaw, holesRaw, TerrainSettings_Green);

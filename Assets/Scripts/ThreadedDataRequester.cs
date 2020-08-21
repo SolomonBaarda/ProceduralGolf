@@ -19,6 +19,12 @@ public class ThreadedDataRequester : MonoBehaviour
     }
 
 
+    private void OnDestroy()
+    {
+        Clear();
+    }
+
+
     public static void Clear()
     {
         Instance.dataQueue.Clear();

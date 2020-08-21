@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -283,6 +284,8 @@ public class Hole
 
     public static NewHoles CalculateHoles(ref TerrainMap t)
     {
+        DateTime before = DateTime.Now;
+
         HashSet<Hole> holes = new HashSet<Hole>();
         HashSet<TerrainMap.Point> alreadyChecked = new HashSet<TerrainMap.Point>();
 
@@ -297,6 +300,8 @@ public class Hole
 
         // Remove holes that we don't need
         holes.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
+
+        //Debug.Log("Calculating and merging holes: " + (DateTime.Now - before).Milliseconds);
 
         return new NewHoles(t, holes.ToList());
     }

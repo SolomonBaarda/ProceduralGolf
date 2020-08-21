@@ -6,6 +6,7 @@ public static class Noise
     public static int RandomSeed => Seed(Environment.TickCount.ToString());
     public static int Seed(string seed) => seed.GetHashCode();
 
+
     public static float[,] DistributeEvenly(in float[,] array, float min, float max)
     {
         if (min < max)
@@ -118,6 +119,8 @@ public static class Noise
 
     public static float[,] Perlin(in NoiseSettings settings, int seed, in Vector2[,] samplePoints)
     {
+        DateTime before = DateTime.Now;
+
         int width = samplePoints.GetLength(0), height = samplePoints.GetLength(1);
         float[,] perlin = new float[width, height];
         settings.ValidateValues();
@@ -146,11 +149,10 @@ public static class Noise
                 for (int octave = 0; octave < settings.octaves; octave++)
                 {
                     // Calculate the position to sample the noise from
-                    float sampleX = octaveOffsets[octave].x + samplePoints[x, y].x / settings.scale * frequency;
-                    float sampleY = octaveOffsets[octave].y + samplePoints[x, y].y / settings.scale * frequency;
+                    Vector2 sample = octaveOffsets[octave] + samplePoints[x, y] / settings.scale * frequency;
 
                     // Get perlin in the range -1 to 1
-                    float perlinValue = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1;
+                    float perlinValue = Mathf.PerlinNoise(sample.x, sample.y) * 2 - 1;
                     totalPerlinForIndex += perlinValue * amplitude;
 
                     amplitude *= settings.persistance;
@@ -161,6 +163,8 @@ public static class Noise
                 perlin[x, y] = (totalPerlinForIndex / 2.5f) + 0.5f;
             }
         }
+
+        Debug.Log("Took " + (DateTime.Now - before).Milliseconds + " for noise (" + width * height + " points)");
 
         return perlin;
     }
