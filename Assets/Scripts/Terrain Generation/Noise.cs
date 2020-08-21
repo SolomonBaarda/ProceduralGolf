@@ -119,8 +119,6 @@ public static class Noise
 
     public static float[,] Perlin(in NoiseSettings settings, int seed, in Vector2[,] samplePoints)
     {
-        DateTime before = DateTime.Now;
-
         int width = samplePoints.GetLength(0), height = samplePoints.GetLength(1);
         float[,] perlin = new float[width, height];
         settings.ValidateValues();
@@ -163,8 +161,6 @@ public static class Noise
                 perlin[x, y] = (totalPerlinForIndex / 2.5f) + 0.5f;
             }
         }
-
-        Debug.Log("Took " + (DateTime.Now - before).Milliseconds + " for noise (" + width * height + " points)");
 
         return perlin;
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class TerrainChunk : MonoBehaviour
@@ -69,14 +70,7 @@ public class TerrainChunk : MonoBehaviour
 
     public void RecalculateTexture(TextureSettings settings)
     {
-        // Request the texture and set it afterwards
-        ThreadedDataRequester.RequestData(() => TextureGenerator.GenerateTextureData(TerrainMap, settings), SetTexture);
-    }
-
-
-    private void SetTexture(object textureDataObject)
-    {
-        TextureGenerator.TextureData data = (TextureGenerator.TextureData)textureDataObject;
+        TextureGenerator.TextureData data = TextureGenerator.GenerateTextureData(TerrainMap, settings);
 
         // Reverse the colour map - rotates 180 degrees 
         // For some reason the texture needs this
@@ -85,12 +79,15 @@ public class TerrainChunk : MonoBehaviour
         // Create the texture from the data
         BiomeColourMap = TextureGenerator.GenerateTexture(data);
 
-
+        // Set the material
         Material m = meshRenderer.material;
         Vector2 tiling = new Vector2(TerrainMap.Width - 1, TerrainMap.Height - 1);
 
-        TextureSettings.ApplyToMaterial(ref m, BiomeColourMap, tiling, data.Settings.GetColour(Biome.Type.Grass), data.Settings.GetColour(Biome.Type.Hole), data.Settings.GetColour(Biome.Type.Sand));
+        // Apply it
+        TextureSettings.ApplyToMaterial(ref m, BiomeColourMap, tiling, data.Settings.GetColour(Biome.Type.Grass),
+            data.Settings.GetColour(Biome.Type.Hole), data.Settings.GetColour(Biome.Type.Sand));
     }
+
 
 
 
@@ -100,24 +97,8 @@ public class TerrainChunk : MonoBehaviour
 
         LODIncrement = settings.SimplificationIncrement;
 
-
-        // Request for the mesh data to be updated 
-        ThreadedDataRequester.RequestData(() => UpdateMeshData(settings), UpdateMesh);
-    }
-
-
-    private MeshSettings UpdateMeshData(in MeshSettings settings)
-    {
-        // Update the mesh data
+        // Update the data to use the new TerrainMap
         MeshGenerator.UpdateMeshData(ref MeshData, TerrainMap);
-        // Pass on the settings
-        return settings;
-    }
-
-
-    private void UpdateMesh(object o)
-    {
-        MeshSettings settings = (MeshSettings)o;
 
         // Update the mesh to the new vertex values
         MeshData.UpdateMesh(ref MainMesh, settings);

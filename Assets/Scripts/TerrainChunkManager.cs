@@ -42,10 +42,10 @@ public class TerrainChunkManager : MonoBehaviour
             TerrainChunk chunk = new GameObject().AddComponent<TerrainChunk>();
             chunk.Initialise(position, bounds, material, physics, ChunkParent, terrainLayer, terrain, mapSettings);
 
+            TerrainChunks.Add(position, chunk);
+
             // And set the mesh
             chunk.RecalculateMesh(meshSettings);
-
-            TerrainChunks.Add(position, chunk);
         }
         else
         {

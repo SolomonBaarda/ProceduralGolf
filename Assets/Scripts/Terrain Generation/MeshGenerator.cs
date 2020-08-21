@@ -7,8 +7,6 @@ public static class MeshGenerator
 
     public static void UpdateMeshData(ref MeshData data, TerrainMap terrainMap)
     {
-        DateTime before = DateTime.Now;
-
         // Create the data if we need to 
         if(data == null)
         {
@@ -25,8 +23,6 @@ public static class MeshGenerator
         }
 
         data.UpdateUVS();
-
-        //Debug.Log("Update mesh data: " + (DateTime.Now - before).Milliseconds);
     }
 
 

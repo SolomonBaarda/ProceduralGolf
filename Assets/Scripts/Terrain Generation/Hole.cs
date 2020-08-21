@@ -282,7 +282,7 @@ public class Hole
     }
 
 
-    public static NewHoles CalculateHoles(ref TerrainMap t)
+    public static HashSet<Hole> CalculateHoles(ref TerrainMap t)
     {
         DateTime before = DateTime.Now;
 
@@ -303,7 +303,7 @@ public class Hole
 
         //Debug.Log("Calculating and merging holes: " + (DateTime.Now - before).Milliseconds);
 
-        return new NewHoles(t, holes.ToList());
+        return holes;
     }
 
 

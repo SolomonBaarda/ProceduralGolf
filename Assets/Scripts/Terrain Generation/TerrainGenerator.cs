@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -51,10 +53,13 @@ public class TerrainGenerator : MonoBehaviour
     public GameObject GolfHolePositionPrefab;
 
 
+    private CancellationTokenSource TaskCancelToken = new CancellationTokenSource();
+
+
+
     private void Awake()
     {
         OnChunkGenerated += CheckChunkEdges;
-
     }
 
     private void OnDestroy()
@@ -129,6 +134,7 @@ public class TerrainGenerator : MonoBehaviour
     public void Clear()
     {
         ThreadedDataRequester.Clear();
+        TaskCancelToken.Cancel();
 
         TerrainChunkManager.Clear();
         chunksThatNeedUpdating.Clear();
@@ -158,7 +164,9 @@ public class TerrainGenerator : MonoBehaviour
 
         InitialTerrainGenerated = true;
 
-        Debug.Log("Generated initial area in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds with " + GolfHoles.Count + " holes.");
+        string message = "* Generated initial area in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds with " + GolfHoles.Count + " holes.";
+
+        Debug.Log(message);
     }
 
     private void GenerateInitialArea(int seed, float viewVistanceWorld)
@@ -197,26 +205,52 @@ public class TerrainGenerator : MonoBehaviour
     {
         if (!TerrainChunkManager.TerrainChunkExists(chunk))
         {
+            DateTime before = DateTime.Now;
+
             IsGenerating = true;
 
             // Get the chunk bounds
             Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-            ThreadedDataRequester.RequestData(() => GenerateTerrainMap(chunk, seed, chunkBounds), OnTerrainMapGenerated);
+
+            // Generate the TerrainMap
+            Task<TerrainMap> generateMap = Task<TerrainMap>.Factory.StartNew(() => GenerateTerrainMap(chunk, seed, chunkBounds), TaskCancelToken.Token);
+            TerrainMap map = generateMap.Result;
+
+            DateTime beforeHoles = DateTime.Now;
+
+            // Continue and get the holes
+            Task<HashSet<Hole>> newHoles = generateMap.ContinueWith((m) => Hole.CalculateHoles(ref map), TaskCancelToken.Token);
+
+            DateTime beforeChunk = DateTime.Now;
+
+            // Update them all
+            foreach (Hole hole in newHoles.Result)
+            {
+                hole.UpdateHole(HolesWorldObjectParent, GolfHoleFlagPrefab, GolfHolePositionPrefab);
+
+                GolfHoles.Add(hole);
+            }
+
+
+            // Create the new chunk
+            TerrainChunkManager.AddNewChunk(map.Chunk, map.Bounds, map, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
+
+            // Invoke the event
+            OnChunkGenerated.Invoke(map.Chunk);
+            IsGenerating = false;
+
+            Debug.Log("Took " + (DateTime.Now - before).Milliseconds + " to generate chunk (Map: " + (beforeHoles - before).Milliseconds + ", Holes" + (beforeHoles - before).Milliseconds + ")");
         }
     }
 
 
     private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, in Bounds chunkBounds)
     {
-        DateTime before = DateTime.Now;
-
         // Get the vertex points
         Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
         Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
         Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
-
-        DateTime beforeNoise = DateTime.Now;
 
         int width = vertices.GetLength(0), height = vertices.GetLength(1);
 
@@ -230,8 +264,6 @@ public class TerrainGenerator : MonoBehaviour
         // Holes
         int holeSeed = Noise.Seed(bunkerSeed.ToString());
         float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
-
-        DateTime beforeApply = DateTime.Now;
 
         // Create masks from the bunkers and holes
         for (int y = 0; y < height; y++)
@@ -252,47 +284,9 @@ public class TerrainGenerator : MonoBehaviour
             }
         }
 
-        DateTime end = DateTime.Now;
-
-        Debug.Log("1. Sample " + (beforeNoise - before).Milliseconds + " 2. Noise:" + (beforeApply - beforeNoise).Milliseconds + " 3. Apply: " + (end - beforeApply).Milliseconds + " Total:" + (end - before).Milliseconds);
-
         // Return the terrain map
         return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsRaw, bunkersRaw, holesRaw, TerrainSettings_Green);
     }
-
-
-
-    private void OnTerrainMapGenerated(object terrainMapObject)
-    {
-        TerrainMap terrainMap = (TerrainMap)terrainMapObject;
-
-        // Get the bunkers
-        ThreadedDataRequester.RequestData(() => Hole.CalculateHoles(ref terrainMap), OnTerrainMapUpdated);
-    }
-
-
-
-    private void OnTerrainMapUpdated(object newHolesObject)
-    {
-        Hole.NewHoles h = (Hole.NewHoles)newHolesObject;
-
-        // Update them all
-        foreach (Hole hole in h.Holes)
-        {
-            hole.UpdateHole(HolesWorldObjectParent, GolfHoleFlagPrefab, GolfHolePositionPrefab);
-
-            GolfHoles.Add(hole);
-        }
-
-        // Create the new chunk
-        TerrainChunkManager.AddNewChunk(h.TerrainMap.Chunk, h.TerrainMap.Bounds, h.TerrainMap, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
-
-        // Invoke the event
-        OnChunkGenerated.Invoke(h.TerrainMap.Chunk);
-        IsGenerating = false;
-    }
-
-
 
 
 
@@ -324,12 +318,63 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         // Now add the neighbours
-        ThreadedDataRequester.RequestData(() => AddNeighbours(newChunk, relativeNeighbours), CheckChunksAfterAddingNeighbours);
+        Task<List<TerrainChunk>> addNeighboursTask = Task<List<TerrainChunk>>.Factory.StartNew(() => AddNeighbourTerrainMaps(newChunk, relativeNeighbours), TaskCancelToken.Token);
+
+
+
+
+        // Destroy any holes that need to be
+        foreach (Hole h in GolfHoles)
+        {
+            if (h.ShouldBeDestroyed)
+            {
+                h.Destroy();
+            }
+        }
+
+        // Remove all holes that have no vertices
+        GolfHoles.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
+
+        // Update any holes
+        foreach (Hole h in GolfHoles)
+        {
+            if (h.NeedsUpdating)
+            {
+                h.UpdateHole(HolesWorldObjectParent, GolfHoleFlagPrefab, GolfHolePositionPrefab);
+            }
+        }
+
+
+
+        // Now let the terrain be updated
+
+        // Get the chunks that need updating
+        List<TerrainChunk> chunksUpdated = addNeighboursTask.Result;
+
+        // Add the chunks to the queue to be updated
+        foreach (TerrainChunk c in chunksUpdated)
+        {
+            // First check if this chunk has already been added
+            NeedsUpdating n = chunksThatNeedUpdating.Find((x) => x.TerrainChunk.Position.Equals(c.Position));
+            // Create a new object and assign the chunk if not
+            if (n == null)
+            {
+                n = new NeedsUpdating
+                {
+                    TerrainChunk = c
+                };
+                // Add it if it does not exist
+                chunksThatNeedUpdating.Add(n);
+            }
+
+            // Reset the timer
+            n.TimeSinceAdded = 0;
+        }
 
     }
 
 
-    private List<TerrainChunk> AddNeighbours(in TerrainChunk newChunk, in List<(TerrainChunk, Vector2Int)> relativeNeighbours)
+    private List<TerrainChunk> AddNeighbourTerrainMaps(in TerrainChunk newChunk, in List<(TerrainChunk, Vector2Int)> relativeNeighbours)
     {
         // Record which chunks have changed
         List<TerrainChunk> chunksUpdated = new List<TerrainChunk>();
@@ -360,63 +405,6 @@ public class TerrainGenerator : MonoBehaviour
         // Return any chunks that need updating
         return chunksUpdated;
     }
-
-
-
-    private void CheckChunksAfterAddingNeighbours(object chunksUpdatedObject)
-    {
-        // Update the holes
-
-        // Destroy any holes that need to be
-        foreach (Hole h in GolfHoles)
-        {
-            if (h.ShouldBeDestroyed)
-            {
-                h.Destroy();
-            }
-        }
-
-        // Remove all holes that have no vertices
-        GolfHoles.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
-
-        // Update any holes
-        foreach (Hole h in GolfHoles)
-        {
-            if (h.NeedsUpdating)
-            {
-                h.UpdateHole(HolesWorldObjectParent, GolfHoleFlagPrefab, GolfHolePositionPrefab);
-            }
-        }
-
-
-        // Now let the terrain be updated
-
-        // Get the chunks that need updating
-        List<TerrainChunk> chunksUpdated = (List<TerrainChunk>)chunksUpdatedObject;
-
-        // Add the chunks to the queue to be updated
-        foreach (TerrainChunk c in chunksUpdated)
-        {
-            // First check if this chunk has already been added
-            NeedsUpdating n = chunksThatNeedUpdating.Find((x) => x.TerrainChunk.Position.Equals(c.Position));
-            // Create a new object and assign the chunk if not
-            if (n == null)
-            {
-                n = new NeedsUpdating
-                {
-                    TerrainChunk = c
-                };
-                // Add it if it does not exist
-                chunksThatNeedUpdating.Add(n);
-            }
-
-            // Reset the timer
-            n.TimeSinceAdded = 0;
-        }
-    }
-
-
-
 
 
 
