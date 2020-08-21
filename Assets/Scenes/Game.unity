@@ -993,7 +993,7 @@ MonoBehaviour:
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
   DoEndlessTerrain: 1
-  ViewDistanceWorld: 300
+  ViewDistanceWorld: 100
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
 --- !u!4 &2130833001
 Transform:

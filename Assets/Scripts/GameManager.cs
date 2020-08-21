@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(WaitUntilGameStart());
 
-        InvokeRepeating("CheckTerrainGeneration", 1, 5);
+        InvokeRepeating("CheckTerrainGeneration", 1, 2);
     }
 
 
@@ -72,7 +72,7 @@ public class GameManager : MonoBehaviour
     {
         LoadingScreen.Active(true);
 
-        TerrainGenerator.GenerateInitialTerrain(ViewDistanceWorld);
+        TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.TerrainChunkManager.ChunkSizeWorldUnits * 2);
 
         // Ensure the hud has loaded
         while (!HUDHasLoaded)
