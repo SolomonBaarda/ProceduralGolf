@@ -6,11 +6,13 @@ using UnityEngine;
 public class TerrainData : ScriptableObject
 {
     public int Seed;
+    [SerializeField]
     public HashSet<Hole> GolfHoles;
-    public HashSet<TerrainChunkDataStorage> Chunks;
+    [SerializeField]
+    public HashSet<TerrainChunkData> Chunks;
 
 
-    public void SetData(int seed, HashSet<Hole> holes, HashSet<TerrainChunkDataStorage> chunks)
+    public void SetData(int seed, HashSet<Hole> holes, HashSet<TerrainChunkData> chunks)
     {
         Seed = seed;
         GolfHoles = holes;

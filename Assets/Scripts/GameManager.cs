@@ -73,6 +73,9 @@ public class GameManager : MonoBehaviour
     {
         LoadingScreen.Active(true);
 
+        //List<TerrainData> maps = AssetLoader.GetAllWorldSaves();
+        //TerrainGenerator.LoadTerrain(maps[0]);
+
         TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.TerrainChunkManager.ChunkSizeWorldUnits * 2);
 
         // Ensure the hud has loaded
@@ -119,36 +122,6 @@ public class GameManager : MonoBehaviour
 
         drawMap = Input.GetKey(KeyCode.Tab);
 
-
-
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            // Get all the terrain chunk data
-            HashSet<TerrainChunkDataStorage> chunks = new HashSet<TerrainChunkDataStorage>();
-            foreach (TerrainChunk c in TerrainGenerator.TerrainChunkManager.GetAllChunks())
-            {
-                TerrainChunkDataStorage d = new TerrainChunkDataStorage(c.TerrainMap, c.BiomeColourMap, c.MainMesh);
-
-                chunks.Add(d);
-            }
-
-            // Create the object and set the data
-            TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(TerrainGenerator.Seed, TerrainGenerator.GolfHoles, chunks);
-
-            // Save it
-            AssetLoader.SaveTerrain(terrain);
-        }
-
-
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            if (AssetLoader.TryLoadTerrain(TerrainGenerator.Seed, out TerrainData data))
-            {
-                Debug.Log("in here");
-                Debug.Log("Loaded data with " + data.GolfHoles.Count + " holes and " + data.Chunks.Count + " chunks.");
-            }
-        }
 
 
         // Taking a shot

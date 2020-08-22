@@ -71,6 +71,25 @@ public class TerrainGenerator : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            // Get all the terrain chunk data
+            HashSet<TerrainChunkData> chunks = new HashSet<TerrainChunkData>();
+            foreach (TerrainChunk c in TerrainChunkManager.GetAllChunks())
+            {
+                TerrainChunkData d = new TerrainChunkData(c.TerrainMap, c.BiomeColourMap, c.MainMesh);
+
+                chunks.Add(d);
+            }
+
+            // Create the object and set the data
+            TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
+            terrain.SetData(Seed, GolfHoles, chunks);
+
+            // Save it
+            AssetLoader.SaveTerrain(terrain);
+        }
+
 
         // Loop through each chunk that needs updating
         for (int i = 0; i < chunksThatNeedUpdating.Count; i++)
@@ -133,8 +152,8 @@ public class TerrainGenerator : MonoBehaviour
 
     public void Clear()
     {
-        ThreadedDataRequester.Clear();
         TaskCancelToken.Cancel();
+        TaskCancelToken = new CancellationTokenSource();
 
         TerrainChunkManager.Clear();
         chunksThatNeedUpdating.Clear();
@@ -240,7 +259,7 @@ public class TerrainGenerator : MonoBehaviour
             OnChunkGenerated.Invoke(map.Chunk);
             IsGenerating = false;
 
-            Debug.Log("Took " + (DateTime.Now - before).Milliseconds + " to generate chunk (Map: " + (beforeHoles - before).Milliseconds + ", Holes" + (beforeHoles - before).Milliseconds + ")");
+            //Debug.Log("Took " + (DateTime.Now - before).Milliseconds + " to generate chunk (Map: " + (beforeHoles - before).Milliseconds + ", Holes" + (beforeHoles - before).Milliseconds + ")");
         }
     }
 
@@ -529,6 +548,41 @@ public class TerrainGenerator : MonoBehaviour
 
         return localPositions;
     }
+
+
+
+
+
+
+
+
+
+    public void LoadTerrain(TerrainData data)
+    {
+        Clear();
+
+        // Assign values
+        Seed = data.Seed;
+        GolfHoles = data.GolfHoles;
+
+        foreach(TerrainChunkData chunk in data.Chunks)
+        {
+            TerrainMap t = chunk.TerrainMap;
+
+            TerrainChunkManager.AddNewChunk(t.Chunk, t.Bounds, t, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
 
 
 
