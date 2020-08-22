@@ -18,7 +18,7 @@ public class TerrainChunk : MonoBehaviour
 
 
     public MeshGenerator.MeshData MeshData;
-    private Mesh MainMesh;
+    public Mesh MainMesh;
 
 
     public TerrainMap TerrainMap;

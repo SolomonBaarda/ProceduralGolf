@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -119,6 +120,37 @@ public class GameManager : MonoBehaviour
         drawMap = Input.GetKey(KeyCode.Tab);
 
 
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            // Get all the terrain chunk data
+            HashSet<TerrainChunkDataStorage> chunks = new HashSet<TerrainChunkDataStorage>();
+            foreach (TerrainChunk c in TerrainGenerator.TerrainChunkManager.GetAllChunks())
+            {
+                TerrainChunkDataStorage d = new TerrainChunkDataStorage(c.TerrainMap, c.BiomeColourMap, c.MainMesh);
+
+                chunks.Add(d);
+            }
+
+            // Create the object and set the data
+            TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
+            terrain.SetData(TerrainGenerator.Seed, TerrainGenerator.GolfHoles, chunks);
+
+            // Save it
+            AssetLoader.SaveTerrain(terrain);
+        }
+
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            if (AssetLoader.TryLoadTerrain(TerrainGenerator.Seed, out TerrainData data))
+            {
+                Debug.Log("in here");
+                Debug.Log("Loaded data with " + data.GolfHoles.Count + " holes and " + data.Chunks.Count + " chunks.");
+            }
+        }
+
+
         // Taking a shot
         bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
         // Set the preview active or not
@@ -144,7 +176,7 @@ public class GameManager : MonoBehaviour
 
                 // Rotation
                 // Move less
-                if(HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
+                if (HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
                 {
                     rotationDelta = -buttonMultiplier * Time.deltaTime;
                 }
