@@ -9,7 +9,7 @@ public class TextureSettings : VariablePreset
 
 
 
-    public static void ApplyToMaterial(ref Material m, in Texture2D colourMap, Vector2 maintextureTiling, in Color main, in Color hole, in Color bunker)
+    public static void ApplyToMaterial(Material m, in Texture2D colourMap, Vector2 maintextureTiling)
     {
         // Add the colour map
         m.SetTexture("_ColourMap", colourMap);
@@ -19,9 +19,9 @@ public class TextureSettings : VariablePreset
         m.SetVector("_BunkerTexTiling", maintextureTiling);
 
         // Set all the colours used in the colour map 
-        m.SetColor("_ColourMain", main);
-        m.SetColor("_ColourHole", hole);
-        m.SetColor("_ColourBunker", bunker);
+        //m.SetColor("_ColourMain", main);
+        //m.SetColor("_ColourHole", hole);
+        //m.SetColor("_ColourBunker", bunker);
     }
 
     public override void ValidateValues()

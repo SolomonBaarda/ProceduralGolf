@@ -1,18 +1,17 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 
-[SerializeField]
+[Serializable]
 public class TerrainData : ScriptableObject
 {
     public int Seed;
-    [SerializeField]
-    public HashSet<Hole> GolfHoles;
-    [SerializeField]
-    public HashSet<TerrainChunkData> Chunks;
+    [SerializeField] public List<Hole> GolfHoles;
+    [SerializeField] public List<TerrainChunkData> Chunks;
 
 
-    public void SetData(int seed, HashSet<Hole> holes, HashSet<TerrainChunkData> chunks)
+    public void SetData(int seed, List<Hole> holes, List<TerrainChunkData> chunks)
     {
         Seed = seed;
         GolfHoles = holes;

@@ -50,7 +50,7 @@ public class CourseManager : MonoBehaviour
     }
 
 
-    public void UpdateGolfHolesOrder()
+    public void UpdateGolfHolesOrder(IEnumerable<Vector2Int> chunksUpdated)
     {
         if (GolfHoles.Count > 0)
         {
@@ -61,7 +61,7 @@ public class CourseManager : MonoBehaviour
             if (GetHole(0) == null)
             {
                 // Set the centre hole to be the first hole
-                Hole closest = GetClosestTo(TerrainGenerator.ORIGIN, AllHoles);
+                Hole closest = GetClosestTo(TerrainManager.ORIGIN, AllHoles);
                 AllHoles.Remove(closest);
 
                 closest.SetNumber(0);
@@ -116,7 +116,7 @@ public class CourseManager : MonoBehaviour
         // Neither have been assigned
         else if (a.Number == Hole.NotAssignedHoleNumber && b.Number == Hole.NotAssignedHoleNumber)
         {
-            return (TerrainGenerator.ORIGIN - a.Centre).sqrMagnitude.CompareTo((TerrainGenerator.ORIGIN - b.Centre).sqrMagnitude);
+            return (TerrainManager.ORIGIN - a.Centre).sqrMagnitude.CompareTo((TerrainManager.ORIGIN - b.Centre).sqrMagnitude);
         }
         else
         {
@@ -184,7 +184,7 @@ public class CourseManager : MonoBehaviour
             hole.SetCompleted();
 
             Vector3 groundPos = hole.Centre;
-            groundPos += TerrainGenerator.UP * sphereRadius;
+            groundPos += TerrainManager.UP * sphereRadius;
 
             return groundPos;
         }

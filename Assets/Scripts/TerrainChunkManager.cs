@@ -4,7 +4,7 @@ using UnityEngine;
 public class TerrainChunkManager : MonoBehaviour
 {
     [Min(1)]
-    public float ChunkSizeWorldUnits = 100f;
+    public const float ChunkSizeWorldUnits = 150;
 
     [Header("References")]
     public Grid ChunkGrid;
@@ -33,23 +33,28 @@ public class TerrainChunkManager : MonoBehaviour
 
 
 
-    public void AddNewChunk(Vector2Int position, Bounds bounds, TerrainMap terrain, Material material, PhysicMaterial physics,
-        int terrainLayer, MeshSettings meshSettings, TextureSettings mapSettings)
+    public void TryAddChunk(TerrainChunkData data, Material material, PhysicMaterial physics, int terrainLayer)
     {
+        Vector2Int position = new Vector2Int(data.X, data.Y);
+
+        // Need to create new chunk
         if (!TerrainChunkExists(position))
         {
+            Bounds bounds = new Bounds(data.Centre, data.Size);
+
             // Create the chunk
             TerrainChunk chunk = new GameObject().AddComponent<TerrainChunk>();
-            chunk.Initialise(position, bounds, material, physics, ChunkParent, terrainLayer, terrain, mapSettings);
+            chunk.Initialise(position, bounds, data, material, physics, ChunkParent, terrainLayer);
 
             TerrainChunks.Add(position, chunk);
-
-            // And set the mesh
-            chunk.RecalculateMesh(meshSettings);
         }
+        // Just need to update some values
         else
         {
-            Debug.LogError("Chunk " + position.ToString() + " has already been added.");
+            if(TerrainChunks.TryGetValue(position, out TerrainChunk c))
+            {
+                c.Data = data;
+            }
         }
     }
 

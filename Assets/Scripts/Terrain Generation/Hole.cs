@@ -89,13 +89,18 @@ public class Hole
         return totalHeight / total;
     }
 
-
-    public void UpdateHole(Transform parent, GameObject flagPrefab, GameObject linePrefab)
+    public void UpdateHole()
     {
         NeedsUpdating = false;
 
         // Update the heights
         SetAllPointHeights();
+
+    }
+
+
+    public void UpdateHoleObjects(Transform parent, GameObject flagPrefab, GameObject linePrefab)
+    {
 
         if (WorldObjectParent == null)
         {
@@ -109,14 +114,14 @@ public class Hole
             if (Flag == null)
             {
                 Flag = UnityEngine.Object.Instantiate(flagPrefab, WorldObjectParent.transform);
-                Flag.transform.localPosition = (TerrainGenerator.UP * Flag.GetComponent<Collider>().bounds.extents.y);
+                Flag.transform.localPosition = (TerrainManager.UP * Flag.GetComponent<Collider>().bounds.extents.y);
             }
 
             if (LinePreviewObject == null)
             {
                 LinePreviewObject = UnityEngine.Object.Instantiate(linePrefab, WorldObjectParent.transform);
                 LinePreview l = LinePreviewObject.GetComponent<LinePreview>();
-                l.SetPoints(Centre, Centre + (TerrainGenerator.UP * LinePreviewHeight));
+                l.SetPoints(Centre, Centre + (TerrainManager.UP * LinePreviewHeight));
 
                 LinePreviewObject.SetActive(false);
             }

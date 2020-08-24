@@ -1,7 +1,27 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public static class TextureGenerator
 {
+
+
+    public static Texture2D GenerateBiomeColourMap(in TerrainMap terrainMap, in TextureSettings settings)
+    {
+        return GenerateBiomeColourMap(GenerateTextureData(terrainMap, settings));
+    }
+
+
+    public static Texture2D GenerateBiomeColourMap(TextureData data)
+    {
+        // Reverse the colour map - rotates 180 degrees 
+        // For some reason the texture needs this
+        Array.Reverse(data.ColourMap);
+
+        // Create the texture from the data
+        return GenerateTexture(data);
+    }
+
+
 
 
 

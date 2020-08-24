@@ -7,7 +7,7 @@ public static class Biome
 
 
 
-    public static TerrainMap.Point GetBiomeSamplePoint(Collider collider, Vector3 worldPos)
+    public static Type GetBiomeSamplePoint(Collider collider, Vector3 worldPos)
     {
         if (collider != null)
         {
@@ -15,36 +15,15 @@ public static class Biome
 
             if (c != null)
             {
-                return c.TerrainMap.GetClosestTo(worldPos);
+                return Utils.GetClosestTo(worldPos, c.Bounds.min, c.Bounds.max, c.Biomes);
             }
         }
 
-        return null;
+        return default;
     }
 
 
 
-
-
-
-
-    public static Type GetBiome(Collider collider, Vector3 worldPos)
-    {
-        if (collider != null)
-        {
-            TerrainChunk c = collider.gameObject.GetComponent<TerrainChunk>();
-
-            if (c != null)
-            {
-                TerrainMap.Point closest = c.TerrainMap.GetClosestTo(worldPos);
-
-                return closest.Biome;
-            }
-
-        }
-
-        return Type.None;
-    }
 
 
 

@@ -190,7 +190,7 @@ public class TerrainMap
 
 
 
-    public void AddEdgeNeighbours(int dirX, int dirY, ref TerrainMap map, out bool mapNeedsUpdating)
+    public void AddEdgeNeighbours(int dirX, int dirY, TerrainMap map, out bool mapNeedsUpdating)
     {
         dirX = Mathf.Clamp(dirX, -1, 1);
         dirY = Mathf.Clamp(dirY, -1, 1);
@@ -316,40 +316,6 @@ public class TerrainMap
 
 
 
-    public Point GetClosestTo(Vector3 worldPos, bool check3x3 = false)
-    {
-        // Get the lower bounds of the closest 4 points to the position
-        int estimatedX = Width - 1 - Mathf.RoundToInt((Bounds.max.x - worldPos.x) / (Bounds.max.x - Bounds.min.x) * Width);
-        int estimatedY = Height - 1 - Mathf.RoundToInt((Bounds.max.z - worldPos.z) / (Bounds.max.z - Bounds.min.z) * Height);
-
-        Point closest = Map[Mathf.Clamp(estimatedX, 0, Width-1), Mathf.Clamp(estimatedY, 0, Height-1)];
-
-        if (check3x3)
-        {
-            // Check the 3x3 around the point
-            for (int y = -1; y <= 1; y++)
-            {
-                for (int x = -1; x <= 1; x++)
-                {
-                    int indexX = estimatedX + x, indexY = y + estimatedY;
-                    if (indexX >= 0 && indexY >= 0 && indexX < Width && indexY < Height)
-                    {
-                        // New closest point
-                        if ((worldPos - Map[indexX, indexY].LocalVertexPosition).sqrMagnitude < (worldPos - closest.LocalVertexPosition).sqrMagnitude)
-                        {
-                            closest = Map[indexX, indexY];
-                        }
-
-                    }
-                }
-            }
-        }
-
-        return closest;
-    }
-
-
-
 
     public class Point
     {
@@ -357,7 +323,7 @@ public class TerrainMap
 
         public Vector3 LocalVertexBasePosition;
         // Calculate the point of the vertex
-        public Vector3 LocalVertexPosition => LocalVertexBasePosition + (TerrainGenerator.UP * Height);
+        public Vector3 LocalVertexPosition => LocalVertexBasePosition + (TerrainManager.UP * Height);
         public Vector3 Offset;
 
         public bool IsAtEdgeOfMesh;

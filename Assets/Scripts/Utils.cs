@@ -57,6 +57,23 @@ public static class Utils
 
 
 
+
+    public static T GetClosestTo<T>(Vector3 worldPos, Vector3 min, Vector3 max, in T[,] array)
+    {
+        int width = array.GetLength(0), height = array.GetLength(1);
+
+        // Get the lower bounds of the closest 4 points to the position
+        int estimatedX = width - 1 - Mathf.RoundToInt((max.x - worldPos.x) / (max.x - min.x) * width);
+        int estimatedY = height - 1 - Mathf.RoundToInt((max.z - worldPos.z) / (max.z - min.z) * height);
+
+        return array[Mathf.Clamp(estimatedX, 0, width - 1), Mathf.Clamp(estimatedY, 0, height - 1)];
+    }
+
+
+
+
+
+
     public static void EMPTY() { }
     public static void EMPTY<T>(T _) { }
 

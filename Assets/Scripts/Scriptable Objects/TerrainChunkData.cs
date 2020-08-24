@@ -3,15 +3,29 @@ using UnityEngine;
 
 
 [Serializable]
-public class TerrainChunkData
+public struct TerrainChunkData
 {
-    public TerrainMap TerrainMap;
+    public int X, Y;
+
+    public Vector3 Centre;
+    public Vector3 Size;
+
+    public Biome.Type[,] Biomes;
+
     public Texture2D BiomeColourMap;
     public Mesh MainMesh;
 
-    public TerrainChunkData(TerrainMap m, Texture2D colourMap, Mesh main)
+
+
+    public TerrainChunkData(int x, int y, Vector3 centre, Vector3 size, Biome.Type[,] biomes, Texture2D colourMap, Mesh main)
     {
-        TerrainMap = m;
+        X = x;
+        Y = y;
+        Centre = centre;
+        Size = size;
+
+        Biomes = biomes;
+
         BiomeColourMap = colourMap;
         MainMesh = main;
     }

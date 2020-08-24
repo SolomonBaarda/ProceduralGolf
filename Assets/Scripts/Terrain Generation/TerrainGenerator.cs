@@ -8,18 +8,18 @@ using UnityEngine.Events;
 
 public class TerrainGenerator : MonoBehaviour
 {
-    public static readonly Vector3 UP = Vector3.up;
-    public static readonly Vector3 ORIGIN = Vector3.zero;
-
+    private Dictionary<Vector2Int, ChunkData> Chunks = new Dictionary<Vector2Int, ChunkData>();
     public TerrainChunkManager TerrainChunkManager;
+
     public Transform HolesWorldObjectParent;
     public HashSet<Hole> GolfHoles = new HashSet<Hole>();
 
     private List<NeedsUpdating> chunksThatNeedUpdating = new List<NeedsUpdating>();
-    public const float ChunkWaitSecondsBeforeUpdate = 0.25f;
+    public const float ChunkWaitSecondsBeforeUpdate = 0.5f;
 
-    public UnityAction<Vector2Int> OnChunkGenerated;
-    public UnityAction OnChunksUpdated;
+    public UnityAction OnInitialTerrainGenerated;
+    private UnityAction<ChunkData> OnChunkGenerated;
+    public UnityAction<HashSet<Vector2Int>> OnChunksUpdated;
 
 
     public bool IsGenerating { get; private set; } = false;
@@ -42,16 +42,6 @@ public class TerrainGenerator : MonoBehaviour
     public int Seed = 0;
     public bool DoRandomSeed = false;
 
-    [Header("Materials")]
-    public Material MaterialGrass;
-
-    [Header("Physics")]
-    public PhysicMaterial PhysicsGrass;
-
-    [Header("Prefabs")]
-    public GameObject GolfHoleFlagPrefab;
-    public GameObject GolfHolePositionPrefab;
-
 
     private CancellationTokenSource TaskCancelToken = new CancellationTokenSource();
 
@@ -68,27 +58,78 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-
-    private void Update()
+    public void Clear()
     {
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            // Get all the terrain chunk data
-            HashSet<TerrainChunkData> chunks = new HashSet<TerrainChunkData>();
-            foreach (TerrainChunk c in TerrainChunkManager.GetAllChunks())
-            {
-                TerrainChunkData d = new TerrainChunkData(c.TerrainMap, c.BiomeColourMap, c.MainMesh);
+        TaskCancelToken.Cancel();
+        TaskCancelToken = new CancellationTokenSource();
 
-                chunks.Add(d);
+        Chunks.Clear();
+        chunksThatNeedUpdating.Clear();
+
+        foreach (Hole h in GolfHoles)
+        {
+            h.Destroy();
+        }
+        GolfHoles.Clear();
+
+        InitialTerrainGenerated = false;
+    }
+
+
+    public TerrainData TerrainData
+    {
+        get
+        {
+            List<TerrainChunkData> chunks = new List<TerrainChunkData>();
+            // Add each TerrainMapData
+            foreach (ChunkData m in Chunks.Values)
+            {
+                chunks.Add(m.Data);
             }
 
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, GolfHoles, chunks);
+            terrain.SetData(Seed, new List<Hole>(GolfHoles), chunks);
 
-            // Save it
-            AssetLoader.SaveTerrain(terrain);
+            return terrain;
         }
+    }
+
+
+
+    public bool GetTerrainChunkData(Vector2Int chunk, out TerrainChunkData data)
+    {
+        data = default;
+
+        bool val = Chunks.TryGetValue(chunk, out ChunkData d);
+        if (val)
+        {
+            data = d.Data;
+        }
+
+        return val;
+    }
+
+
+    public HashSet<TerrainChunkData> GetChunkData(IEnumerable<Vector2Int> chunks)
+    {
+        HashSet<TerrainChunkData> all = new HashSet<TerrainChunkData>();
+
+        foreach (Vector2Int pos in chunks)
+        {
+            if (GetTerrainChunkData(pos, out TerrainChunkData d))
+            {
+                all.Add(d);
+            }
+        }
+
+        return all;
+    }
+
+
+    private void Update()
+    {
+
 
 
         // Loop through each chunk that needs updating
@@ -109,62 +150,45 @@ public class TerrainGenerator : MonoBehaviour
                     chunksThatNeedUpdating[j].TimeSinceAdded = 0;
                 }
 
-                // Update the chunk
-                n.TerrainChunk.RecalculateMesh(MeshSettings);
-                //n.TerrainChunk.RecalculateTexture(Texture_GroundSettings);
+                // Update the chunk's mesh
+                MeshGenerator.UpdateMeshData(ref n.Data.MeshData, n.Data.TerrainMap);
+                n.Data.MeshData.UpdateMesh(ref n.Data.Data.MainMesh, MeshSettings);
+
+                //n.Data.Data.BiomeColourMap = TextureGenerator.GenerateBiomeColourMap(n.Data.TerrainMap, Texture_GroundSettings);
 
                 // Call the event if something happened
-                OnChunksUpdated.Invoke();
+                OnChunksUpdated.Invoke(new HashSet<Vector2Int>() { n.Data.TerrainMap.Chunk });
 
 
                 // Break out of the loop - we don't want to process more than one chunk each tick
                 break;
             }
         }
-
-
-        /*
-        if (IsGenerating && Time.frameCount % 30 == 0)
-        {
-            GC.Collect();
-        }
-        */
-
-
-
     }
 
 
 
-    public void GenerateInitialTerrain(float viewVistanceWorld)
+    public void GenerateInitialTerrain(IEnumerable<Vector2Int> chunks)
     {
-        if (!IsGenerating)
+        DateTime before = DateTime.Now;
+
+        Clear();
+
+        // Get random seed
+        if (DoRandomSeed)
         {
-            if (DoRandomSeed)
-            {
-                Seed = Noise.RandomSeed;
-            }
-
-            GenerateInitialArea(Seed, viewVistanceWorld);
+            Seed = Noise.RandomSeed;
         }
-    }
-
-
-    public void Clear()
-    {
-        TaskCancelToken.Cancel();
-        TaskCancelToken = new CancellationTokenSource();
-
-        TerrainChunkManager.Clear();
-        chunksThatNeedUpdating.Clear();
-
-        foreach (Hole h in GolfHoles)
-        {
-            h.Destroy();
-        }
-        GolfHoles.Clear();
 
         InitialTerrainGenerated = false;
+        IsGenerating = true;
+
+
+        // Generate the initial chunks
+        TryGenerateChunks(chunks, Seed);
+
+        // Wait until the chunks have been generated
+        StartCoroutine(WaitUntiInitialChunksGenerated(new List<Vector2Int>(chunks), before));
     }
 
 
@@ -174,55 +198,27 @@ public class TerrainGenerator : MonoBehaviour
         while (initialChunks.Count > 0)
         {
             // Remove all chunks that have been generated
-            initialChunks.RemoveAll((x) => TerrainChunkManager.TerrainChunkExists(x));
+            initialChunks.RemoveAll((x) => Chunks.ContainsKey(x));
 
             yield return null;
         }
 
-        OnChunksUpdated.Invoke();
+        
 
         InitialTerrainGenerated = true;
+        OnInitialTerrainGenerated.Invoke();
+
 
         string message = "* Generated initial area in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds with " + GolfHoles.Count + " holes.";
 
         Debug.Log(message);
     }
 
-    private void GenerateInitialArea(int seed, float viewVistanceWorld)
+
+
+    private void TryGenerateChunk(Vector2Int chunk, int seed)
     {
-        DateTime before = DateTime.Now;
-
-        InitialTerrainGenerated = false;
-        IsGenerating = true;
-
-
-        // Reset the whole terrain map
-        TerrainChunkManager.Clear();
-
-        // Get the chunks
-        List<Vector2Int> initialChunks = GetAllPossibleNearbyChunks(ORIGIN, viewVistanceWorld);
-
-
-
-        // Generate in that area
-        foreach (Vector2Int chunk in initialChunks)
-        {
-            // Generate the chunk
-            TryGenerateChunk(chunk, seed);
-        }
-
-        // Chunks have been updated 
-        OnChunksUpdated.Invoke();
-
-        // Wait until the chunks have been generated
-        StartCoroutine(WaitUntiInitialChunksGenerated(initialChunks, before));
-    }
-
-
-
-    public void TryGenerateChunk(Vector2Int chunk, int seed)
-    {
-        if (!TerrainChunkManager.TerrainChunkExists(chunk))
+        if (!Chunks.ContainsKey(chunk))
         {
             DateTime before = DateTime.Now;
 
@@ -231,37 +227,77 @@ public class TerrainGenerator : MonoBehaviour
             // Get the chunk bounds
             Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-
             // Generate the TerrainMap
             Task<TerrainMap> generateMap = Task<TerrainMap>.Factory.StartNew(() => GenerateTerrainMap(chunk, seed, chunkBounds), TaskCancelToken.Token);
             TerrainMap map = generateMap.Result;
 
-            DateTime beforeHoles = DateTime.Now;
+
 
             // Continue and get the holes
             Task<HashSet<Hole>> newHoles = generateMap.ContinueWith((m) => Hole.CalculateHoles(ref map), TaskCancelToken.Token);
 
-            DateTime beforeChunk = DateTime.Now;
-
             // Update them all
             foreach (Hole hole in newHoles.Result)
             {
-                hole.UpdateHole(HolesWorldObjectParent, GolfHoleFlagPrefab, GolfHolePositionPrefab);
+                hole.UpdateHole();
 
                 GolfHoles.Add(hole);
             }
 
 
+
+
+            // Assign the biomes
+            Biome.Type[,] biomes = new Biome.Type[map.Width, map.Height];
+            for (int y = 0; y < map.Height; y++)
+            {
+                for (int x = 0; x < map.Width; x++)
+                {
+                    biomes[x, y] = map.Map[x, y].Biome;
+                }
+            }
+
+            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, Texture_GroundSettings);
+
+            MeshGenerator.MeshData meshData = null;
+            MeshGenerator.UpdateMeshData(ref meshData, map);
+
+            Mesh mesh = null;
+            meshData.UpdateMesh(ref mesh, MeshSettings);
+
+            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Bounds.size, biomes, colourMap, mesh);
+
+
+            ChunkData d = new ChunkData() { Data = chunkData, TerrainMap = map, MeshData = meshData };
+
             // Create the new chunk
-            TerrainChunkManager.AddNewChunk(map.Chunk, map.Bounds, map, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
+            Chunks.Add(chunk, d);
 
             // Invoke the event
-            OnChunkGenerated.Invoke(map.Chunk);
+            OnChunkGenerated.Invoke(d);
             IsGenerating = false;
 
             //Debug.Log("Took " + (DateTime.Now - before).Milliseconds + " to generate chunk (Map: " + (beforeHoles - before).Milliseconds + ", Holes" + (beforeHoles - before).Milliseconds + ")");
         }
     }
+
+
+    public void TryGenerateChunks(IEnumerable<Vector2Int> chunks, int seed)
+    {
+        // Try and generate them
+        foreach (Vector2Int chunk in chunks)
+        {
+            // Generate only if it does not already exist
+            if (!Chunks.TryGetValue(chunk, out ChunkData _))
+            {
+                TryGenerateChunk(chunk, seed);
+            }
+        }
+    }
+
+
+
+
 
 
     private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, in Bounds chunkBounds)
@@ -310,11 +346,9 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private void CheckChunkEdges(Vector2Int pos)
+    private void CheckChunkEdges(ChunkData data)
     {
-        TerrainChunk newChunk = TerrainChunkManager.GetChunk(pos);
-
-        List<(TerrainChunk, Vector2Int)> relativeNeighbours = new List<(TerrainChunk, Vector2Int)>();
+        HashSet<(TerrainMap, Vector2Int)> relativeNeighbours = new HashSet<(TerrainMap, Vector2Int)>();
 
         // Check the 3x3 of nearby chunks
         for (int y = -1; y <= 1; y++)
@@ -322,22 +356,22 @@ public class TerrainGenerator : MonoBehaviour
             for (int x = -1; x <= 1; x++)
             {
                 Vector2Int relativePos = new Vector2Int(x, y);
-                Vector2Int neighbour = pos + relativePos;
+                Vector2Int neighbour = data.TerrainMap.Chunk + relativePos;
                 // Don't add its self
-                if (!(neighbour.x == pos.x && neighbour.y == pos.y))
+                if (!(neighbour.x == data.TerrainMap.Chunk.x && neighbour.y == data.TerrainMap.Chunk.y))
                 {
                     // Get the neighbour chunk
-                    TerrainChunk c = TerrainChunkManager.GetChunk(neighbour);
-                    if (c != null)
+                    if (Chunks.TryGetValue(neighbour, out ChunkData d))
                     {
-                        relativeNeighbours.Add((c, relativePos));
+                        relativeNeighbours.Add((d.TerrainMap, relativePos));
                     }
                 }
             }
         }
 
         // Now add the neighbours
-        Task<List<TerrainChunk>> addNeighboursTask = Task<List<TerrainChunk>>.Factory.StartNew(() => AddNeighbourTerrainMaps(newChunk, relativeNeighbours), TaskCancelToken.Token);
+        Task<HashSet<TerrainMap>> addNeighboursTask = Task<HashSet<TerrainMap>>.Factory.StartNew(
+            () => AddNeighbours(data.TerrainMap, relativeNeighbours), TaskCancelToken.Token);
 
 
 
@@ -359,7 +393,7 @@ public class TerrainGenerator : MonoBehaviour
         {
             if (h.NeedsUpdating)
             {
-                h.UpdateHole(HolesWorldObjectParent, GolfHoleFlagPrefab, GolfHolePositionPrefab);
+                h.UpdateHole();
             }
         }
 
@@ -367,45 +401,44 @@ public class TerrainGenerator : MonoBehaviour
 
         // Now let the terrain be updated
 
-        // Get the chunks that need updating
-        List<TerrainChunk> chunksUpdated = addNeighboursTask.Result;
-
         // Add the chunks to the queue to be updated
-        foreach (TerrainChunk c in chunksUpdated)
+        foreach (TerrainMap m in addNeighboursTask.Result)
         {
             // First check if this chunk has already been added
-            NeedsUpdating n = chunksThatNeedUpdating.Find((x) => x.TerrainChunk.Position.Equals(c.Position));
+            NeedsUpdating n = chunksThatNeedUpdating.Find((x) => x.Data.TerrainMap.Chunk.Equals(m.Chunk));
             // Create a new object and assign the chunk if not
             if (n == null)
             {
-                n = new NeedsUpdating
+                if(Chunks.TryGetValue(m.Chunk, out ChunkData chunkData))
                 {
-                    TerrainChunk = c
-                };
-                // Add it if it does not exist
-                chunksThatNeedUpdating.Add(n);
+                    n = new NeedsUpdating
+                    {
+                        Data = chunkData
+                    };
+                    // Add it if it does not exist
+                    chunksThatNeedUpdating.Add(n);
+                }
             }
 
             // Reset the timer
             n.TimeSinceAdded = 0;
         }
-
     }
 
 
-    private List<TerrainChunk> AddNeighbourTerrainMaps(in TerrainChunk newChunk, in List<(TerrainChunk, Vector2Int)> relativeNeighbours)
+    private HashSet<TerrainMap> AddNeighbours(in TerrainMap newChunk, in HashSet<(TerrainMap, Vector2Int)> relativeNeighbours)
     {
         // Record which chunks have changed
-        List<TerrainChunk> chunksUpdated = new List<TerrainChunk>();
+        HashSet<TerrainMap> chunksUpdated = new HashSet<TerrainMap>();
 
         // Update the edge references for both the new and existing chunk
-        foreach ((TerrainChunk, Vector2Int) chunk in relativeNeighbours)
+        foreach ((TerrainMap, Vector2Int) chunk in relativeNeighbours)
         {
             // New chunk
-            newChunk.TerrainMap.AddEdgeNeighbours(chunk.Item2.x, chunk.Item2.y, ref chunk.Item1.TerrainMap, out bool needsUpdateA);
+            newChunk.AddEdgeNeighbours(chunk.Item2.x, chunk.Item2.y, chunk.Item1, out bool needsUpdateA);
 
             // Existing chunk
-            chunk.Item1.TerrainMap.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, ref newChunk.TerrainMap, out bool needsUpdateB);
+            chunk.Item1.AddEdgeNeighbours(-chunk.Item2.x, -chunk.Item2.y, newChunk, out bool needsUpdateB);
 
             // If there was an update then both chunks need to have their meshes re generated
             if (needsUpdateA || needsUpdateB)
@@ -429,13 +462,12 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public List<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, float radius)
+    public HashSet<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, int chunks)
     {
         // Calculate the centre chunk
         Vector2Int centre = TerrainChunkManager.WorldToChunk(position);
-        int chunks = Mathf.RoundToInt(radius / TerrainChunkManager.ChunkSizeWorldUnits);
 
-        List<Vector2Int> nearbyChunks = new List<Vector2Int>();
+        HashSet<Vector2Int> nearbyChunks = new HashSet<Vector2Int>();
 
         // Generate in that area
         for (int y = -chunks; y <= chunks; y++)
@@ -451,37 +483,25 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    public List<Vector2Int> GetAllNearbyChunks(Vector3 position, float radius)
+    public HashSet<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, float radius)
     {
-        // Get all possible
-        List<Vector2Int> allPossible = GetAllPossibleNearbyChunks(position, radius);
+        return GetAllPossibleNearbyChunks(position, Mathf.RoundToInt(radius / TerrainChunkManager.ChunkSizeWorldUnits));
+    }
 
-        // Remove the ones that haven't been generated yet
-        allPossible.RemoveAll((x) => TerrainChunkManager.GetChunk(x) == null);
+
+
+    public HashSet<Vector2Int> GetNearbyChunksToGenerate(Vector3 position, int chunks)
+    {
+        HashSet<Vector2Int> allPossible = GetAllPossibleNearbyChunks(position, chunks);
+        allPossible.RemoveWhere(x => Chunks.ContainsKey(x));
 
         return allPossible;
     }
 
-
-    public void TryGenerateNearbyChunks(Vector3 position, float viewDistanceWorldUnits)
+    public HashSet<Vector2Int> GetNearbyChunksToGenerate(Vector3 position, float radius)
     {
-        // Get all possible chunks
-        List<Vector2Int> nearbyChunks = GetAllPossibleNearbyChunks(position, viewDistanceWorldUnits);
-
-        // Try and generate them
-        foreach (Vector2Int chunk in nearbyChunks)
-        {
-            if (TerrainChunkManager.GetChunk(chunk) == null)
-            {
-                TryGenerateChunk(chunk, Seed);
-            }
-        }
-
-        // Set only those chunks to be visible
-        TerrainChunkManager.SetVisibleChunks(nearbyChunks);
+        return GetNearbyChunksToGenerate(position, Mathf.RoundToInt(radius / TerrainChunkManager.ChunkSizeWorldUnits));
     }
-
-
 
 
     private Vector2[,] ConvertWorldPointsToPerlinSample(in Vector3[,] points)
@@ -557,39 +577,29 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public void LoadTerrain(TerrainData data)
+
+
+
+
+
+
+
+
+
+
+
+
+    private struct ChunkData
     {
-        Clear();
-
-        // Assign values
-        Seed = data.Seed;
-        GolfHoles = data.GolfHoles;
-
-        foreach(TerrainChunkData chunk in data.Chunks)
-        {
-            TerrainMap t = chunk.TerrainMap;
-
-            TerrainChunkManager.AddNewChunk(t.Chunk, t.Bounds, t, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer, MeshSettings, Texture_GroundSettings);
-        }
-
+        public TerrainChunkData Data;
+        public TerrainMap TerrainMap;
+        public MeshGenerator.MeshData MeshData;
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     private class NeedsUpdating
     {
-        public TerrainChunk TerrainChunk;
+        public ChunkData Data;
         public float TimeSinceAdded;
     }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class TerrainChunk : MonoBehaviour
@@ -7,23 +6,20 @@ public class TerrainChunk : MonoBehaviour
     public Vector2Int Position { get; private set; }
     public Bounds Bounds { get; private set; }
 
+    public bool IsVisible => gameObject.activeSelf;
+
+
     private MeshRenderer meshRenderer;
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
 
-    public Mesh Visual => meshFilter.mesh;
-    public Mesh Collider => meshCollider.sharedMesh;
 
-    public bool IsVisible => gameObject.activeSelf;
+    public TerrainChunkData Data;
 
+    public Mesh MainMesh => Data.MainMesh;
+    public Texture2D BiomeColourMap => Data.BiomeColourMap;
+    public Biome.Type[,] Biomes => Data.Biomes;
 
-    public MeshGenerator.MeshData MeshData;
-    public Mesh MainMesh;
-
-
-    public TerrainMap TerrainMap;
-    [HideInInspector]
-    public Texture2D BiomeColourMap;
 
     [Header("Gizmos settings")]
     public bool ShowGizmos = true;
@@ -31,84 +27,51 @@ public class TerrainChunk : MonoBehaviour
     public bool GizmosUseLOD = true;
     private int LODIncrement = 1;
 
-    public void Initialise(Vector2Int position, Bounds bounds, Material material, PhysicMaterial physics, Transform parent, int terrainLayer,
-            TerrainMap terrainMap, TextureSettings textureSettings)
+    public void Initialise(Vector2Int position, Bounds bounds, TerrainChunkData data, Material material, PhysicMaterial physics, Transform parent, int terrainLayer)
     {
         Position = position;
         Bounds = bounds;
 
         // Set the GameObject
-        gameObject.name = "Terrain Chunk " + position.ToString();
+        gameObject.name = "Terrain Chunk " + Position.ToString();
+        gameObject.layer = terrainLayer;
+        gameObject.transform.position = Bounds.center;
+        gameObject.transform.parent = parent;
+
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshFilter = gameObject.AddComponent<MeshFilter>();
         meshCollider = gameObject.AddComponent<MeshCollider>();
 
-        // Material stuff
-        meshRenderer.material = material;
-
-
         // Physics material
         meshCollider.material = physics;
 
-        // Set position
-        gameObject.layer = terrainLayer;
-        gameObject.transform.position = Bounds.center;
-        gameObject.transform.parent = parent;
-        SetVisible(false);
 
-        // Set the maps
-        TerrainMap = terrainMap;
 
-        RecalculateTexture(textureSettings);
+        UpdateChunkData(data);
+
+
+
+
+        // Set an instance of the material
+        meshRenderer.material = material;
+        // And apply the textures to it
+        Vector2 textureTiling = new Vector2(Biomes.GetLength(0) - 1, Biomes.GetLength(1) - 1);
+        TextureSettings.ApplyToMaterial(meshRenderer.material, BiomeColourMap, textureTiling);
     }
 
 
 
 
-
-
-
-    public void RecalculateTexture(TextureSettings settings)
+    public void UpdateChunkData(TerrainChunkData data)
     {
-        TextureGenerator.TextureData data = TextureGenerator.GenerateTextureData(TerrainMap, settings);
+        Data = data;
 
-        // Reverse the colour map - rotates 180 degrees 
-        // For some reason the texture needs this
-        Array.Reverse(data.ColourMap);
-
-        // Create the texture from the data
-        BiomeColourMap = TextureGenerator.GenerateTexture(data);
-
-        // Set the material
-        Material m = meshRenderer.material;
-        Vector2 tiling = new Vector2(TerrainMap.Width - 1, TerrainMap.Height - 1);
-
-        // Apply it
-        TextureSettings.ApplyToMaterial(ref m, BiomeColourMap, tiling, data.Settings.GetColour(Biome.Type.Grass),
-            data.Settings.GetColour(Biome.Type.Hole), data.Settings.GetColour(Biome.Type.Sand));
-    }
-
-
-
-
-    public void RecalculateMesh(MeshSettings settings)
-    {
-        SetVisible(false);
-
-        LODIncrement = settings.SimplificationIncrement;
-
-        // Update the data to use the new TerrainMap
-        MeshGenerator.UpdateMeshData(ref MeshData, TerrainMap);
-
-        // Update the mesh to the new vertex values
-        MeshData.UpdateMesh(ref MainMesh, settings);
-
-        // And set it
         meshFilter.sharedMesh = MainMesh;
         meshCollider.sharedMesh = MainMesh;
+    } 
 
-        SetVisible(true);
-    }
+
+
 
 
 
@@ -118,7 +81,7 @@ public class TerrainChunk : MonoBehaviour
     }
 
 
-
+    /*
 
     private void OnDrawGizmosSelected()
     {
@@ -163,4 +126,6 @@ public class TerrainChunk : MonoBehaviour
         }
     }
 
+
+    */
 }

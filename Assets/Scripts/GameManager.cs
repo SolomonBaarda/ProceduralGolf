@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public TerrainGenerator TerrainGenerator;
+    public TerrainManager TerrainManager;
     public CourseManager CourseManager;
     public Minimap Minimap;
 
@@ -17,8 +17,8 @@ public class GameManager : MonoBehaviour
     private bool HUDHasLoaded;
 
     [Space]
-    public bool DoEndlessTerrain = true;
-    public float ViewDistanceWorld = 200;
+    public TerrainGenerationMethod TerrainMode;
+    private Gamerule Gamerules;
 
     [Space]
     public Material Skybox;
@@ -26,37 +26,44 @@ public class GameManager : MonoBehaviour
     private bool drawMap;
 
 
+    [SerializeField] public List<TerrainData> WorldSaves = new List<TerrainData>();
 
     private void Awake()
     {
         HUD.OnHudLoaded += OnHUDLoaded;
 
         SceneManager.LoadScene(LoadingScreen.SceneName, LoadSceneMode.Additive);
-        SceneManager.LoadSceneAsync(HUD.SceneName, LoadSceneMode.Additive);
 
         HUDHasLoaded = false;
 
-        CourseManager.AllTerrain = TerrainGenerator.TerrainChunkManager;
+        CourseManager.AllTerrain = TerrainManager.TerrainChunkManager;
         CourseManager.GolfHoles = TerrainGenerator.GolfHoles;
 
+        TerrainGenerator.TerrainChunkManager = TerrainManager.TerrainChunkManager;
+
+        TerrainGenerator.OnInitialTerrainGenerated += InitialTerrainGenerated;
+        TerrainGenerator.OnChunksUpdated += ChunksUpdated;
         TerrainGenerator.OnChunksUpdated += CourseManager.UpdateGolfHolesOrder;
-        TerrainGenerator.OnChunkGenerated += NewChunkAdded;
 
         RenderSettings.skybox = Skybox;
     }
 
     private void OnDestroy()
     {
-        HUD.OnShootPressed -= GolfBall.Shoot;
-        HUD.OnShootPressed -= UpdateHUDShotCounter;
+        if(HUD != null)
+        {
+            HUD.OnShootPressed -= GolfBall.Shoot;
+            HUD.OnShootPressed -= UpdateHUDShotCounter;
 
-        HUD.OnRestartPressed -= ResetGame;
-        HUD.OnQuitPressed -= Application.Quit;
+            HUD.OnRestartPressed -= ResetGame;
+            HUD.OnQuitPressed -= Application.Quit;
+        }
 
 
+
+        TerrainGenerator.OnInitialTerrainGenerated -= InitialTerrainGenerated;
+        TerrainGenerator.OnChunksUpdated -= ChunksUpdated;
         TerrainGenerator.OnChunksUpdated -= CourseManager.UpdateGolfHolesOrder;
-        TerrainGenerator.OnChunkGenerated -= NewChunkAdded;
-
     }
 
 
@@ -73,22 +80,56 @@ public class GameManager : MonoBehaviour
     {
         LoadingScreen.Active(true);
 
-        //List<TerrainData> maps = AssetLoader.GetAllWorldSaves();
-        //TerrainGenerator.LoadTerrain(maps[0]);
 
-        TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.TerrainChunkManager.ChunkSizeWorldUnits * 2);
-
-        // Ensure the hud has loaded
-        while (!HUDHasLoaded)
+        // Load the map from file
+        if (TerrainMode == TerrainGenerationMethod.LoadFromFile)
         {
-            yield return null;
+            Gamerules = new Gamerule(false, true, 2, 400, true);
+
+            // Get all of the world saves
+            List<TerrainData> maps = AssetLoader.GetAllWorldSaves();
+
+            // Load the terrain data into the manager
+            TerrainManager.LoadTerrain(maps[0]);
+        }
+        // Do endless terrain
+        else if (TerrainMode == TerrainGenerationMethod.RealtimeEndless)
+        {
+            Gamerules = new Gamerule(true, true, 1, 400, true);
+
+            TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius));
+        }
+        // Generate a fixed area to save to file
+        else if (TerrainMode == TerrainGenerationMethod.FixedArea)
+        {
+            Gamerules = new Gamerule(false, false, 2, 0, false);
+
+            TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius));
         }
 
-        HUD.Active(false);
+
+        TerrainManager.Set(Gamerules.DoHideFarChunks, GolfBall.transform, Gamerules.ViewDistanceWorldUnits);
 
 
-        // Ensure the initial terrain has been fully generated 
-        while (!TerrainGenerator.InitialTerrainGenerated)
+        // Load the HUD if we need it
+        if (Gamerules.UseHUD)
+        {
+            SceneManager.LoadSceneAsync(HUD.SceneName, LoadSceneMode.Additive);
+
+
+            // Ensure the hud has loaded if we want it
+            while (!HUDHasLoaded)
+            {
+                yield return null;
+            }
+
+            HUD.Active(false);
+        }
+
+
+
+        // Ensure there is terrain before we start
+        while (!TerrainManager.HasTerrain)
         {
             yield return null;
         }
@@ -103,8 +144,11 @@ public class GameManager : MonoBehaviour
         // Start the game
         ResetGame();
 
+        if (Gamerules.UseHUD)
+        {
+            HUD.Active(true);
+        }
 
-        HUD.Active(true);
         LoadingScreen.Active(false);
 
         Debug.Log("Game has started.");
@@ -113,12 +157,26 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (TerrainMode == TerrainGenerationMethod.FixedArea)
         {
-            TerrainGenerator.Clear();
-            CourseManager.Clear();
-            StartCoroutine(WaitUntilGameStart());
+            // Generate again
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                TerrainGenerator.Clear();
+                TerrainManager.Clear();
+                CourseManager.Clear();
+                StartCoroutine(WaitUntilGameStart());
+            }
+
+
+            // Save map to file
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                // Save the currently used TerrainData to file
+                AssetLoader.SaveTerrain(TerrainManager.CurrentLoadedTerrain);
+            }
         }
+
 
         drawMap = Input.GetKey(KeyCode.Tab);
 
@@ -230,27 +288,27 @@ public class GameManager : MonoBehaviour
 
 
 
+    private void InitialTerrainGenerated()
+    {
+        TerrainManager.LoadTerrain(TerrainGenerator.TerrainData);
+    }
 
 
+    private void ChunksUpdated(IEnumerable<Vector2Int> chunks)
+    {
+        HashSet<TerrainChunkData> data = TerrainGenerator.GetChunkData(chunks);
 
+        TerrainManager.AddChunks(data);
+    }
 
 
     private void CheckTerrainGeneration()
     {
-        if (DoEndlessTerrain)
+        if (Gamerules.DoEndlessTerrain)
         {
-            TerrainGenerator.TryGenerateNearbyChunks(GolfBall.Position, ViewDistanceWorld);
+            // Try and generate all the chunks that we need to
+            TerrainGenerator.TryGenerateChunks(TerrainGenerator.GetNearbyChunksToGenerate(GolfBall.Position, Gamerules.ViewDistanceWorldUnits), TerrainGenerator.Seed);
         }
-    }
-
-
-
-    private void NewChunkAdded(Vector2Int chunk)
-    {
-        TerrainChunk c = TerrainGenerator.TerrainChunkManager.GetChunk(chunk);
-
-        Texture2D map = TextureGenerator.GenerateTexture(TextureGenerator.GenerateTextureData(c.TerrainMap, TerrainGenerator.Texture_MapSettings));
-        Minimap.AddChunk(chunk, map);
     }
 
 
@@ -280,5 +338,45 @@ public class GameManager : MonoBehaviour
     private void UpdateHUDShotCounter()
     {
         HUD.Shots.text = GolfBall.CurrentHoleStats.ShotsForThisHole.ToString();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public struct Gamerule
+    {
+        public bool DoEndlessTerrain;
+        public bool DoHideFarChunks;
+        public int InitialGenerationRadius;
+        public float ViewDistanceWorldUnits;
+
+        public bool UseHUD;
+
+        public Gamerule(bool endlessTerrain, bool hideFarChunks, int radius, float viewDistance, bool HUD)
+        {
+            DoEndlessTerrain = endlessTerrain;
+            DoHideFarChunks = hideFarChunks;
+            InitialGenerationRadius = radius;
+            ViewDistanceWorldUnits = viewDistance;
+            UseHUD = HUD;
+        }
+    }
+
+
+    public enum TerrainGenerationMethod
+    {
+        LoadFromFile,
+        RealtimeEndless,
+        FixedArea,
     }
 }

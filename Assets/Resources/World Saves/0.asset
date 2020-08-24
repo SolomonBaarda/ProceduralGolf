@@ -13,3 +13,154 @@ MonoBehaviour:
   m_Name: 0
   m_EditorClassIdentifier: 
   Seed: 0
+  Chunks:
+  - X: -2
+    Y: -2
+    Centre: {x: -300, y: 0, z: -300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -1
+    Y: -2
+    Centre: {x: -150, y: 0, z: -300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 0
+    Y: -2
+    Centre: {x: 0, y: 0, z: -300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 1
+    Y: -2
+    Centre: {x: 150, y: 0, z: -300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 2
+    Y: -2
+    Centre: {x: 300, y: 0, z: -300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -2
+    Y: -1
+    Centre: {x: -300, y: 0, z: -150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -1
+    Y: -1
+    Centre: {x: -150, y: 0, z: -150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 0
+    Y: -1
+    Centre: {x: 0, y: 0, z: -150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 1
+    Y: -1
+    Centre: {x: 150, y: 0, z: -150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 2
+    Y: -1
+    Centre: {x: 300, y: 0, z: -150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -2
+    Y: 0
+    Centre: {x: -300, y: 0, z: 0}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -1
+    Y: 0
+    Centre: {x: -150, y: 0, z: 0}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 0
+    Y: 0
+    Centre: {x: 0, y: 0, z: 0}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 1
+    Y: 0
+    Centre: {x: 150, y: 0, z: 0}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 2
+    Y: 0
+    Centre: {x: 300, y: 0, z: 0}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -2
+    Y: 1
+    Centre: {x: -300, y: 0, z: 150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -1
+    Y: 1
+    Centre: {x: -150, y: 0, z: 150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 0
+    Y: 1
+    Centre: {x: 0, y: 0, z: 150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 1
+    Y: 1
+    Centre: {x: 150, y: 0, z: 150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 2
+    Y: 1
+    Centre: {x: 300, y: 0, z: 150}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -2
+    Y: 2
+    Centre: {x: -300, y: 0, z: 300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: -1
+    Y: 2
+    Centre: {x: -150, y: 0, z: 300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 0
+    Y: 2
+    Centre: {x: 0, y: 0, z: 300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 1
+    Y: 2
+    Centre: {x: 150, y: 0, z: 300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}
+  - X: 2
+    Y: 2
+    Centre: {x: 300, y: 0, z: 300}
+    Size: {x: 150, y: 0, z: 150}
+    BiomeColourMap: {fileID: 0}
+    MainMesh: {fileID: 0}

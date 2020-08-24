@@ -58,8 +58,11 @@ Material:
     m_Colors:
     - _BiomeGrass: {r: 0, g: 0, b: 0, a: 0}
     - _BiomeSand: {r: 0.63529414, g: 0.67058825, b: 0.28627452, a: 1}
-    - _BunkerTexTiling: {r: 1, g: 1, b: 0, a: 0}
+    - _BunkerTexTiling: {r: 240, g: 240, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _MainTexTiling: {r: 1, g: 1, b: 0, a: 0}
+    - _ColourBunker: {r: 1, g: 1, b: 1, a: 1}
+    - _ColourHole: {r: 1, g: 1, b: 1, a: 1}
+    - _ColourMain: {r: 1, g: 1, b: 1, a: 1}
+    - _MainTexTiling: {r: 240, g: 240, b: 0, a: 0}
     - _SecondTexTiling: {r: 64, g: 64, b: 0, a: 0}
   m_BuildTextureStacks: []
