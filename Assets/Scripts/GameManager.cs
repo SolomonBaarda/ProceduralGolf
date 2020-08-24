@@ -36,21 +36,18 @@ public class GameManager : MonoBehaviour
 
         HUDHasLoaded = false;
 
-        CourseManager.AllTerrain = TerrainManager.TerrainChunkManager;
-        CourseManager.GolfHoles = TerrainGenerator.GolfHoles;
-
+        CourseManager.TerrainManager = TerrainManager;
         TerrainGenerator.TerrainChunkManager = TerrainManager.TerrainChunkManager;
 
         TerrainGenerator.OnInitialTerrainGenerated += InitialTerrainGenerated;
         TerrainGenerator.OnChunksUpdated += ChunksUpdated;
-        TerrainGenerator.OnChunksUpdated += CourseManager.UpdateGolfHolesOrder;
 
         RenderSettings.skybox = Skybox;
     }
 
     private void OnDestroy()
     {
-        if(HUD != null)
+        if (HUD != null)
         {
             HUD.OnShootPressed -= GolfBall.Shoot;
             HUD.OnShootPressed -= UpdateHUDShotCounter;
@@ -63,7 +60,6 @@ public class GameManager : MonoBehaviour
 
         TerrainGenerator.OnInitialTerrainGenerated -= InitialTerrainGenerated;
         TerrainGenerator.OnChunksUpdated -= ChunksUpdated;
-        TerrainGenerator.OnChunksUpdated -= CourseManager.UpdateGolfHolesOrder;
     }
 
 
@@ -100,7 +96,7 @@ public class GameManager : MonoBehaviour
         // Do endless terrain
         else if (TerrainMode == TerrainGenerationMethod.RealtimeEndless)
         {
-            Gamerules = new Gamerule(true, true, 1, 400, true);
+            Gamerules = new Gamerule(true, true, 2, 400, true);
 
             TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius));
         }
@@ -301,9 +297,11 @@ public class GameManager : MonoBehaviour
 
     private void ChunksUpdated(IEnumerable<Vector2Int> chunks)
     {
-        HashSet<TerrainChunkData> data = TerrainGenerator.GetChunkData(chunks);
+        // Update the chunk visuals 
+        TerrainManager.AddChunks(TerrainGenerator.GetChunkData(chunks));
 
-        TerrainManager.AddChunks(data);
+        // Update all of the golf holes
+        CourseManager.UpdateGolfHoles(TerrainGenerator.GetHoleData());
     }
 
 
@@ -335,8 +333,16 @@ public class GameManager : MonoBehaviour
 
     private void ResetGame()
     {
-        CourseManager.RespawnGolfBall(CourseManager.GetHole(0));
-        UpdateHUDShotCounter();
+        if (CourseManager.GetHole(0, out HoleData hole))
+        {
+            CourseManager.RespawnGolfBall(hole);
+            UpdateHUDShotCounter();
+        }
+        else
+        {
+            Debug.LogError("Could not respawn GolfBall as there is no first Hole.");
+        }
+
     }
 
 

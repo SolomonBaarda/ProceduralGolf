@@ -56,7 +56,7 @@ public class TerrainManager : MonoBehaviour
 
 
 
-    private void Update()
+    private void LateUpdate()
     {
         if (HideChunks && Player != null && ViewDistance > 0)
         {
@@ -99,6 +99,26 @@ public class TerrainManager : MonoBehaviour
         {
             TerrainChunkManager.TryAddChunk(d, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
         }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public static Vector3 CalculateSpawnPoint(float sphereRadius, Vector3 pointOnMesh)
+    {
+        return pointOnMesh + (UP * sphereRadius);
     }
 
 }

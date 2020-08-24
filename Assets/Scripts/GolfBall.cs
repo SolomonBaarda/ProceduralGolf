@@ -374,7 +374,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-    public Stats HoleCompleted(Hole nextHole)
+    public Stats HoleCompleted(HoleData nextHole)
     {
         // Finish the current hole
         CurrentHoleStats.EndTime = DateTime.Now;
@@ -388,7 +388,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-    public void ResetAllStats(Hole firstHole)
+    public void ResetAllStats(HoleData firstHole)
     {
         CurrentHoleStats = new Stats(firstHole);
 
@@ -398,7 +398,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public class Stats
     {
-        public Hole Hole;
+        public HoleData Hole;
         public int ShotsForThisHole;
 
         public DateTime StartTime;
@@ -406,7 +406,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         public double SecondsForThisHole { get { DateTime now = EndTime; if (now == null) { now = DateTime.Now; } return (now - StartTime).TotalSeconds; } }
 
-        public Stats(Hole hole)
+        public Stats(HoleData hole)
         {
             Hole = hole;
             StartTime = DateTime.Now;

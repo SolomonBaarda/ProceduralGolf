@@ -12,7 +12,7 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainChunkManager TerrainChunkManager;
 
     public Transform HolesWorldObjectParent;
-    public HashSet<Hole> GolfHoles = new HashSet<Hole>();
+    private HashSet<Hole> GolfHoles = new HashSet<Hole>();
 
     private List<NeedsUpdating> chunksThatNeedUpdating = new List<NeedsUpdating>();
     public const float ChunkWaitSecondsBeforeUpdate = 0.5f;
@@ -89,13 +89,22 @@ public class TerrainGenerator : MonoBehaviour
 
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, new List<Hole>(GolfHoles), chunks);
+            terrain.SetData(Seed, GetHoleData(), chunks);
 
             return terrain;
         }
     }
 
+    public List<HoleData> GetHoleData()
+    {
+        List<HoleData> holes = new List<HoleData>();
+        foreach (Hole h in GolfHoles)
+        {
+            holes.Add(new HoleData(h.Centre));
+        }
+        return holes;
 
+    }
 
     public bool GetTerrainChunkData(Vector2Int chunk, out TerrainChunkData data)
     {
@@ -203,7 +212,7 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
         }
 
-        
+
 
         InitialTerrainGenerated = true;
         OnInitialTerrainGenerated.Invoke();
@@ -409,7 +418,7 @@ public class TerrainGenerator : MonoBehaviour
             // Create a new object and assign the chunk if not
             if (n == null)
             {
-                if(Chunks.TryGetValue(m.Chunk, out ChunkData chunkData))
+                if (Chunks.TryGetValue(m.Chunk, out ChunkData chunkData))
                 {
                     n = new NeedsUpdating
                     {
@@ -492,10 +501,24 @@ public class TerrainGenerator : MonoBehaviour
 
     public HashSet<Vector2Int> GetNearbyChunksToGenerate(Vector3 position, int chunks)
     {
-        HashSet<Vector2Int> allPossible = GetAllPossibleNearbyChunks(position, chunks);
-        allPossible.RemoveWhere(x => Chunks.ContainsKey(x));
+        // Calculate the centre chunk
+        Vector2Int centre = TerrainChunkManager.WorldToChunk(position);
+        HashSet<Vector2Int> nearbyChunks = new HashSet<Vector2Int>();
 
-        return allPossible;
+        // Generate in that area
+        for (int y = -chunks; y <= chunks; y++)
+        {
+            for (int x = -chunks; x <= chunks; x++)
+            {
+                Vector2Int chunk = new Vector2Int(centre.x + x, centre.y + y);
+                if (!Chunks.ContainsKey(chunk))
+                {
+                    nearbyChunks.Add(chunk);
+                }
+            }
+        }
+
+        return nearbyChunks;
     }
 
     public HashSet<Vector2Int> GetNearbyChunksToGenerate(Vector3 position, float radius)

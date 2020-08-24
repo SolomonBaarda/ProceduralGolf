@@ -7,11 +7,12 @@ using System;
 public class TerrainData : ScriptableObject
 {
     public int Seed;
-    [SerializeField] public List<Hole> GolfHoles;
-    [SerializeField] public List<TerrainChunkData> Chunks;
+
+    public List<HoleData> GolfHoles;
+    public List<TerrainChunkData> Chunks;
 
 
-    public void SetData(int seed, List<Hole> holes, List<TerrainChunkData> chunks)
+    public void SetData(int seed, List<HoleData> holes, List<TerrainChunkData> chunks)
     {
         Seed = seed;
         GolfHoles = holes;

@@ -230,36 +230,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!1 &184109389
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 184109390}
-  m_Layer: 0
-  m_Name: Terrain Manager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &184109390
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 184109389}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!102 &291345259 stripped
 TextMesh:
   m_CorrespondingSourceObject: {fileID: 291345259, guid: 8b5ace1036e996949aaff71ced827337,
@@ -408,9 +378,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 1822943189}
-  - {fileID: 1412093489}
+  m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -426,7 +394,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b643a26385d02fd4788828feb48ed061, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TerrainChunkManager: {fileID: 1822943190}
+  TerrainChunkManager: {fileID: 0}
   HolesWorldObjectParent: {fileID: 1412093489}
   MeshSettings: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
   NoiseSettings_Green: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3,
@@ -443,12 +411,6 @@ MonoBehaviour:
     type: 2}
   Seed: 0
   DoRandomSeed: 0
-  MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
-  PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
-  GolfHoleFlagPrefab: {fileID: 110804456460024580, guid: af95c3459d594514e98b7681ed2c151b,
-    type: 3}
-  GolfHolePositionPrefab: {fileID: 515401796162439050, guid: 5e8d16aaab5fabc4a93352f985eb9bb7,
-    type: 3}
 --- !u!4 &784421682 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4213627502347566079, guid: 8b5ace1036e996949aaff71ced827337,
@@ -750,13 +712,66 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1412093488}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 698838601}
+  m_Father: {fileID: 1510809343}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1510809342
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1510809343}
+  - component: {fileID: 1510809344}
+  m_Layer: 0
+  m_Name: Terrain Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1510809343
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510809342}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1822943189}
+  - {fileID: 1412093489}
+  m_Father: {fileID: 0}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1510809344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510809342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99667f639346f7c499024c2e2a8b8216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TerrainChunkManager: {fileID: 1822943190}
+  MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
+  PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
+  GolfHoleFlagPrefab: {fileID: 110804456460024580, guid: af95c3459d594514e98b7681ed2c151b,
+    type: 3}
+  GolfHolePositionPrefab: {fileID: 515401796162439050, guid: 5e8d16aaab5fabc4a93352f985eb9bb7,
+    type: 3}
+  CurrentLoadedTerrain: {fileID: 0}
 --- !u!1 &1684111219
 GameObject:
   m_ObjectHideFlags: 0
@@ -833,7 +848,7 @@ Transform:
   m_Children:
   - {fileID: 1943703577}
   - {fileID: 981297233}
-  m_Father: {fileID: 698838601}
+  m_Father: {fileID: 1510809343}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1822943190
@@ -848,7 +863,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58be7f369eea4cc489eaf822f020f3a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ChunkSizeWorldUnits: 150
   ChunkGrid: {fileID: 1943703578}
   ChunkParent: {fileID: 981297233}
 --- !u!1 &1872898002
@@ -1016,14 +1030,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TerrainGenerator: {fileID: 698838602}
+  TerrainManager: {fileID: 1510809344}
   CourseManager: {fileID: 1684111220}
   Minimap: {fileID: 1274750258}
   GolfBall: {fileID: 1324745660}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
-  DoEndlessTerrain: 1
-  ViewDistanceWorld: 100
+  TerrainMode: 1
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
+  WorldSaves:
+  - {fileID: 11400000, guid: 538d109d7573d7d45a505ab0a975aa3a, type: 2}
 --- !u!4 &2130833001
 Transform:
   m_ObjectHideFlags: 0

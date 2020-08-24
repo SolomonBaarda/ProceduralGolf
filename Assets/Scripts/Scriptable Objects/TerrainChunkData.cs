@@ -10,13 +10,10 @@ public class TerrainChunkData
     public Vector3 Centre;
     public Vector3 Size;
 
-    [SerializeField]
-    public Biome.Type[,] Biomes;
+    [SerializeField] public Biome.Type[,] Biomes;
 
-    [SerializeField]
-    public Texture2D BiomeColourMap;
-    [SerializeField]
-    public Mesh MainMesh;
+    [SerializeField] public Texture2D BiomeColourMap;
+    [SerializeField] public Mesh MainMesh;
 
 
 

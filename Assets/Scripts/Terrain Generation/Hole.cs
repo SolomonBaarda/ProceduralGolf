@@ -5,9 +5,7 @@ using UnityEngine;
 
 public class Hole
 {
-    public const int NotAssignedHoleNumber = -1;
     public const float LinePreviewHeight = 100f;
-    public int Number { get; private set; } = NotAssignedHoleNumber;
 
     public bool Completed { get; private set; } = false;
 
@@ -104,7 +102,7 @@ public class Hole
 
         if (WorldObjectParent == null)
         {
-            WorldObjectParent = new GameObject("Hole " + Number);
+            WorldObjectParent = new GameObject("Hole " );
             WorldObjectParent.transform.parent = parent;
             WorldObjectParent.transform.position = Centre;
         }
@@ -130,15 +128,6 @@ public class Hole
     }
 
 
-    public void SetNumber(int number)
-    {
-        Number = number;
-
-        if (WorldObjectParent != null)
-        {
-            WorldObjectParent.name = "Hole " + Number;
-        }
-    }
 
 
 
