@@ -18,7 +18,7 @@ public class TerrainChunk : MonoBehaviour
 
     public Mesh MainMesh => Data.MainMesh;
     public Texture2D BiomeColourMap => Data.BiomeColourMap;
-    public Biome.Type[,] Biomes => Data.Biomes;
+    public Biome.Type[,] Biomes;
 
 
     [Header("Gizmos settings")]
@@ -65,6 +65,9 @@ public class TerrainChunk : MonoBehaviour
     public void UpdateChunkData(TerrainChunkData data)
     {
         Data = data;
+
+        // Un-flatten the array of biome data so that we can use it
+        Biomes = Utils.UnFlatten(data.BiomesFlat, data.Width, data.Height);
 
         meshFilter.sharedMesh = MainMesh;
         meshCollider.sharedMesh = MainMesh;

@@ -50,7 +50,7 @@ public class CourseManager : MonoBehaviour
     }
 
 
-    public void UpdateGolfHoles(List<HoleData> holes)
+    public void UpdateGolfHoles(IEnumerable<HoleData> holes)
     {
         // Get all of the holes on the course
         HashSet<HoleData> allHolesHash = new HashSet<HoleData>(Holes.Values);

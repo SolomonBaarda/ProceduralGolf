@@ -204,6 +204,7 @@ public class TerrainGenerator : MonoBehaviour
 
     private IEnumerator WaitUntiInitialChunksGenerated(List<Vector2Int> initialChunks, DateTime start)
     {
+        int totalChunks = initialChunks.Count;
         while (initialChunks.Count > 0)
         {
             // Remove all chunks that have been generated
@@ -218,7 +219,7 @@ public class TerrainGenerator : MonoBehaviour
         OnInitialTerrainGenerated.Invoke();
 
 
-        string message = "* Generated initial area in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds with " + GolfHoles.Count + " holes.";
+        string message = "* Generated initial area in " + (DateTime.Now - start).TotalSeconds.ToString("0.0") + " seconds with " + totalChunks + " chunks and " + GolfHoles.Count + " holes.";
 
         Debug.Log(message);
     }

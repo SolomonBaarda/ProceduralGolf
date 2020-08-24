@@ -19,6 +19,11 @@ public class GameManager : MonoBehaviour
     [Space]
     public TerrainGenerationMethod TerrainMode;
     private Gamerule Gamerules;
+    private static readonly Gamerule FromFile = new Gamerule(false, true, 2, 400, true, true);
+    private static readonly Gamerule RealtimeEndless = new Gamerule(true, true, 3, 400, true, true);
+    private static readonly Gamerule FixedArea = new Gamerule(false, false, 3, 0, false, false);
+
+
 
     [Space]
     public Material Skybox;
@@ -76,34 +81,31 @@ public class GameManager : MonoBehaviour
     {
         LoadingScreen.Active(true);
 
-        //TerrainData d = WorldSaves[0];
-        //AssetLoader.LoadTerrain(ref d);
-
-
         // Load the map from file
         if (TerrainMode == TerrainGenerationMethod.LoadFromFile)
         {
-            Gamerules = new Gamerule(false, true, 2, 400, true);
+            Gamerules = FromFile;
 
-            // Get all of the world saves
-            //List<TerrainData> maps = AssetLoader.GetAllWorldSaves();
-
-
+            TerrainData d = WorldSaves[0];
 
             // Load the terrain data into the manager
-            TerrainManager.LoadTerrain(WorldSaves[0]);
+            TerrainManager.LoadTerrain(d);
+
+
+            // Force the coursemanager to order the holes
+            CourseManager.UpdateGolfHoles(d.GolfHoles);
         }
         // Do endless terrain
         else if (TerrainMode == TerrainGenerationMethod.RealtimeEndless)
         {
-            Gamerules = new Gamerule(true, true, 2, 400, true);
+            Gamerules = RealtimeEndless;
 
             TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius));
         }
         // Generate a fixed area to save to file
         else if (TerrainMode == TerrainGenerationMethod.FixedArea)
         {
-            Gamerules = new Gamerule(false, false, 2, 0, false);
+            Gamerules = FixedArea;
 
             TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius));
         }
@@ -150,6 +152,11 @@ public class GameManager : MonoBehaviour
             HUD.Active(true);
         }
 
+        if (!Gamerules.UseGolfBall)
+        {
+            GolfBall.gameObject.SetActive(false);
+        }
+
         LoadingScreen.Active(false);
 
         Debug.Log("Game has started.");
@@ -183,107 +190,111 @@ public class GameManager : MonoBehaviour
 
 
 
-        // Taking a shot
-        bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
-        // Set the preview active or not
-        GolfBall.ShotPowerPreview.gameObject.SetActive(isShooting);
-        GolfBall.ShotNormalPreview.gameObject.SetActive(isShooting);
-        GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
-
-
-        // Update the camera angles
-        switch (GolfBall.State)
+        if (Gamerules.UseGolfBall)
         {
-            // Shooting mode
-            case GolfBall.PlayState.Shooting:
 
-                int buttonMultiplier = 24;
-
-                // Calculate the deltas for each 
-                Vector2 rotationAndAngleDelta = Controller.DeltaPosition(HUD.ShootingWindow) * Time.deltaTime * Controller.TouchMultiplier;
-                Vector2 powerDelta = Controller.DeltaPosition(HUD.Power.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
-
-                float rotationDelta = rotationAndAngleDelta.x;
-                float angleDelta = rotationAndAngleDelta.y;
-
-                // Rotation
-                // Move less
-                if (HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
-                {
-                    rotationDelta = -buttonMultiplier * Time.deltaTime;
-                }
-                // Move more
-                else if (!HUD.RotationLess.IsPressed && HUD.RotationMore.IsPressed)
-                {
-                    rotationDelta = buttonMultiplier * Time.deltaTime;
-                }
-
-                // Angle
-                // Move less
-                if (HUD.AngleLess.IsPressed && !HUD.AngleMore.IsPressed)
-                {
-                    angleDelta = -buttonMultiplier * Time.deltaTime;
-                }
-                // Move more
-                else if (!HUD.AngleLess.IsPressed && HUD.AngleMore.IsPressed)
-                {
-                    angleDelta = buttonMultiplier * Time.deltaTime;
-                }
-
-                // Calculate the new values
-                float rotation = GolfBall.Rotation + rotationDelta;
-                float angle = GolfBall.Angle + angleDelta;
-                float power = GolfBall.Power + powerDelta.y / 50f;
-
-                // Set the new values
-                GolfBall.SetValues(rotation, angle, power);
+            // Taking a shot
+            bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
+            // Set the preview active or not
+            GolfBall.ShotPowerPreview.gameObject.SetActive(isShooting);
+            GolfBall.ShotNormalPreview.gameObject.SetActive(isShooting);
+            GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
 
 
-                // Just use the one camera view for now
+            // Update the camera angles
+            switch (GolfBall.State)
+            {
+                // Shooting mode
+                case GolfBall.PlayState.Shooting:
 
-                // Update the shot preview
-                GolfBall.SetShotPowerPreview(true, true, true);
-                GolfBall.SetShotNormalPreview();
-                GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
+                    int buttonMultiplier = 24;
 
-                // Update the camera 
-                BallFollower.CurrentView = Follower.View.ShootingBehind;
+                    // Calculate the deltas for each 
+                    Vector2 rotationAndAngleDelta = Controller.DeltaPosition(HUD.ShootingWindow) * Time.deltaTime * Controller.TouchMultiplier;
+                    Vector2 powerDelta = Controller.DeltaPosition(HUD.Power.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
+
+                    float rotationDelta = rotationAndAngleDelta.x;
+                    float angleDelta = rotationAndAngleDelta.y;
+
+                    // Rotation
+                    // Move less
+                    if (HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
+                    {
+                        rotationDelta = -buttonMultiplier * Time.deltaTime;
+                    }
+                    // Move more
+                    else if (!HUD.RotationLess.IsPressed && HUD.RotationMore.IsPressed)
+                    {
+                        rotationDelta = buttonMultiplier * Time.deltaTime;
+                    }
+
+                    // Angle
+                    // Move less
+                    if (HUD.AngleLess.IsPressed && !HUD.AngleMore.IsPressed)
+                    {
+                        angleDelta = -buttonMultiplier * Time.deltaTime;
+                    }
+                    // Move more
+                    else if (!HUD.AngleLess.IsPressed && HUD.AngleMore.IsPressed)
+                    {
+                        angleDelta = buttonMultiplier * Time.deltaTime;
+                    }
+
+                    // Calculate the new values
+                    float rotation = GolfBall.Rotation + rotationDelta;
+                    float angle = GolfBall.Angle + angleDelta;
+                    float power = GolfBall.Power + powerDelta.y / 50f;
+
+                    // Set the new values
+                    GolfBall.SetValues(rotation, angle, power);
 
 
-                // Update the HUD to display the correct values
-                //HUD.Rotation.DisplayValue.text = GolfBall.Rotation.ToString("0") + "°";
-                //HUD.Angle.DisplayValue.text = GolfBall.Angle.ToString("0") + "°";
-                HUD.Power.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
+                    // Just use the one camera view for now
 
-                // Set the power slider colour
-                Color p = HUD.Power.Gradient.Evaluate(GolfBall.Power);
-                p.a = HUD.SliderBackgroundAlpha;
-                HUD.Power.Background.color = p;
+                    // Update the shot preview
+                    GolfBall.SetShotPowerPreview(true, true, true);
+                    GolfBall.SetShotNormalPreview();
+                    GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
 
-                break;
-
-            // Flying mode
-            case GolfBall.PlayState.Flying:
-                BallFollower.CurrentView = Follower.View.Above;
-                break;
-
-            // Rolling mode
-            case GolfBall.PlayState.Rolling:
-                BallFollower.CurrentView = Follower.View.Behind;
-                break;
-        }
+                    // Update the camera 
+                    BallFollower.CurrentView = Follower.View.ShootingBehind;
 
 
-        // Make minimap visible
-        Minimap.SetVisible(drawMap);
-        if (HUDHasLoaded)
-        {
-            HUD.MapParent.gameObject.SetActive(drawMap);
-            // Disable the shots counter in the minimap
-            HUD.ShotsDisplayParent.SetActive(!drawMap);
+                    // Update the HUD to display the correct values
+                    //HUD.Rotation.DisplayValue.text = GolfBall.Rotation.ToString("0") + "°";
+                    //HUD.Angle.DisplayValue.text = GolfBall.Angle.ToString("0") + "°";
+                    HUD.Power.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
 
-            // Show the shooting window
-            HUD.ShootingWindow.gameObject.SetActive(!drawMap && isShooting);
+                    // Set the power slider colour
+                    Color p = HUD.Power.Gradient.Evaluate(GolfBall.Power);
+                    p.a = HUD.SliderBackgroundAlpha;
+                    HUD.Power.Background.color = p;
+
+                    break;
+
+                // Flying mode
+                case GolfBall.PlayState.Flying:
+                    BallFollower.CurrentView = Follower.View.Above;
+                    break;
+
+                // Rolling mode
+                case GolfBall.PlayState.Rolling:
+                    BallFollower.CurrentView = Follower.View.Behind;
+                    break;
+            }
+
+
+            // Make minimap visible
+            Minimap.SetVisible(drawMap);
+            if (HUDHasLoaded)
+            {
+                HUD.MapParent.gameObject.SetActive(drawMap);
+                // Disable the shots counter in the minimap
+                HUD.ShotsDisplayParent.SetActive(!drawMap);
+
+                // Show the shooting window
+                HUD.ShootingWindow.gameObject.SetActive(!drawMap && isShooting);
+            }
         }
     }
 
@@ -297,8 +308,10 @@ public class GameManager : MonoBehaviour
 
     private void ChunksUpdated(IEnumerable<Vector2Int> chunks)
     {
+
         // Update the chunk visuals 
         TerrainManager.AddChunks(TerrainGenerator.GetChunkData(chunks));
+
 
         // Update all of the golf holes
         CourseManager.UpdateGolfHoles(TerrainGenerator.GetHoleData());
@@ -333,16 +346,22 @@ public class GameManager : MonoBehaviour
 
     private void ResetGame()
     {
-        if (CourseManager.GetHole(0, out HoleData hole))
+        if (Gamerules.UseGolfBall)
         {
-            CourseManager.RespawnGolfBall(hole);
-            UpdateHUDShotCounter();
-        }
-        else
-        {
-            Debug.LogError("Could not respawn GolfBall as there is no first Hole.");
-        }
+            if (CourseManager.GetHole(0, out HoleData hole))
+            {
+                CourseManager.RespawnGolfBall(hole);
+                if (HUD != null)
+                {
+                    UpdateHUDShotCounter();
 
+                }
+            }
+            else
+            {
+                Debug.LogError("Could not respawn GolfBall as there is no first Hole.");
+            }
+        }
     }
 
 
@@ -372,14 +391,16 @@ public class GameManager : MonoBehaviour
         public float ViewDistanceWorldUnits;
 
         public bool UseHUD;
+        public bool UseGolfBall;
 
-        public Gamerule(bool endlessTerrain, bool hideFarChunks, int radius, float viewDistance, bool HUD)
+        public Gamerule(bool endlessTerrain, bool hideFarChunks, int radius, float viewDistance, bool HUD, bool ball)
         {
             DoEndlessTerrain = endlessTerrain;
             DoHideFarChunks = hideFarChunks;
             InitialGenerationRadius = radius;
             ViewDistanceWorldUnits = viewDistance;
             UseHUD = HUD;
+            UseGolfBall = ball;
         }
     }
 

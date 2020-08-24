@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -67,6 +68,40 @@ public static class Utils
         int estimatedY = height - 1 - Mathf.RoundToInt((max.z - worldPos.z) / (max.z - min.z) * height);
 
         return array[Mathf.Clamp(estimatedX, 0, width - 1), Mathf.Clamp(estimatedY, 0, height - 1)];
+    }
+
+
+
+
+    public static T[] Flatten<T>(in T[,] array)
+    {
+        int width = array.GetLength(0), height = array.GetLength(1);
+        T[] flattened = new T[width * height];
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                flattened[y * width + x] = array[x, y];
+            }
+        }
+
+        return flattened;
+    }
+
+    public static T[,] UnFlatten<T>(in T[] array, int width, int height)
+    {
+        T[,] unFlattened = new T[width, height];
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                unFlattened[x, y] = array[y * width + x];
+            }
+        }
+
+        return unFlattened;
     }
 
 
