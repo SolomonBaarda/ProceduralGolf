@@ -3,16 +3,19 @@ using UnityEngine;
 
 
 [Serializable]
-public struct TerrainChunkData
+public class TerrainChunkData
 {
     public int X, Y;
 
     public Vector3 Centre;
     public Vector3 Size;
 
+    [SerializeField]
     public Biome.Type[,] Biomes;
 
+    [SerializeField]
     public Texture2D BiomeColourMap;
+    [SerializeField]
     public Mesh MainMesh;
 
 

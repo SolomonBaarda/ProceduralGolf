@@ -1,47 +1,45 @@
-﻿using System.Collections.Generic;
+﻿using TMPro.EditorUtilities;
 using UnityEditor;
 using UnityEngine;
 
 public static class AssetLoader
 {
-    public const string DefaultWorldSavePath = "World Saves";
-    public const string FullWorldSavePath = "Resources/World Saves";
-
-    public const string asset = ".asset";
+    public const string DefaultWorldSavePath = "Assets/World Saves";
 
 
-
-    public static List<TerrainData> GetAllWorldSaves()
+    private static string FolderPath(int seed)
     {
-        // Get all of the assets
-        List<TerrainData> worlds = new List<TerrainData>(Resources.LoadAll<TerrainData>("World Saves"));
-
-        //TerrainData data = AssetDatabase.LoadAssetAtPath<TerrainData>("Assets/Resources/World Saves/0.asset");
-
-        Debug.Log("Loaded " + worlds.Count + " TerrainData assets from file.");
-        foreach(TerrainData d in worlds)
-        {
-            if(d.Chunks == null)
-            {
-                Debug.Log("chunks null");
-            }
-            if(d.GolfHoles == null)
-            {
-                Debug.Log("holes null");
-            }
-        }
-
-        return worlds;
+        return DefaultWorldSavePath + "/" + seed;
     }
 
+    private static string Chunk(int x, int y)
+    {
+        return "/(" + x + "," + y + ") ";
+    }
 
     public static void SaveTerrain(TerrainData data)
     {
-        string path = "Assets/Resources/World Saves/" + data.Seed + asset;
-        AssetDatabase.DeleteAsset(path);
+        string folder = FolderPath(data.Seed);
+        string path = folder + "/" + data.Seed + ".asset";
+
+        AssetDatabase.DeleteAsset(folder);
+        AssetDatabase.CreateFolder(DefaultWorldSavePath, data.Seed.ToString());
 
         // Create the asset and add all of the chunks
         AssetDatabase.CreateAsset(data, path);
+
+        foreach (TerrainChunkData d in data.Chunks)
+        {
+            string chunkPath = folder + Chunk(d.X, d.Y);
+
+            string texturePath = chunkPath + "texture.asset";
+            AssetDatabase.CreateAsset(d.BiomeColourMap, texturePath);
+
+            string meshPath = chunkPath + "mesh.asset";
+            AssetDatabase.CreateAsset(d.MainMesh, meshPath);
+        }
+
+        UpdateReferences(ref data);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -50,12 +48,19 @@ public static class AssetLoader
     }
 
 
-    public static bool TryLoadTerrain(int seed, out TerrainData data)
-    {
-        string path = "";
 
-        // Try and load the data
-        data = AssetDatabase.LoadAssetAtPath<TerrainData>(path);
+
+    public static bool UpdateReferences(ref TerrainData data)
+    {
+        string folderPath = FolderPath(data.Seed);
+
+        // Assign the texture and mesh
+        foreach (TerrainChunkData chunk in data.Chunks)
+        {
+            string c = Chunk(chunk.X, chunk.Y);
+            chunk.BiomeColourMap = AssetDatabase.LoadAssetAtPath<Texture2D>(folderPath + "/" + c + "texture.asset");
+            chunk.MainMesh = AssetDatabase.LoadAssetAtPath<Mesh>(folderPath + "/" + c + "mesh.asset");
+        }
 
         return data != null;
     }

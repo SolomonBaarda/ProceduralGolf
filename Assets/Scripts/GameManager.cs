@@ -80,6 +80,9 @@ public class GameManager : MonoBehaviour
     {
         LoadingScreen.Active(true);
 
+        //TerrainData d = WorldSaves[0];
+        //AssetLoader.LoadTerrain(ref d);
+
 
         // Load the map from file
         if (TerrainMode == TerrainGenerationMethod.LoadFromFile)
@@ -87,10 +90,12 @@ public class GameManager : MonoBehaviour
             Gamerules = new Gamerule(false, true, 2, 400, true);
 
             // Get all of the world saves
-            List<TerrainData> maps = AssetLoader.GetAllWorldSaves();
+            //List<TerrainData> maps = AssetLoader.GetAllWorldSaves();
+
+
 
             // Load the terrain data into the manager
-            TerrainManager.LoadTerrain(maps[0]);
+            TerrainManager.LoadTerrain(WorldSaves[0]);
         }
         // Do endless terrain
         else if (TerrainMode == TerrainGenerationMethod.RealtimeEndless)

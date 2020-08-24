@@ -1038,6 +1038,8 @@ MonoBehaviour:
   HUD: {fileID: 0}
   TerrainMode: 2
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
+  WorldSaves:
+  - {fileID: 11400000, guid: 538d109d7573d7d45a505ab0a975aa3a, type: 2}
 --- !u!4 &2130833001
 Transform:
   m_ObjectHideFlags: 0
