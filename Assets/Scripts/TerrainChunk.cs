@@ -19,7 +19,6 @@ public class TerrainChunk : MonoBehaviour
     public Mesh MainMesh => Data.MainMesh;
     public Texture2D BiomeColourMap => Data.BiomeColourMap;
     public Biome.Type[,] Biomes;
-    public Vector3[,] AllVertices;
 
 
     [Header("Gizmos settings")]
@@ -68,7 +67,6 @@ public class TerrainChunk : MonoBehaviour
 
         // Un-flatten the array of biome data so that we can use it
         Biomes = Utils.UnFlatten(data.BiomesFlat, data.Width, data.Height);
-        AllVertices = Utils.UnFlatten(data.AllVerticesFlat, data.Width, data.Height);
 
         meshFilter.sharedMesh = MainMesh;
         meshCollider.sharedMesh = MainMesh;
@@ -83,48 +81,6 @@ public class TerrainChunk : MonoBehaviour
     {
         gameObject.SetActive(visible);
     }
-
-
-
-
-    private void OnDrawGizmosSelected()
-    {
-        if (Biomes != null && AllVertices != null)
-        {
-            if (ShowGizmos)
-            {
-                for (int y = 0; y < Data.Height; y++)
-                {
-                    for (int x = 0; x < Data.Width; x++)
-                    {
-                        Color c = Color.black;
-                        switch (Biomes[x, y])
-                        {
-                            case Biome.Type.Grass:
-                                c = Color.green;
-                                break;
-                            case Biome.Type.Sand:
-                                c = Color.yellow;
-                                break;
-                            case Biome.Type.Hole:
-                                c = Color.gray;
-                                break;
-                            case Biome.Type.Water:
-                                c = Color.blue;
-                                break;
-                            case Biome.Type.Ice:
-                                c = Color.white;
-                                break;
-                        }
-
-                        Gizmos.color = c;
-                        Gizmos.DrawLine(AllVertices[x, y], AllVertices[x, y] + (TerrainManager.UP * Length));
-                    }
-                }
-            }
-        }
-    }
-
 
 
 

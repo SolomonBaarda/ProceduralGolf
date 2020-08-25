@@ -16,12 +16,11 @@ public class TerrainChunkData
 
     public int Width, Height;
     [SerializeField] [HideInInspector] public Biome.Type[] BiomesFlat;
-    [SerializeField] [HideInInspector] public Vector3[] AllVerticesFlat;
 
 
 
 
-    public TerrainChunkData(int x, int y, Vector3 centre, Vector3 size, Biome.Type[,] biomes, Vector3[,] vertices, Texture2D colourMap, Mesh main)
+    public TerrainChunkData(int x, int y, Vector3 centre, Vector3 size, Biome.Type[,] biomes, Texture2D colourMap, Mesh main)
     {
         X = x;
         Y = y;
@@ -35,6 +34,5 @@ public class TerrainChunkData
         Height = biomes.GetLength(1);
 
         BiomesFlat = Utils.Flatten(biomes);
-        AllVerticesFlat = Utils.Flatten(vertices);
     }
 }

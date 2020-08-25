@@ -44,6 +44,9 @@ public class TerrainChunkManager : MonoBehaviour
 
             // Create the chunk
             TerrainChunk chunk = new GameObject().AddComponent<TerrainChunk>();
+
+            //Vector3[,] basePoints = CalculateWorldPoints(data.Width, data.Height, bounds);
+
             chunk.Initialise(position, bounds, data, material, physics, ChunkParent, terrainLayer);
 
             TerrainChunks.Add(position, chunk);
@@ -58,6 +61,26 @@ public class TerrainChunkManager : MonoBehaviour
             }
         }
     }
+
+
+
+    private Vector3[,] CalculateWorldPoints(int width, int height, Bounds bounds, float[,] heights)
+    {
+        Vector3[,] points = new Vector3[width, height];
+
+        Vector3 distanceBetween = TerrainGenerator.CalculateDistanceBetweenVertices(bounds, (width + height) / 2);
+
+        for (int y = 0; y < height; y++)
+        {
+            for(int x = 0; x < width; x++)
+            {
+                points[x, y] = bounds.min + new Vector3(x * distanceBetween.x, heights[x,y], y * distanceBetween.z);
+            }
+        }
+
+        return points;
+    }
+
 
 
     public TerrainChunk GetChunk(Vector2Int chunk)

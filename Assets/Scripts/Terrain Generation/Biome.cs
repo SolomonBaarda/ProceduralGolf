@@ -7,17 +7,14 @@ public static class Biome
 
 
 
-    public static Type GetBiomeSamplePoint(Collider collider, Vector3 worldPos, out Vector3 vertexPos)
+    public static Type GetBiomeSamplePoint(Collider collider, Vector3 worldPos)
     {
-        vertexPos = default;
-
         if (collider != null)
         {
             TerrainChunk c = collider.gameObject.GetComponent<TerrainChunk>();
 
             if (c != null)
             {
-                vertexPos = Utils.GetClosestTo(worldPos, c.Bounds.min, c.Bounds.max, c.AllVertices);
                 return Utils.GetClosestTo(worldPos, c.Bounds.min, c.Bounds.max, c.Biomes);
             }
         }
