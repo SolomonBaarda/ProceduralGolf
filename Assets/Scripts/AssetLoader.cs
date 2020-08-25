@@ -1,4 +1,5 @@
-﻿using TMPro.EditorUtilities;
+﻿using System;
+using TMPro.EditorUtilities;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,6 +20,8 @@ public static class AssetLoader
 
     public static void SaveTerrain(TerrainData data)
     {
+        DateTime before = DateTime.Now;
+
         string folder = FolderPath(data.Seed);
         string path = folder + "/" + data.Seed + ".asset";
 
@@ -44,7 +47,7 @@ public static class AssetLoader
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("Saved terrain data to " + path);
+        Debug.Log("* Saved terrain data in "+ (DateTime.Now - before).TotalSeconds.ToString("0.0") +" seconds to " + path);
     }
 
 

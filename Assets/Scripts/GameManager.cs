@@ -132,7 +132,10 @@ public class GameManager : MonoBehaviour
             HUD.Active(false);
         }
 
-
+        if (!Gamerules.UseGolfBall)
+        {
+            GolfBall.gameObject.SetActive(false);
+        }
 
         // Ensure there is terrain before we start
         while (!TerrainManager.HasTerrain)
@@ -153,11 +156,6 @@ public class GameManager : MonoBehaviour
         if (Gamerules.UseHUD)
         {
             HUD.Active(true);
-        }
-
-        if (!Gamerules.UseGolfBall)
-        {
-            GolfBall.gameObject.SetActive(false);
         }
 
         LoadingScreen.Active(false);
@@ -351,26 +349,15 @@ public class GameManager : MonoBehaviour
     {
         if (Gamerules.UseGolfBall)
         {
-            if (CourseManager.GetHole(0, out HoleData hole))
-            {
-                CourseManager.RespawnGolfBall(hole);
-                if (HUD != null)
-                {
-                    UpdateHUDShotCounter();
-
-                }
-            }
-            else
-            {
-                Debug.LogError("Could not respawn GolfBall as there is no first Hole.");
-            }
+            CourseManager.Restart();
         }
     }
 
 
+
     private void UpdateHUDShotCounter()
     {
-        HUD.Shots.text = GolfBall.CurrentHoleStats.ShotsForThisHole.ToString();
+        HUD.Shots.text = GolfBall.Progress.ShotsForThisHole.ToString();
     }
 
 

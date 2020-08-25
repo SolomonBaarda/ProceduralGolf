@@ -12,9 +12,14 @@ public class CourseManager : MonoBehaviour
 
 
     private Dictionary<int, HoleData> Holes = new Dictionary<int, HoleData>();
-    private HoleData CurrentNext;
 
     public UnityAction<GolfBall.Stats> OnHoleCompleted;
+
+
+    [Header("Prefabs")]
+    public GameObject GolfHoleFlagPrefab;
+    public GameObject GolfHoleBeaconPrefab;
+    private LinePreview NextHoleBeacon;
 
 
     private void Awake()
@@ -32,21 +37,34 @@ public class CourseManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (CurrentNext != null)
+        // Get the next hole
+        if (CalculateNextHole(out HoleData target))
         {
-            /*
-            if (CurrentNext.BallWasPotted(GolfBall.Mask))
+            // Ball was potted this frame
+            if (target.BallWasPotted(GolfBall.Mask))
             {
-                CurrentNext.SetCompleted();
-
-                HoleData next = GetHole(CurrentNext.Number + 1);
-
-                GolfBall.HoleCompleted(next);
-                RespawnGolfBall(next);
+                // Respawn the ball here
+                RespawnGolfBall(target);
             }
-            */
+
+            // Ensure the beacon is always active
+            if (NextHoleBeacon == null)
+            {
+                GameObject beaconObject = Instantiate(GolfHoleBeaconPrefab, transform);
+                beaconObject.name = "Next hole beacon";
+                NextHoleBeacon = beaconObject.GetComponent<LinePreview>();
+            }
+            // Set the position
+            NextHoleBeacon.transform.position = target.Centre;
+            NextHoleBeacon.SetPoints(target.Centre, TerrainManager.UP);
         }
 
+    }
+
+
+    private bool CalculateNextHole(out HoleData nextHole)
+    {
+        return Holes.TryGetValue(GolfBall.Progress.LastHoleReached + 1, out nextHole);
     }
 
 
@@ -64,7 +82,7 @@ public class CourseManager : MonoBehaviour
             if (!GetHole(0, out HoleData _))
             {
                 // Set the centre hole to be the first hole
-                if(GetClosestTo(TerrainManager.ORIGIN, allHoles, out HoleData closest))
+                if (GetClosestTo(TerrainManager.ORIGIN, allHoles, out HoleData closest))
                 {
                     allHoles.Remove(closest);
 
@@ -118,29 +136,31 @@ public class CourseManager : MonoBehaviour
     }
 
 
-
-
-    public void RespawnGolfBall(HoleData hole)
+    public void Restart()
     {
-        // Get the next hole
-        if (GetHole(hole.Number + 1, out HoleData next))
+        if (GetHole(0, out HoleData start))
         {
-            GolfBall.ResetAllStats(next);
-            CurrentNext = next;
+            GolfBall.Progress.Clear();
 
-            // And move the ball there
-            RespawnGolfBall(TerrainManager.CalculateSpawnPoint(GolfBall.Radius, hole.Centre));
-
-            Debug.Log("Respawned ball at hole " + hole.Number + " and set next hole to be " + next.Number);
+            RespawnGolfBall(start);
         }
         else
         {
-            Debug.LogError("Could not respawn Golfball as there are no more Holes.");
+            Debug.LogError("Could not respawn GolfBall as there is no first Hole.");
         }
     }
 
 
-    public void RespawnGolfBall(Vector3 position)
+    public void RespawnGolfBall(HoleData hole)
+    {
+        GolfBall.HoleReached(hole);
+
+        // And move the ball there
+        MoveGolfBallAndWaitForNextShot(TerrainManager.CalculateSpawnPoint(GolfBall.Radius, hole.Centre));
+    }
+
+
+    private void MoveGolfBallAndWaitForNextShot(Vector3 position)
     {
         // Reset
         GolfBall.StopAllCoroutines();
@@ -192,7 +212,6 @@ public class CourseManager : MonoBehaviour
     public void Clear()
     {
         Holes.Clear();
-        CurrentNext = null;
         HolesHaveBeenOrdered = false;
     }
 

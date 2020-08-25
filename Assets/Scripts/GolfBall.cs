@@ -28,8 +28,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private Vector3 LastBiomeSamplePoint;
 
     // Statistics
-    public Stats CurrentHoleStats;
-    public List<Stats> HolesCompleted = new List<Stats>();
+    public Stats Progress = new Stats();
 
 
     private Vector3 Facing
@@ -209,7 +208,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Vector3 force = transform.forward * Power * FullPower;
         rigid.AddForce(force, ForceMode.Impulse);
 
-        CurrentHoleStats.ShotsForThisHole++;
+        Progress.ShotsForThisHole++;
     }
 
 
@@ -245,8 +244,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
         // Freeze until a shot has been taken
-        int shotsBefore = CurrentHoleStats.ShotsForThisHole;
-        while (shotsBefore == CurrentHoleStats.ShotsForThisHole)
+        int shotsBefore = Progress.ShotsForThisHole;
+        while (shotsBefore == Progress.ShotsForThisHole)
         {
             yield return null;
         }
@@ -359,44 +358,43 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-    public Stats HoleCompleted(HoleData nextHole)
+    public void HoleReached(HoleData reached)
     {
-        // Finish the current hole
-        CurrentHoleStats.EndTime = DateTime.Now;
-        HolesCompleted.Add(CurrentHoleStats);
+        // Add the hole 
+        Progress.HolesReached.Push(new Stats.Pot() { Hole = reached, TimeReached = DateTime.Now, ShotsTaken = Progress.ShotsForThisHole });
 
-        // Create a new one
-        CurrentHoleStats = new Stats(nextHole);
-        return CurrentHoleStats;
+        Progress.ShotsForThisHole = 0;
     }
 
 
-
-
-    public void ResetAllStats(HoleData firstHole)
-    {
-        CurrentHoleStats = new Stats(firstHole);
-
-        HolesCompleted.Clear();
-    }
 
 
     public class Stats
     {
-        public HoleData Hole;
+        public Stack<Pot> HolesReached = new Stack<Pot>();
+        public HoleData To;
+
         public int ShotsForThisHole;
+        public int LastHoleReached { get { if (HolesReached.Count > 0) { return HolesReached.Peek().Hole.Number; } else { return 0; } } }
 
-        public DateTime StartTime;
-        public DateTime EndTime;
 
-        public double SecondsForThisHole { get { DateTime now = EndTime; if (now == null) { now = DateTime.Now; } return (now - StartTime).TotalSeconds; } }
-
-        public Stats(HoleData hole)
+        public Stats()
         {
-            Hole = hole;
-            StartTime = DateTime.Now;
+            Clear();
+        }
+
+        public void Clear()
+        {
+            HolesReached.Clear();
 
             ShotsForThisHole = 0;
+        }
+
+        public class Pot
+        {
+            public HoleData Hole;
+            public DateTime TimeReached;
+            public int ShotsTaken;
         }
     }
 
@@ -440,14 +438,14 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Gizmos.color = Color.green;
         Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
 
-        
+
         // Draw the sample point
         if (IsOnGround && LastBiomeSamplePoint != default)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(LastBiomeSamplePoint, 0.1f);
         }
-        
+
     }
 
 }

@@ -165,6 +165,7 @@ public static class MeshGenerator
             // Recalculate values
             m.RecalculateNormals();
             m.Optimize();
+
         }
 
     }

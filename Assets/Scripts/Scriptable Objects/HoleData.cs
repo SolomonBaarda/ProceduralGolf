@@ -4,8 +4,6 @@ using UnityEngine;
 [Serializable]
 public class HoleData
 {
-    public const float LinePreviewHeight = 100f;
-
     public Vector3 Centre;
 
     public const int NotAssignedHoleNumber = -1;

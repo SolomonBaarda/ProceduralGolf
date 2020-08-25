@@ -65,6 +65,8 @@ public static class TextureGenerator
         t.SetPixels(data.ColourMap);
         t.Apply();
 
+        t.Compress(false);
+
         return t;
     }
 

@@ -18,15 +18,9 @@ public class TerrainManager : MonoBehaviour
     [Header("Physics")]
     public PhysicMaterial PhysicsGrass;
 
-    [Header("Prefabs")]
-    public GameObject GolfHoleFlagPrefab;
-    public GameObject GolfHolePositionPrefab;
-
     [Space]
     public TerrainData CurrentLoadedTerrain;
 
-
-    [Space]
     private Transform Player;
     private bool HideChunks = true;
     private float ViewDistance = 0;
