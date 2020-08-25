@@ -53,7 +53,8 @@ public class TerrainChunkManager : MonoBehaviour
         {
             if(TerrainChunks.TryGetValue(position, out TerrainChunk c))
             {
-                c.Data = data;
+                // Update the chunk data 
+                c.UpdateChunkData(data);
             }
         }
     }

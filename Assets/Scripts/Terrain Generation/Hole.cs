@@ -5,11 +5,6 @@ using UnityEngine;
 
 public class Hole
 {
-    public const float LinePreviewHeight = 100f;
-
-    public bool Completed { get; private set; } = false;
-
-
     public bool ShouldBeDestroyed = false;
     public bool NeedsUpdating = false;
 
@@ -17,24 +12,16 @@ public class Hole
     public HashSet<TerrainMap.Point> Vertices = new HashSet<TerrainMap.Point>();
     public Vector3 Centre => EvaluateMidpoint();
 
-    public GameObject WorldObjectParent;
-    private GameObject Flag;
-    private GameObject LinePreviewObject;
 
 
     public void Destroy()
     {
         Vertices.Clear();
-
-        if (WorldObjectParent != null)
-        {
-            UnityEngine.Object.Destroy(WorldObjectParent);
-        }
     }
 
 
 
-    public Vector3 EvaluateMidpoint()
+    private Vector3 EvaluateMidpoint()
     {
         if (Vertices.Count > 0)
         {
@@ -60,20 +47,12 @@ public class Hole
         {
             return default;
         }
-
-    }
-
-
-    public bool BallWasPotted(int layerMask)
-    {
-        float radius = 0.2f;
-
-        return Physics.CheckSphere(Centre, radius, layerMask);
     }
 
 
 
-    public float EvaluateHeight()
+
+    private float EvaluateHeight()
     {
         int total = Vertices.Count;
 
@@ -87,71 +66,16 @@ public class Hole
         return totalHeight / total;
     }
 
+
+
     public void UpdateHole()
     {
         NeedsUpdating = false;
 
         // Update the heights
         SetAllPointHeights();
-
     }
 
-
-    public void UpdateHoleObjects(Transform parent, GameObject flagPrefab, GameObject linePrefab)
-    {
-
-        if (WorldObjectParent == null)
-        {
-            WorldObjectParent = new GameObject("Hole " );
-            WorldObjectParent.transform.parent = parent;
-            WorldObjectParent.transform.position = Centre;
-        }
-
-        if (!Completed)
-        {
-            if (Flag == null)
-            {
-                Flag = UnityEngine.Object.Instantiate(flagPrefab, WorldObjectParent.transform);
-                Flag.transform.localPosition = (TerrainManager.UP * Flag.GetComponent<Collider>().bounds.extents.y);
-            }
-
-            if (LinePreviewObject == null)
-            {
-                LinePreviewObject = UnityEngine.Object.Instantiate(linePrefab, WorldObjectParent.transform);
-                LinePreview l = LinePreviewObject.GetComponent<LinePreview>();
-                l.SetPoints(Centre, Centre + (TerrainManager.UP * LinePreviewHeight));
-
-                LinePreviewObject.SetActive(false);
-            }
-        }
-
-    }
-
-
-
-
-
-    public void SetNext()
-    {
-        LinePreviewObject.SetActive(true);
-    }
-
-
-
-    public void SetCompleted()
-    {
-        Completed = true;
-
-        if (Flag != null)
-        {
-            UnityEngine.Object.Destroy(Flag);
-        }
-
-        if (LinePreviewObject != null)
-        {
-            LinePreviewObject.SetActive(false);
-        }
-    }
 
 
 
@@ -278,8 +202,6 @@ public class Hole
 
     public static HashSet<Hole> CalculateHoles(ref TerrainMap t)
     {
-        DateTime before = DateTime.Now;
-
         HashSet<Hole> holes = new HashSet<Hole>();
         HashSet<TerrainMap.Point> alreadyChecked = new HashSet<TerrainMap.Point>();
 
@@ -295,23 +217,8 @@ public class Hole
         // Remove holes that we don't need
         holes.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
 
-        //Debug.Log("Calculating and merging holes: " + (DateTime.Now - before).Milliseconds);
-
         return holes;
     }
 
-
-
-    public struct NewHoles
-    {
-        public TerrainMap TerrainMap;
-        public List<Hole> Holes;
-
-        public NewHoles(in TerrainMap t, in List<Hole> h)
-        {
-            TerrainMap = t;
-            Holes = h;
-        }
-    }
 
 }

@@ -19,13 +19,13 @@ public class TerrainChunk : MonoBehaviour
     public Mesh MainMesh => Data.MainMesh;
     public Texture2D BiomeColourMap => Data.BiomeColourMap;
     public Biome.Type[,] Biomes;
+    public Vector3[,] AllVertices;
 
 
     [Header("Gizmos settings")]
     public bool ShowGizmos = true;
-    [Min(0)] public float Length = 2;
-    public bool GizmosUseLOD = true;
-    private int LODIncrement = 1;
+    [Range(0, 5)] public float Length = 2;
+
 
     public void Initialise(Vector2Int position, Bounds bounds, TerrainChunkData data, Material material, PhysicMaterial physics, Transform parent, int terrainLayer)
     {
@@ -68,10 +68,11 @@ public class TerrainChunk : MonoBehaviour
 
         // Un-flatten the array of biome data so that we can use it
         Biomes = Utils.UnFlatten(data.BiomesFlat, data.Width, data.Height);
+        AllVertices = Utils.UnFlatten(data.AllVerticesFlat, data.Width, data.Height);
 
         meshFilter.sharedMesh = MainMesh;
         meshCollider.sharedMesh = MainMesh;
-    } 
+    }
 
 
 
@@ -84,24 +85,20 @@ public class TerrainChunk : MonoBehaviour
     }
 
 
-    /*
+
 
     private void OnDrawGizmosSelected()
     {
-        if (TerrainMap != null)
+        if (Biomes != null && AllVertices != null)
         {
             if (ShowGizmos)
             {
-                int i = GizmosUseLOD ? LODIncrement : 1;
-
-                for (int y = 0; y < TerrainMap.Map.GetLength(1); y += i)
+                for (int y = 0; y < Data.Height; y++)
                 {
-                    for (int x = 0; x < TerrainMap.Map.GetLength(0); x += i)
+                    for (int x = 0; x < Data.Width; x++)
                     {
-                        TerrainMap.Point p = TerrainMap.Map[x, y];
-
                         Color c = Color.black;
-                        switch (p.Biome)
+                        switch (Biomes[x, y])
                         {
                             case Biome.Type.Grass:
                                 c = Color.green;
@@ -121,8 +118,7 @@ public class TerrainChunk : MonoBehaviour
                         }
 
                         Gizmos.color = c;
-                        Vector3 pos = p.LocalVertexPosition + TerrainMap.Bounds.center;
-                        Gizmos.DrawLine(pos, pos + (TerrainGenerator.UP * Length));
+                        Gizmos.DrawLine(AllVertices[x, y], AllVertices[x, y] + (TerrainManager.UP * Length));
                     }
                 }
             }
@@ -130,5 +126,6 @@ public class TerrainChunk : MonoBehaviour
     }
 
 
-    */
+
+
 }

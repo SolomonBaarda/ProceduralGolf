@@ -4,6 +4,8 @@ using UnityEngine;
 [Serializable]
 public class HoleData
 {
+    public const float LinePreviewHeight = 100f;
+
     public Vector3 Centre;
 
     public const int NotAssignedHoleNumber = -1;
@@ -14,6 +16,16 @@ public class HoleData
     {
         Centre = centre;
     }
+
+
+    public bool BallWasPotted(int layerMask)
+    {
+        float radius = 0.2f;
+
+        return Physics.CheckSphere(Centre, radius, layerMask);
+    }
+
+
 
 
 }

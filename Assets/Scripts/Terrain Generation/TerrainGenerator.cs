@@ -259,11 +259,13 @@ public class TerrainGenerator : MonoBehaviour
 
             // Assign the biomes
             Biome.Type[,] biomes = new Biome.Type[map.Width, map.Height];
+            Vector3[,] samplePoints = new Vector3[map.Width, map.Height];
             for (int y = 0; y < map.Height; y++)
             {
                 for (int x = 0; x < map.Width; x++)
                 {
                     biomes[x, y] = map.Map[x, y].Biome;
+                    samplePoints[x, y] = map.Map[x, y].LocalVertexPosition + map.Map[x,y].Offset;
                 }
             }
 
@@ -275,7 +277,7 @@ public class TerrainGenerator : MonoBehaviour
             Mesh mesh = null;
             meshData.UpdateMesh(ref mesh, MeshSettings);
 
-            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Bounds.size, biomes, colourMap, mesh);
+            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Bounds.size, biomes, samplePoints, colourMap, mesh);
 
 
             ChunkData d = new ChunkData() { Data = chunkData, TerrainMap = map, MeshData = meshData };

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -84,12 +85,14 @@ public class GameManager : MonoBehaviour
         // Load the map from file
         if (TerrainMode == TerrainGenerationMethod.LoadFromFile)
         {
+            DateTime before = DateTime.Now;
+
             Gamerules = FromFile;
 
-            TerrainData d = WorldSaves[0];
+            TerrainData d = Instantiate(WorldSaves[0]);
 
             // Load the terrain data into the manager
-            TerrainManager.LoadTerrain(d);
+            TerrainManager.LoadTerrain(d, before);
 
 
             // Force the coursemanager to order the holes
@@ -302,7 +305,7 @@ public class GameManager : MonoBehaviour
 
     private void InitialTerrainGenerated()
     {
-        TerrainManager.LoadTerrain(TerrainGenerator.TerrainData);
+        TerrainManager.LoadTerrain(TerrainGenerator.TerrainData, DateTime.MinValue);
     }
 
 

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 
 public class TerrainManager : MonoBehaviour
@@ -78,18 +80,41 @@ public class TerrainManager : MonoBehaviour
     /// Load all the chunks.
     /// </summary>
     /// <param name="data"></param>
-    public void LoadTerrain(TerrainData data)
+    public void LoadTerrain(TerrainData data, DateTime before)
     {
         Clear();
 
         HasTerrain = true;
         CurrentLoadedTerrain = data;
 
+        // Load terrain
         foreach (TerrainChunkData chunk in data.Chunks)
         {
             TerrainChunkManager.TryAddChunk(chunk, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
         }
 
+
+        // Load holes
+
+
+
+
+
+
+
+
+
+
+
+
+        // Debug
+        if (before != DateTime.MinValue)
+        {
+            string message = "* Loaded terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0")
+                + " seconds with " + data.Chunks.Count + " chunks and " + data.GolfHoles.Count + " holes.";
+
+            Debug.Log(message);
+        }
     }
 
 

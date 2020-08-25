@@ -7,7 +7,7 @@ public static class MeshGenerator
     public static void UpdateMeshData(ref MeshData data, TerrainMap terrainMap)
     {
         // Create the data if we need to 
-        if(data == null)
+        if (data == null)
         {
             data = new MeshData(terrainMap.Width, terrainMap.Height);
         }
@@ -150,14 +150,13 @@ public static class MeshGenerator
 
 
 
-
             // Create the new mesh if we need to
             if (m == null)
             {
                 m = new Mesh();
             }
 
-            // Overwrite the current mesh values to prevent extra being allocated then removed
+            // Overwrite the current mesh values to prevent extra memory being allocated then removed
             m.vertices = newVertices;
             m.triangles = newTriangles;
             m.uv = newUVs;
