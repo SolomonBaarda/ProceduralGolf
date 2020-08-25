@@ -178,14 +178,6 @@ public class GameManager : MonoBehaviour
                 CourseManager.Clear();
                 StartCoroutine(WaitUntilGameStart());
             }
-
-
-            // Save map to file
-            if (Input.GetKeyDown(KeyCode.P))
-            {
-                // Save the currently used TerrainData to file
-                AssetLoader.SaveTerrain(TerrainManager.CurrentLoadedTerrain);
-            }
         }
 
 
@@ -215,6 +207,12 @@ public class GameManager : MonoBehaviour
                     // Calculate the deltas for each 
                     Vector2 rotationAndAngleDelta = Controller.DeltaPosition(HUD.ShootingWindow) * Time.deltaTime * Controller.TouchMultiplier;
                     Vector2 powerDelta = Controller.DeltaPosition(HUD.Power.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
+
+                    // Make sure power has priority over rotation and angle
+                    if(powerDelta.x != 0 || powerDelta.y != 0)
+                    {
+                        rotationAndAngleDelta = Vector2.zero;
+                    }
 
                     float rotationDelta = rotationAndAngleDelta.x;
                     float angleDelta = rotationAndAngleDelta.y;

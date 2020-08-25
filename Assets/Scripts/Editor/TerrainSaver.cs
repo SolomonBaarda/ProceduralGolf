@@ -1,11 +1,37 @@
 ﻿using System;
-using TMPro.EditorUtilities;
 using UnityEditor;
 using UnityEngine;
 
-public static class AssetLoader
+
+[ExecuteInEditMode]
+[CustomEditor(typeof(TerrainManager))]
+public class TerrainSaver : Editor
 {
     public const string DefaultWorldSavePath = "Assets/World Saves";
+
+
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+
+        TerrainManager m = (TerrainManager)target;
+
+        if (m.CurrentLoadedTerrain != null)
+        {
+            if (GUILayout.Button("Save terrain to file"))
+            {
+                // Save the currently used TerrainData to file
+                SaveTerrain(m.CurrentLoadedTerrain);
+            }
+        }
+
+    }
+
+
+
+
+
+
 
 
     private static string FolderPath(int seed)
@@ -17,6 +43,8 @@ public static class AssetLoader
     {
         return "/(" + x + "," + y + ") ";
     }
+
+
 
     public static void SaveTerrain(TerrainData data)
     {
@@ -47,7 +75,7 @@ public static class AssetLoader
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("* Saved terrain data in "+ (DateTime.Now - before).TotalSeconds.ToString("0.0") +" seconds to " + path);
+        Debug.Log("* Saved terrain data in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds to " + path);
     }
 
 
