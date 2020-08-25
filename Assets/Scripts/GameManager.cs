@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     [Space]
     public TerrainGenerationMethod TerrainMode;
     private Gamerule Gamerules;
-    private static readonly Gamerule FromFile = new Gamerule(false, true, 2, 400, true, true);
+    private static readonly Gamerule FromFile = new Gamerule(false, true, 0, 550, true, true);
     private static readonly Gamerule RealtimeEndless = new Gamerule(true, true, 3, 400, true, true);
     private static readonly Gamerule FixedArea = new Gamerule(false, false, 3, 0, false, false);
 
@@ -57,6 +57,8 @@ public class GameManager : MonoBehaviour
         {
             HUD.OnShootPressed -= GolfBall.Shoot;
             HUD.OnShootPressed -= UpdateHUDShotCounter;
+
+            CourseManager.OnHoleCompleted -= UpdateHUDShotCounter;
 
             HUD.OnRestartPressed -= ResetGame;
             HUD.OnQuitPressed -= Application.Quit;
@@ -338,6 +340,8 @@ public class GameManager : MonoBehaviour
         HUD.OnShootPressed += GolfBall.Shoot;
         HUD.OnShootPressed += UpdateHUDShotCounter;
 
+        CourseManager.OnHoleCompleted += UpdateHUDShotCounter;
+
         HUD.OnRestartPressed += ResetGame;
         HUD.OnQuitPressed += Application.Quit;
 
@@ -350,6 +354,10 @@ public class GameManager : MonoBehaviour
         if (Gamerules.UseGolfBall)
         {
             CourseManager.Restart();
+        }
+        if(Gamerules.UseHUD)
+        {
+            UpdateHUDShotCounter();
         }
     }
 

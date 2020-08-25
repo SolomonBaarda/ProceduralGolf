@@ -13,7 +13,7 @@ public class CourseManager : MonoBehaviour
 
     private Dictionary<int, HoleData> Holes = new Dictionary<int, HoleData>();
 
-    public UnityAction<GolfBall.Stats> OnHoleCompleted;
+    public UnityAction OnHoleCompleted;
 
 
     [Header("Prefabs")]
@@ -45,6 +45,9 @@ public class CourseManager : MonoBehaviour
             {
                 // Respawn the ball here
                 RespawnGolfBall(target);
+
+                // Call the event once the ball has been respawned
+                OnHoleCompleted.Invoke();
             }
 
             // Ensure the beacon is always active
@@ -54,8 +57,20 @@ public class CourseManager : MonoBehaviour
                 beaconObject.name = "Next hole beacon";
                 NextHoleBeacon = beaconObject.GetComponent<LinePreview>();
             }
+
             // Set the position
             NextHoleBeacon.transform.position = target.Centre;
+
+            // Calculate the beacon width
+            float distanceSqr = (target.Centre - GolfBall.Position).sqrMagnitude;
+            float maximumDistance = TerrainChunkManager.ChunkSizeWorldUnits * 2;
+            float percent = Mathf.Clamp(distanceSqr / (maximumDistance * maximumDistance), 0f, 1f);
+            
+            // Set the width
+            NextHoleBeacon.UpdateLineWidth(Mathf.Lerp(0.05f, 10, percent));
+
+
+            // Set the points
             NextHoleBeacon.SetPoints(target.Centre, TerrainManager.UP);
         }
 

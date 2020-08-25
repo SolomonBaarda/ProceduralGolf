@@ -61,7 +61,7 @@ MonoBehaviour:
     ctime5: 0
     ctime6: 0
     ctime7: 0
-    atime0: 32768
+    atime0: 55705
     atime1: 65535
     atime2: 0
     atime3: 0
@@ -73,5 +73,5 @@ MonoBehaviour:
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   LineWidth: 1
-  LineLength: 150
+  LineLength: 300
   LineMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}

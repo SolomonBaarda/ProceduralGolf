@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -56,6 +57,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public Vector3 Forward => Facing.normalized;
 
     public Vector3 Position => transform.position;
+    private Vector3 LastDirectionWhenRolling;
 
 
     // Settings
@@ -193,6 +195,14 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Set the values
         rigid.angularDrag = r.AngularDrag;
         rigid.drag = r.Drag;
+
+
+
+        // Record the last direction we were rolling in
+        if(State == PlayState.Rolling)
+        {
+            LastDirectionWhenRolling = Facing;
+        }
     }
 
 
@@ -213,8 +223,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public void Reset()
     {
-        transform.rotation = Quaternion.identity;
-
+        // Reset all movement
         rigid.velocity = Vector3.zero;
         rigid.angularVelocity = Vector3.zero;
 
@@ -319,8 +328,13 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     {
         // Default values
         Power = 0.5f;
-        Rotation = 0;
         Angle = 40;
+
+        // Face the direction we were rolling last TODO
+        //transform.forward = LastDirectionWhenRolling;
+        //Quaternion.Euler(LastDirectionWhenRolling).eulerAngles.y
+
+        Rotation = transform.eulerAngles.y;
 
         ValidateValues();
     }

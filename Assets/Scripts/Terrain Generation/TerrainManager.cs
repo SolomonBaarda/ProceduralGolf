@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 
 public class TerrainManager : MonoBehaviour
@@ -58,8 +57,8 @@ public class TerrainManager : MonoBehaviour
         {
             foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
             {
-                //chunk.SetVisible(Vector3.Distance(transform.position, chunk.Bounds.center) <= ViewDistance);
-                chunk.SetVisible(chunk.Bounds.center.sqrMagnitude - transform.position.sqrMagnitude <= ViewDistance * ViewDistance);
+                // Only set the chunks within render distance to be visible
+                chunk.SetVisible((chunk.Bounds.center - Player.position).sqrMagnitude <= ViewDistance * ViewDistance);
             }
         }
     }

@@ -26,7 +26,7 @@ public class Follower : MonoBehaviour
     /// <summary>
     /// View for setting the shot power.
     /// </summary>
-    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 7.5f, 2.5f, 2f, 2f, new Vector3(0, 2, 0), Vector3.zero);
+    public static readonly ViewPreset ViewPresetShootingBehind = new ViewPreset(true, false, true, true, true, 7.5f, 2.5f, 2f, 1f, new Vector3(0, 2, 0), Vector3.zero);
 
 
 
@@ -104,7 +104,11 @@ public class Follower : MonoBehaviour
             }
             else
             {
-                transform.forward = target.Forward;
+                // Ensure it is not zero to stop the editor spam message
+                if(target.Forward != Vector3.zero)
+                {
+                    transform.forward = target.Forward;
+                }
             }
 
             // Now add the rotation offset

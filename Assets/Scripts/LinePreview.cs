@@ -17,7 +17,8 @@ public class LinePreview : MonoBehaviour
         // Add the line renderer
         LineRenderer = gameObject.AddComponent<LineRenderer>();
 
-        LineRenderer.widthCurve = AnimationCurve.Linear(0f, LineWidth, 1f, LineWidth);
+        LineRenderer.widthCurve = AnimationCurve.Linear(0f, 1f, 1f, 1f);
+        LineRenderer.widthMultiplier = LineWidth;
 
         LineRenderer.material = LineMaterial;
         LineRenderer.colorGradient = LineColour;
@@ -31,6 +32,11 @@ public class LinePreview : MonoBehaviour
         Points[1] = start + (directionNormal * LineLength);
 
         LineRenderer.SetPositions(Points);
+    }
+
+    public void UpdateLineWidth(float width)
+    {
+        LineRenderer.widthMultiplier = width;
     }
 
 
