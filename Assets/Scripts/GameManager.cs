@@ -168,19 +168,6 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (TerrainMode == TerrainGenerationMethod.FixedArea)
-        {
-            // Generate again
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                TerrainGenerator.Clear();
-                TerrainManager.Clear();
-                CourseManager.Clear();
-                StartCoroutine(WaitUntilGameStart());
-            }
-        }
-
-
         drawMap = Input.GetKey(KeyCode.Tab);
 
 
@@ -209,7 +196,7 @@ public class GameManager : MonoBehaviour
                     Vector2 powerDelta = Controller.DeltaPosition(HUD.Power.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
 
                     // Make sure power has priority over rotation and angle
-                    if(powerDelta.x != 0 || powerDelta.y != 0)
+                    if (powerDelta.x != 0 || powerDelta.y != 0)
                     {
                         rotationAndAngleDelta = Vector2.zero;
                     }
@@ -330,6 +317,20 @@ public class GameManager : MonoBehaviour
 
 
 
+    public void GenerateAgain()
+    {
+        Clear();
+
+        StartCoroutine(WaitUntilGameStart());
+    }
+
+    public void Clear()
+    {
+        TerrainGenerator.Clear();
+        TerrainManager.Clear();
+        CourseManager.Clear();
+    }
+
 
     private void OnHUDLoaded()
     {
@@ -353,7 +354,7 @@ public class GameManager : MonoBehaviour
         {
             CourseManager.Restart();
         }
-        if(Gamerules.UseHUD)
+        if (Gamerules.UseHUD)
         {
             UpdateHUDShotCounter();
         }

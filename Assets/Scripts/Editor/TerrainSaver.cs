@@ -16,6 +16,8 @@ public class TerrainSaver : Editor
 
         TerrainManager m = (TerrainManager)target;
 
+
+
         if (m.CurrentLoadedTerrain != null)
         {
             if (GUILayout.Button("Save terrain to file"))
@@ -24,7 +26,6 @@ public class TerrainSaver : Editor
                 SaveTerrain(m.CurrentLoadedTerrain);
             }
         }
-
     }
 
 
