@@ -8,15 +8,17 @@ public class TerrainData : ScriptableObject
 {
     public int Seed;
 
-    public List<HoleData> GolfHoles;
     public List<TerrainChunkData> Chunks;
+    public List<HoleData> GolfHoles;
+    public List<WorldObjectData> WorldObjects;
 
 
-    public void SetData(int seed, List<HoleData> holes, List<TerrainChunkData> chunks)
+    public void SetData(int seed, List<TerrainChunkData> chunks, List<HoleData> holes, List<WorldObjectData> worldObjects)
     {
         Seed = seed;
         GolfHoles = holes;
         Chunks = chunks;
+        WorldObjects = worldObjects;
     }
 
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -10,6 +11,8 @@ public class TerrainGenerator : MonoBehaviour
 {
     private Dictionary<Vector2Int, ChunkData> Chunks = new Dictionary<Vector2Int, ChunkData>();
     public TerrainChunkManager TerrainChunkManager;
+
+    public HashSet<WorldObjectData> WorldObjects = new HashSet<WorldObjectData>();
 
     public Transform HolesWorldObjectParent;
     private HashSet<Hole> GolfHoles = new HashSet<Hole>();
@@ -92,7 +95,7 @@ public class TerrainGenerator : MonoBehaviour
 
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, GetHoleData(), chunks);
+            terrain.SetData(Seed, chunks, GetHoleData(), WorldObjects.ToList());
 
             return terrain;
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 public class TerrainManager : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class TerrainManager : MonoBehaviour
     public static readonly Vector3 ORIGIN = Vector3.zero;
 
     public TerrainChunkManager TerrainChunkManager;
+    public Transform WorldObjectsParent;
 
     public bool HasTerrain { get; private set; }
 
@@ -35,6 +37,13 @@ public class TerrainManager : MonoBehaviour
     public void Clear()
     {
         TerrainChunkManager.Clear();
+
+        // Destroy all of the world objects
+        for (int i = 0; i < WorldObjectsParent.childCount; i++)
+        {
+            Destroy(WorldObjectsParent.GetChild(i).gameObject);
+        }
+
         HasTerrain = false;
 
         CurrentLoadedTerrain = null;
@@ -68,6 +77,50 @@ public class TerrainManager : MonoBehaviour
 
 
 
+    private void CheckObjectBeforeInstantiating(WorldObjectData data)
+    {
+        // We can just instantiate them all
+        if (CurrentLoadedTerrain != null)
+        {
+            foreach (WorldObjectData d in CurrentLoadedTerrain.WorldObjects)
+            {
+                // The prefab is already here
+                if (data.Prefab.Equals(d.Prefab))
+                {
+                    foreach(Vector3 pos in data.WorldPositions)
+                    {
+                        // Instantiate the object if it is not in the list of already added
+                        if(!d.WorldPositions.Contains(pos))
+                        {
+                            InstantiateOne(d.Prefab, pos);
+                            d.WorldPositions.Add(pos);
+                        }
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        // If we get here, then we can just instantiate them all
+        InstantiateAll(data);
+    }
+
+
+    private void InstantiateAll(WorldObjectData data)
+    {
+        foreach (Vector3 pos in data.WorldPositions)
+        {
+            InstantiateOne(data.Prefab, pos);
+        }
+    }
+
+    private void InstantiateOne(GameObject g, Vector3 pos)
+    {
+        Instantiate(g, pos, Quaternion.identity, WorldObjectsParent);
+    }
+
+
 
     /// <summary>
     /// Load all the chunks.
@@ -77,9 +130,6 @@ public class TerrainManager : MonoBehaviour
     {
         Clear();
 
-        HasTerrain = true;
-        CurrentLoadedTerrain = data;
-
         // Load terrain
         foreach (TerrainChunkData chunk in data.Chunks)
         {
@@ -87,7 +137,12 @@ public class TerrainManager : MonoBehaviour
         }
 
 
-        // Load holes
+
+        // Instantiate all GameObjects
+        foreach (WorldObjectData prefab in data.WorldObjects)
+        {
+            CheckObjectBeforeInstantiating(prefab);
+        }
 
 
 
@@ -95,9 +150,9 @@ public class TerrainManager : MonoBehaviour
 
 
 
-
-
-
+        // Assign the terrain at the end
+        HasTerrain = true;
+        CurrentLoadedTerrain = data;
 
 
         // Debug

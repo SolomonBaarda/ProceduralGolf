@@ -17,7 +17,7 @@ public class TerrainMap
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
     public TerrainMap(Vector2Int chunk, int width, int height, in Vector3[,] baseVertices, Bounds bounds,
-        in float[,] heightsBeforeHole, Biome.Type[,] biomes, Biome.Decoration [,]decoration)
+        in float[,] heightsBeforeHole, Biome.Type[,] biomes, Biome.Decoration[,] decoration)
     {
         Chunk = chunk;
         Width = width;
