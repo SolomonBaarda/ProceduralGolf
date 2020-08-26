@@ -403,6 +403,8 @@ MonoBehaviour:
     type: 2}
   NoiseSettings_Holes: {fileID: 11400000, guid: a8d302693e9275142bea12d81d6b216f,
     type: 2}
+  NoiseSettings_Trees: {fileID: 11400000, guid: ce96eb26623280241a00adfb17ab6aec,
+    type: 2}
   TerrainSettings_Green: {fileID: 11400000, guid: 392c806505110884192175365aabbd81,
     type: 2}
   Texture_GroundSettings: {fileID: 11400000, guid: 8c69bc2d118b0ae49a217aefa19d034a,

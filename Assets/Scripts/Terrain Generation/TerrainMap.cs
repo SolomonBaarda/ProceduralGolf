@@ -20,7 +20,8 @@ public class TerrainMap
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
     public TerrainMap(Vector2Int chunk, int width, int height, in Vector3[,] baseVertices, Bounds bounds,
-        in float[,] rawHeights, in float[,] bunkersMask, in float[,] holesMask, in TerrainSettings terrainSettings)
+        in float[,] rawHeights, in float[,] bunkersMask, in float[,] holesMask, 
+        in float[,] treesMask, in float[,] rocksMask, in TerrainSettings terrainSettings)
     {
         terrainSettings.ValidateValues();
         AnimationCurve copy = new AnimationCurve(terrainSettings.HeightDistribution.keys);
@@ -44,9 +45,10 @@ public class TerrainMap
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
                 Biome.Type biome = CalculateBiome(terrainSettings, bunkersMask[x, y], holesMask[x, y]);
                 float originalHeight = CalculateFinalHeight(terrainSettings, copy, rawHeights[x, y], bunkersMask[x, y]);
+                Biome.Decoration decoration = Calculatedecoration(terrainSettings, treesMask[x, y], rocksMask[x, y]);
 
                 // Assign the terrain point
-                Map[x, y] = new Point(baseVertices[x, y], bounds.center, originalHeight, biome, atEdge);
+                Map[x, y] = new Point(baseVertices[x, y], bounds.center, originalHeight, biome, decoration, atEdge);
             }
         }
 
@@ -148,6 +150,25 @@ public class TerrainMap
         }
 
         return b;
+    }
+
+    private Biome.Decoration Calculatedecoration(in TerrainSettings settings, float rawTree, float rawRock)
+    {
+        Biome.Decoration d = Biome.Decoration.None;
+
+        // Do a rock
+        if (settings.Rocks.DoObject && !Mathf.Approximately(rawRock, Point.Empty))
+        {
+            d = Biome.Decoration.Rock;
+        }
+
+        // Do a tree
+        if (settings.Trees.DoObject && !Mathf.Approximately(rawRock, Point.Empty))
+        {
+            d = Biome.Decoration.Tree;
+        }
+
+        return d;
     }
 
 
@@ -332,6 +353,8 @@ public class TerrainMap
         public float Height;
         public float OriginalHeight;
 
+        public Biome.Decoration Decoration;
+
         /// <summary>
         /// If this point is part of a Hole.
         /// </summary>
@@ -339,7 +362,7 @@ public class TerrainMap
         public List<Point> Neighbours;
 
 
-        public Point(Vector3 localVertexPos, Vector3 offset, float height, Biome.Type biome, bool isAtEdgeOfMesh)
+        public Point(Vector3 localVertexPos, Vector3 offset, float height, Biome.Type biome, Biome.Decoration decoration, bool isAtEdgeOfMesh)
         {
             LocalVertexBasePosition = localVertexPos;
             Offset = offset;
@@ -349,6 +372,7 @@ public class TerrainMap
             Neighbours = new List<Point>();
 
             Biome = biome;
+            Decoration = decoration;
             Height = height;
             OriginalHeight = Height;
         }

@@ -32,6 +32,9 @@ public class TerrainGenerator : MonoBehaviour
     public NoiseSettings NoiseSettings_Green;
     public NoiseSettings NoiseSettings_Bunker;
     public NoiseSettings NoiseSettings_Holes;
+    public NoiseSettings NoiseSettings_Trees;
+    public NoiseSettings NoiseSettings_Rocks;
+    [Space]
     public TerrainSettings TerrainSettings_Green;
 
     [Space]
@@ -330,6 +333,16 @@ public class TerrainGenerator : MonoBehaviour
         int holeSeed = Noise.Seed(bunkerSeed.ToString());
         float[,] holesRaw = Noise.Perlin(NoiseSettings_Holes, holeSeed, noiseSamplePoints);
 
+
+        // Trees
+        int treeSeed = Noise.Seed(holeSeed.ToString());
+        float[,] treesRaw = Noise.Perlin(NoiseSettings_Trees, treeSeed, noiseSamplePoints);
+
+        // Rocks
+        int rockSeed = Noise.Seed(treeSeed.ToString());
+        float[,] rocksRaw = Noise.Perlin(NoiseSettings_Rocks, rockSeed, noiseSamplePoints);
+
+
         // Create masks from the bunkers and holes
         for (int y = 0; y < height; y++)
         {
@@ -346,11 +359,23 @@ public class TerrainGenerator : MonoBehaviour
                 {
                     holesRaw[x, y] = TerrainMap.Point.Empty;
                 }
+
+
+                // Not a tree
+                if (!(treesRaw[x, y] >= TerrainSettings_Green.Trees.NoiseThresholdMinMax.x && holesRaw[x, y] <= TerrainSettings_Green.Trees.NoiseThresholdMinMax.y))
+                {
+                    holesRaw[x, y] = TerrainMap.Point.Empty;
+                }
+                // Not a rock
+                if (!(rocksRaw[x, y] >= TerrainSettings_Green.Rocks.NoiseThresholdMinMax.x && holesRaw[x, y] <= TerrainSettings_Green.Rocks.NoiseThresholdMinMax.y))
+                {
+                    rocksRaw[x, y] = TerrainMap.Point.Empty;
+                }
             }
         }
 
         // Return the terrain map
-        return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsRaw, bunkersRaw, holesRaw, TerrainSettings_Green);
+        return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsRaw, bunkersRaw, holesRaw, treesRaw, rocksRaw, TerrainSettings_Green);
     }
 
 

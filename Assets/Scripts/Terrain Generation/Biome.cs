@@ -85,6 +85,16 @@ public static class Biome
         Water,
         Ice,
     }
+
+
+
+
+    public enum Decoration
+    {
+        None,
+        Tree,
+        Rock,
+    }
 }
 
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 [CreateAssetMenu(menuName = "Settings/Terrain")]
 public class TerrainSettings : VariablePreset
@@ -11,13 +12,19 @@ public class TerrainSettings : VariablePreset
     [Space]
     public Biome.Type MainBiome;
 
+    [Header("Holes")]
+    public Vector2 HoleNoiseThresholdMinMax = new Vector2(0.8f, 1.5f);
+
     [Header("Bunkers")]
     public bool DoBunkers = true;
-    public float BunkerMultiplier = 4f;
+    public float BunkerMultiplier = 2f;
     public Vector2 BunkerNoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
 
-    [Header("Holes")]
-    public Vector2 HoleNoiseThresholdMinMax = new Vector2(0.6f, 1.5f);
+    [Header("Procedural objects")]
+    public ProceduralObject Trees;
+    public ProceduralObject Rocks;
+
+
 
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
@@ -31,4 +38,12 @@ public class TerrainSettings : VariablePreset
     }
 
 
+
+    [Serializable]
+    public class ProceduralObject
+    {
+        public bool DoObject = true;
+        public float SamplePointRadius = 1f;
+        public Vector2 NoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
+    }
 }
