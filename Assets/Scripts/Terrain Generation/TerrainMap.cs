@@ -14,24 +14,16 @@ public class TerrainMap
     /// </summary>
     public Point[,] Map;
 
-    // Settings
-    public TerrainSettings TerrainSettings;
-
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
     public TerrainMap(Vector2Int chunk, int width, int height, in Vector3[,] baseVertices, Bounds bounds,
-        in float[,] rawHeights, in float[,] bunkersMask, in float[,] holesMask, 
-        in float[,] treesMask, in float[,] rocksMask, in TerrainSettings terrainSettings)
+        in float[,] heightsBeforeHole, in bool[,] holeMask, Biome.Type[,] biomes, Biome.Decoration [,]decoration)
     {
-        terrainSettings.ValidateValues();
-        AnimationCurve copy = new AnimationCurve(terrainSettings.HeightDistribution.keys);
-
         Chunk = chunk;
         Width = width;
         Height = height;
         Bounds = bounds;
 
-        TerrainSettings = terrainSettings;
         EdgeNeighboursAdded = new List<Point.NeighbourDirection>();
 
         // Create the map
@@ -43,12 +35,9 @@ public class TerrainMap
             for (int x = 0; x < width; x++)
             {
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
-                Biome.Type biome = CalculateBiome(terrainSettings, bunkersMask[x, y], holesMask[x, y]);
-                float originalHeight = CalculateFinalHeight(terrainSettings, copy, rawHeights[x, y], bunkersMask[x, y]);
-                Biome.Decoration decoration = Calculatedecoration(terrainSettings, treesMask[x, y], rocksMask[x, y]);
 
                 // Assign the terrain point
-                Map[x, y] = new Point(baseVertices[x, y], bounds.center, originalHeight, biome, decoration, atEdge);
+                Map[x, y] = new Point(baseVertices[x, y], bounds.center, heightsBeforeHole[x,y], biomes[x,y], decoration[x,y], atEdge);
             }
         }
 
@@ -133,66 +122,7 @@ public class TerrainMap
     }
 
 
-    private Biome.Type CalculateBiome(in TerrainSettings settings, float rawBunker, float rawHole)
-    {
-        Biome.Type b = settings.MainBiome;
 
-        // Do a bunker
-        if (settings.DoBunkers && !Mathf.Approximately(rawBunker, Point.Empty))
-        {
-            b = Biome.Type.Sand;
-        }
-
-        // Hole is more important
-        if (!Mathf.Approximately(rawHole, Point.Empty))
-        {
-            b = Biome.Type.Hole;
-        }
-
-        return b;
-    }
-
-    private Biome.Decoration Calculatedecoration(in TerrainSettings settings, float rawTree, float rawRock)
-    {
-        Biome.Decoration d = Biome.Decoration.None;
-
-        // Do a rock
-        if (settings.Rocks.DoObject && !Mathf.Approximately(rawRock, Point.Empty))
-        {
-            d = Biome.Decoration.Rock;
-        }
-
-        // Do a tree
-        if (settings.Trees.DoObject && !Mathf.Approximately(rawRock, Point.Empty))
-        {
-            d = Biome.Decoration.Tree;
-        }
-
-        return d;
-    }
-
-
-    private float CalculateFinalHeight(in TerrainSettings settings, in AnimationCurve multithreadingSafeCurve, float rawHeight, float rawBunker)
-    {
-        // Calculate the height to use
-        float height = rawHeight;
-        if (settings.UseCurve)
-        {
-            height = multithreadingSafeCurve.Evaluate(rawHeight);
-        }
-
-        // And apply the scale
-        height *= settings.HeightMultiplier;
-
-
-        // Add the bunker now
-        if (settings.DoBunkers)
-        {
-            height -= rawBunker * settings.BunkerMultiplier;
-        }
-
-        return height;
-    }
 
 
 
