@@ -364,7 +364,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Return the terrain map
-        return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsBeforeHole, holeMask, biomes, decoration);
+        return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsBeforeHole, biomes, decoration);
     }
 
 
