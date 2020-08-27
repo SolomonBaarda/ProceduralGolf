@@ -11,6 +11,7 @@ public class TerrainGenerator : MonoBehaviour
 {
     private Dictionary<Vector2Int, ChunkData> Chunks = new Dictionary<Vector2Int, ChunkData>();
     public TerrainChunkManager TerrainChunkManager;
+    public WorldObjectGenerator WorldObjectGenerator;
 
     public HashSet<WorldObjectData> WorldObjects = new HashSet<WorldObjectData>();
 
@@ -183,6 +184,32 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
+
+
+
+
+    private TerrainMap.Point GetLowestPoint(IEnumerable<TerrainMap.Point> points)
+    {
+        if (points != null)
+        {
+            // Get the point with the lowest Y value
+            TerrainMap.Point lowest = points.FirstOrDefault();
+            foreach (TerrainMap.Point p in points)
+            {
+                if (p.LocalVertexPosition.y < lowest.LocalVertexPosition.y)
+                {
+                    lowest = p;
+                }
+            }
+
+            return lowest;
+        }
+        return default;
+    }
+
+
+
+
     public void GenerateInitialTerrain(IEnumerable<Vector2Int> chunks)
     {
         DateTime before = DateTime.Now;
@@ -263,15 +290,25 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
+            List<WorldObjectData> data = WorldObjectGenerator.CalculateDataForChunk(map);
+            
+            foreach(WorldObjectData w in data)
+            {
+                WorldObjects.Add(w);
+            }
+
+
             // Assign the biomes
             Biome.Type[,] biomes = new Biome.Type[map.Width, map.Height];
             for (int y = 0; y < map.Height; y++)
             {
                 for (int x = 0; x < map.Width; x++)
                 {
-                    biomes[x, y] = map.Map[x, y].Biome;
+                    biomes[x, y] = map.Points[x, y].Biome;
                 }
             }
+
+
 
             Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, Texture_GroundSettings);
 

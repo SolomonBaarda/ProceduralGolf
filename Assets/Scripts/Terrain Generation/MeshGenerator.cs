@@ -17,7 +17,7 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                data.SetVertex(x, y, terrainMap.Map[x, y].LocalVertexPosition, Biome.BiomeToColour(terrainMap.Map[x, y].Biome));
+                data.SetVertex(x, y, terrainMap.Points[x, y].LocalVertexPosition, Biome.BiomeToColour(terrainMap.Points[x, y].Biome));
             }
         }
 

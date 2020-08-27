@@ -12,7 +12,7 @@ public class TerrainMap
     /// <summary>
     /// The maximum LOD Terrain data.
     /// </summary>
-    public Point[,] Map;
+    public Point[,] Points;
 
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
@@ -27,7 +27,7 @@ public class TerrainMap
         EdgeNeighboursAdded = new List<Point.NeighbourDirection>();
 
         // Create the map
-        Map = new Point[width, height];
+        Points = new Point[width, height];
 
         // Assign all the terrain point vertices
         for (int y = 0; y < height; y++)
@@ -37,7 +37,7 @@ public class TerrainMap
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
 
                 // Assign the terrain point
-                Map[x, y] = new Point(baseVertices[x, y], bounds.center, heightsBeforeHole[x,y], biomes[x,y], decoration[x,y], atEdge);
+                Points[x, y] = new Point(baseVertices[x, y], bounds.center, heightsBeforeHole[x,y], biomes[x,y], decoration[x,y], atEdge);
             }
         }
 
@@ -46,7 +46,7 @@ public class TerrainMap
         {
             for (int x = 0; x < width; x++)
             {
-                Point p = Map[x, y];
+                Point p = Points[x, y];
 
                 // Add the 3x3 of points as neighbours
                 for (int j = -1; j <= 1; j++)
@@ -56,12 +56,12 @@ public class TerrainMap
                         int pointX = x + i, pointY = y + j;
 
                         // Ensure within the array bounds
-                        if (Utils.IsWithinArrayBounds(pointX, pointY, in Map))
+                        if (Utils.IsWithinArrayBounds(pointX, pointY, in Points))
                         {
                             // Don't add its self
                             if (pointX != x || pointY != y)
                             {
-                                Point neighbour = Map[pointX, pointY];
+                                Point neighbour = Points[pointX, pointY];
 
                                 // Add the neighbour
                                 p.Neighbours.Add(neighbour);
@@ -128,8 +128,8 @@ public class TerrainMap
 
     public void DebugMinMaxHeight()
     {
-        float min = Map[0, 0].Height, max = min;
-        foreach (Point p in Map)
+        float min = Points[0, 0].Height, max = min;
+        foreach (Point p in Points)
         {
             min = p.Height < min ? p.Height : min;
             max = p.Height > max ? p.Height : max;
@@ -171,9 +171,9 @@ public class TerrainMap
                     {
                         for (int i = -1; i <= 1; i++)
                         {
-                            if (Utils.IsWithinArrayBounds(x + i, neighbourY, map.Map))
+                            if (Utils.IsWithinArrayBounds(x + i, neighbourY, map.Points))
                             {
-                                AddNeighbourForEdge(ref Map[x, y], ref map.Map[x + i, neighbourY], out bool needsUpdating);
+                                AddNeighbourForEdge(ref Points[x, y], ref map.Points[x + i, neighbourY], out bool needsUpdating);
                                 mapNeedsUpdating |= needsUpdating;
                             }
 
@@ -194,9 +194,9 @@ public class TerrainMap
                     {
                         for (int j = -1; j <= 1; j++)
                         {
-                            if (Utils.IsWithinArrayBounds(neighbourX, y + j, map.Map))
+                            if (Utils.IsWithinArrayBounds(neighbourX, y + j, map.Points))
                             {
-                                AddNeighbourForEdge(ref Map[x, y], ref map.Map[neighbourX, y + j], out bool needsUpdating);
+                                AddNeighbourForEdge(ref Points[x, y], ref map.Points[neighbourX, y + j], out bool needsUpdating);
                                 mapNeedsUpdating |= needsUpdating;
                             }
 

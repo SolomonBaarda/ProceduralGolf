@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: Lato-Bold SDF
   m_EditorClassIdentifier: 
-  hashCode: 0
+  hashCode: -356473649
   material: {fileID: 1111312492165219485}
-  materialHashCode: 0
+  materialHashCode: 1909642639
   m_Version: 1.1.0
   m_SourceFontFileGUID: 6777e319b7ed7bc4a8d2b41601018a30
   m_SourceFontFile_EditorRef: {fileID: 0}
@@ -2570,6 +2570,7 @@ Material:
     - _BumpFace: 0
     - _BumpOutline: 0
     - _ColorMask: 15
+    - _CullMode: 0
     - _Diffuse: 0.5
     - _FaceDilate: 0
     - _FaceUVSpeedX: 0
@@ -2588,9 +2589,9 @@ Material:
     - _OutlineWidth: 0
     - _PerspectiveFilter: 0.875
     - _Reflectivity: 10
-    - _ScaleRatioA: 1
-    - _ScaleRatioB: 1
-    - _ScaleRatioC: 1
+    - _ScaleRatioA: 0.8333333
+    - _ScaleRatioB: 0.6770833
+    - _ScaleRatioC: 0.6770833
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0

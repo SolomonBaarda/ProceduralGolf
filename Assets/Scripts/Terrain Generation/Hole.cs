@@ -210,7 +210,7 @@ public class Hole
         {
             for (int x = 0; x < t.Width; x++)
             {
-                CheckPoint(t.Map[x, y], ref alreadyChecked, ref holes);
+                CheckPoint(t.Points[x, y], ref alreadyChecked, ref holes);
             }
         }
 

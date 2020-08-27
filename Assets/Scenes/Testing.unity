@@ -249,8 +249,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cea54eaba86ed347b75a8e7234c8566, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 1
-  regionSize: {x: 20, y: 20}
+  radius: 0.45
+  Size: {x: 47.9, y: 44}
+  Centre: {x: -2.42, y: -2.1, z: 1.77}
   rejectionSamples: 1
   displayRadius: 0.2
 --- !u!1 &1706623533

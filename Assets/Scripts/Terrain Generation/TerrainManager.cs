@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 
 public class TerrainManager : MonoBehaviour
 {
@@ -87,10 +86,10 @@ public class TerrainManager : MonoBehaviour
                 // The prefab is already here
                 if (data.Prefab.Equals(d.Prefab))
                 {
-                    foreach(Vector3 pos in data.WorldPositions)
+                    foreach (Vector3 pos in data.WorldPositions)
                     {
                         // Instantiate the object if it is not in the list of already added
-                        if(!d.WorldPositions.Contains(pos))
+                        if (!d.WorldPositions.Contains(pos))
                         {
                             InstantiateOne(d.Prefab, pos);
                             d.WorldPositions.Add(pos);
@@ -194,4 +193,34 @@ public class TerrainManager : MonoBehaviour
         return pointOnMesh + (UP * sphereRadius);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+
+        if (CurrentLoadedTerrain != null)
+        {
+            foreach (WorldObjectData d in CurrentLoadedTerrain.WorldObjects)
+            {
+                foreach (Vector3 pos in d.WorldPositions)
+                {
+                    Gizmos.DrawLine(pos, pos + (UP * 100));
+                }
+            }
+        }
+
+    }
 }

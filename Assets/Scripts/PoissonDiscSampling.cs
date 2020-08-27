@@ -6,7 +6,26 @@ public static class PoissonDiscSampling
     // https://github.com/SebLague/Poisson-Disc-Sampling
 
 
-    public static List<Vector2> GeneratePoints(float radius, Vector2 sampleRegionSize, int seed, int numSamplesBeforeRejection = 30)
+
+    public static List<Vector3> GenerateWorldPoints(float radius, Bounds bounds, int seed, int numSamplesBeforeRejection = 30)
+    {
+        // Get the local position
+        List<Vector2> localPosition2D = GenerateLocalPoints(radius, new Vector2(bounds.size.x, bounds.size.z), seed, numSamplesBeforeRejection);
+        List<Vector3> worldPos = new List<Vector3>(localPosition2D.Count);
+
+        // Add the offset to it
+        Vector3 offset = new Vector3(bounds.min.x, bounds.center.y, bounds.min.z);
+        foreach (Vector2 pos in localPosition2D)
+        {
+            worldPos.Add(new Vector3(pos.x, 0, pos.y) + offset);
+        }
+
+        return worldPos;
+    }
+
+
+
+    public static List<Vector2> GenerateLocalPoints(float radius, Vector2 sampleRegionSize, int seed, int numSamplesBeforeRejection = 30)
     {
         float cellSize = radius / Mathf.Sqrt(2);
 
