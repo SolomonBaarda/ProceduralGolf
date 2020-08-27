@@ -429,13 +429,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: acd1c9c76fec8e24d9dc69d46dc53193, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Radius: 5
-  Iterations: 1
+  Radius: 20
+  Iterations: 5
   WorldObjectPrefabs:
-  - Prefab: {fileID: 104588, guid: 702740a5e4ac1ee40a1888d3b62faa91, type: 3}
-    Type: 1
-  - Prefab: {fileID: 128044, guid: 85f4229977c9ee247bc4425710c5b0c4, type: 3}
-    Type: 2
+  - Type: 1
+    Prefabs:
+    - {fileID: 117604, guid: 9469bb1d3aa88ca40aa4079e96a27f8e, type: 3}
+    - {fileID: 185286, guid: 8ed1fa325ca228645ad26dd6eff14768, type: 3}
+    - {fileID: 152404, guid: 5037d6ea184d2f640bf78dcf9894a269, type: 3}
+    - {fileID: 127550, guid: 87a6cef862ce2cb4a88c5ca5d5af5d2b, type: 3}
+  - Type: 2
+    Prefabs:
+    - {fileID: 174596, guid: 41dcf1459594f434a8a9bae6ae03eab0, type: 3}
+    - {fileID: 181472, guid: e9661e4c2bfea8344a07064944abe034, type: 3}
+    - {fileID: 163546, guid: 329d0b0187f24cd4da9f775d83708bd6, type: 3}
 --- !u!4 &784421682 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4213627502347566079, guid: 8b5ace1036e996949aaff71ced827337,
@@ -1031,7 +1038,7 @@ MonoBehaviour:
   GolfBall: {fileID: 1324745660}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
-  TerrainMode: 2
+  TerrainMode: 0
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
   WorldSaves:
   - {fileID: 11400000, guid: 538d109d7573d7d45a505ab0a975aa3a, type: 2}

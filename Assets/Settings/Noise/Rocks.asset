@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e3c32715cc46b14f8da824198e36a66, type: 3}
   m_Name: Rocks
   m_EditorClassIdentifier: 
-  scale: 40
+  scale: 60
   octaves: 2
   persistance: 0.3
   lacunarity: 2

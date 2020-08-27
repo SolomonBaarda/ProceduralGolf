@@ -296,6 +296,7 @@ public class TerrainGenerator : MonoBehaviour
             {
                 WorldObjects.Add(w);
             }
+            //Debug.Log("prefabs: " + WorldObjects.Count);
 
 
             // Assign the biomes
@@ -305,6 +306,20 @@ public class TerrainGenerator : MonoBehaviour
                 for (int x = 0; x < map.Width; x++)
                 {
                     biomes[x, y] = map.Points[x, y].Biome;
+
+
+                    /*
+                    TerrainMap.Point p = map.Points[x, y];
+                    switch (p.Decoration)
+                    {
+                        case Biome.Decoration.Tree:
+                            Debug.DrawRay(p.LocalVertexPosition + p.Offset, Vector3.up * 5, Color.green, 500);
+                            break;
+                        case Biome.Decoration.Rock:
+                            Debug.DrawRay(p.LocalVertexPosition + p.Offset, Vector3.up * 5, Color.grey, 500);
+                            break;
+                    }
+                    */
                 }
             }
 
@@ -733,6 +748,13 @@ public class TerrainGenerator : MonoBehaviour
                 if (settings.Trees.DoObject && treeMask[x, y])
                 {
                     decor = Biome.Decoration.Tree;
+                }
+
+
+                // Don't allow decoration to exist in these biomes
+                if(biomes[x,y] == Biome.Type.Sand || biomes[x,y] == Biome.Type.Ice || biomes[x,y] == Biome.Type.Water)
+                {
+                    decor = Biome.Decoration.None;
                 }
 
                 decoration[x, y] = decor;

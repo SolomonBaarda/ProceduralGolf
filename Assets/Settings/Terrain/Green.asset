@@ -39,7 +39,15 @@ MonoBehaviour:
     m_RotationOrder: 4
   HeightMultiplier: 16
   MainBiome: 1
+  HoleNoiseThresholdMinMax: {x: 0.8, y: 1.5}
   DoBunkers: 1
   BunkerMultiplier: 2
   BunkerNoiseThresholdMinMax: {x: 0.75, y: 1.5}
-  HoleNoiseThresholdMinMax: {x: 0.8, y: 1.5}
+  Trees:
+    DoObject: 1
+    SamplePointRadius: 1
+    NoiseThresholdMinMax: {x: 0.6, y: 1.5}
+  Rocks:
+    DoObject: 1
+    SamplePointRadius: 1
+    NoiseThresholdMinMax: {x: 0.75, y: 1.5}
