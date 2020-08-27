@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class TerrainChunkManager : MonoBehaviour
@@ -33,9 +34,10 @@ public class TerrainChunkManager : MonoBehaviour
 
 
 
-    public void TryAddChunk(TerrainChunkData data, Material material, PhysicMaterial physics, int terrainLayer)
+    public TerrainChunk TryAddChunk(TerrainChunkData data, Material material, PhysicMaterial physics, int terrainLayer)
     {
         Vector2Int position = new Vector2Int(data.X, data.Y);
+        TerrainChunk chunk;
 
         // Need to create new chunk
         if (!TerrainChunkExists(position))
@@ -43,9 +45,7 @@ public class TerrainChunkManager : MonoBehaviour
             Bounds bounds = new Bounds(data.Centre, data.Size);
 
             // Create the chunk
-            TerrainChunk chunk = new GameObject().AddComponent<TerrainChunk>();
-
-            //Vector3[,] basePoints = CalculateWorldPoints(data.Width, data.Height, bounds);
+            chunk = new GameObject().AddComponent<TerrainChunk>();
 
             chunk.Initialise(position, bounds, data, material, physics, ChunkParent, terrainLayer);
 
@@ -59,7 +59,10 @@ public class TerrainChunkManager : MonoBehaviour
                 // Update the chunk data 
                 c.UpdateChunkData(data);
             }
+            chunk = c;
         }
+
+        return chunk;
     }
 
 
@@ -83,10 +86,9 @@ public class TerrainChunkManager : MonoBehaviour
 
 
 
-    public TerrainChunk GetChunk(Vector2Int chunk)
+    public bool TryGetChunk(Vector2Int pos, out TerrainChunk chunk)
     {
-        TerrainChunks.TryGetValue(chunk, out TerrainChunk val);
-        return val;
+        return TerrainChunks.TryGetValue(pos, out chunk);
     }
 
 
@@ -178,10 +180,8 @@ public class TerrainChunkManager : MonoBehaviour
     public void Clear()
     {
         // Clear all the chunks
-        for (int i = 0; i < ChunkParent.childCount; i++)
-        {
-            Destroy(ChunkParent.GetChild(i).gameObject);
-        }
+        Utils.DestroyAllChildren(ChunkParent);
+
         TerrainChunks.Clear();
         UpdateGrid();
     }

@@ -8,7 +8,6 @@ public class TerrainManager : MonoBehaviour
     public static readonly Vector3 ORIGIN = Vector3.zero;
 
     public TerrainChunkManager TerrainChunkManager;
-    public Transform WorldObjectsParent;
 
     public bool HasTerrain { get; private set; }
 
@@ -36,12 +35,6 @@ public class TerrainManager : MonoBehaviour
     public void Clear()
     {
         TerrainChunkManager.Clear();
-
-        // Destroy all of the world objects
-        for (int i = 0; i < WorldObjectsParent.childCount; i++)
-        {
-            Destroy(WorldObjectsParent.GetChild(i).gameObject);
-        }
 
         HasTerrain = false;
 
@@ -76,47 +69,54 @@ public class TerrainManager : MonoBehaviour
 
 
 
-    private void CheckObjectBeforeInstantiating(WorldObjectData data)
+    private void CheckObjectBeforeInstantiating(TerrainChunkData data, Transform parent)
     {
         // We can just instantiate them all
         if (CurrentLoadedTerrain != null)
         {
-            foreach (WorldObjectData d in CurrentLoadedTerrain.WorldObjects)
+            TerrainChunkData current = CurrentLoadedTerrain.Chunks.Find(x => x.X == data.X && x.Y == data.Y);
+
+            if (current != null)
             {
-                // The prefab is already here
-                if (data.Prefab.Equals(d.Prefab))
+                foreach (WorldObjectData d in data.WorldObjects)
                 {
-                    foreach (Vector3 pos in data.WorldPositions)
+                    WorldObjectData exists = current.WorldObjects.Find(x => x.Prefab.Equals(d.Prefab));
+
+                    foreach (Vector3 pos in d.WorldPositions)
                     {
-                        // Instantiate the object if it is not in the list of already added
-                        if (!d.WorldPositions.Contains(pos))
+                        // Only instantiate the prefab if either none of them have been
+                        // OR if just that position has not been added
+                        if (exists == null || !exists.WorldPositions.Contains(pos))
                         {
-                            InstantiateOne(d.Prefab, pos);
-                            d.WorldPositions.Add(pos);
+                            InstantiateOne(d.Prefab, pos, parent);
                         }
                     }
-
-                    return;
                 }
+                return;
             }
         }
 
         // If we get here, then we can just instantiate them all
-        InstantiateAll(data);
+        InstantiateAll(data, parent);
     }
 
 
-    private void InstantiateAll(WorldObjectData data)
+    private void InstantiateAll(TerrainChunkData data, Transform parent)
     {
-        foreach (Vector3 pos in data.WorldPositions)
+        // Loop through each data
+        foreach (WorldObjectData d in data.WorldObjects)
         {
-            InstantiateOne(data.Prefab, pos);
+            // And each pos
+            foreach (Vector3 pos in d.WorldPositions)
+            {
+                InstantiateOne(d.Prefab, pos, parent);
+            }
         }
     }
 
-    private void InstantiateOne(GameObject g, Vector3 pos)
+    private void InstantiateOne(GameObject g, Vector3 pos, Transform parent)
     {
-        Instantiate(g, pos, Quaternion.identity, WorldObjectsParent);
+        Instantiate(g, pos, Quaternion.identity, parent);
     }
 
 
@@ -132,17 +132,11 @@ public class TerrainManager : MonoBehaviour
         // Load terrain
         foreach (TerrainChunkData chunk in data.Chunks)
         {
-            TerrainChunkManager.TryAddChunk(chunk, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
+            // Instantiate the terrain
+            TerrainChunk c = TerrainChunkManager.TryAddChunk(chunk, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
+            // And instantiate all objects
+            CheckObjectBeforeInstantiating(chunk, c.transform);
         }
-
-
-
-        // Instantiate all GameObjects
-        foreach (WorldObjectData prefab in data.WorldObjects)
-        {
-            CheckObjectBeforeInstantiating(prefab);
-        }
-
 
 
 
@@ -206,21 +200,4 @@ public class TerrainManager : MonoBehaviour
 
 
 
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-
-        if (CurrentLoadedTerrain != null)
-        {
-            foreach (WorldObjectData d in CurrentLoadedTerrain.WorldObjects)
-            {
-                foreach (Vector3 pos in d.WorldPositions)
-                {
-                    Gizmos.DrawLine(pos, pos + (UP * 100));
-                }
-            }
-        }
-
-    }
 }

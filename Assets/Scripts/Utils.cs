@@ -37,6 +37,21 @@ public static class Utils
 
 
 
+
+    public static void DestroyAllChildren(Transform t)
+    {
+        // Destroy all of the world objects
+        for (int i = 0; i < t.childCount; i++)
+        {
+            Object.Destroy(t.GetChild(i).gameObject);
+        }
+    }
+
+
+
+
+
+
     public static bool IsWithinArrayBounds<T>(int x, int y, in T[,] array)
     {
         if (array != null)

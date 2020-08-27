@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -17,10 +18,14 @@ public class TerrainChunkData
     public int Width, Height;
     [SerializeField] [HideInInspector] public Biome.Type[] BiomesFlat;
 
+    [SerializeField] public List<WorldObjectData> WorldObjects;
 
 
 
-    public TerrainChunkData(int x, int y, Vector3 centre, Vector3 size, Biome.Type[,] biomes, Texture2D colourMap, Mesh main)
+
+
+    public TerrainChunkData(int x, int y, Vector3 centre, Vector3 size, Biome.Type[,] biomes,
+        Texture2D colourMap, Mesh main, List<WorldObjectData> worldObjects)
     {
         X = x;
         Y = y;
@@ -34,5 +39,7 @@ public class TerrainChunkData
         Height = biomes.GetLength(1);
 
         BiomesFlat = Utils.Flatten(biomes);
+
+        WorldObjects = worldObjects;
     }
 }

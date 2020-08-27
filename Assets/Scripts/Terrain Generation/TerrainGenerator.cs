@@ -13,8 +13,6 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainChunkManager TerrainChunkManager;
     public WorldObjectGenerator WorldObjectGenerator;
 
-    public HashSet<WorldObjectData> WorldObjects = new HashSet<WorldObjectData>();
-
     public Transform HolesWorldObjectParent;
     private HashSet<Hole> GolfHoles = new HashSet<Hole>();
 
@@ -96,7 +94,7 @@ public class TerrainGenerator : MonoBehaviour
 
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, chunks, GetHoleData(), WorldObjects.ToList());
+            terrain.SetData(Seed, chunks, GetHoleData());
 
             return terrain;
         }
@@ -291,11 +289,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
             List<WorldObjectData> data = WorldObjectGenerator.CalculateDataForChunk(map);
-            
-            foreach(WorldObjectData w in data)
-            {
-                WorldObjects.Add(w);
-            }
+           
             //Debug.Log("prefabs: " + WorldObjects.Count);
 
 
@@ -333,7 +327,7 @@ public class TerrainGenerator : MonoBehaviour
             Mesh mesh = null;
             meshData.UpdateMesh(ref mesh, MeshSettings);
 
-            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Bounds.size, biomes, colourMap, mesh);
+            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Bounds.size, biomes, colourMap, mesh, data);
 
 
             ChunkData d = new ChunkData() { Data = chunkData, TerrainMap = map, MeshData = meshData };
