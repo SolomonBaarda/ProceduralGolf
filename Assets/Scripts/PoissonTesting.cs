@@ -20,7 +20,7 @@ public class PoissonTesting : MonoBehaviour
         points = PoissonDiscSampling.GenerateWorldPoints(radius, bounds, rejectionSamples);
     }
 
-    void OnDrawGizmos()
+    void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireCube(bounds.center, bounds.size);
         if (points != null)

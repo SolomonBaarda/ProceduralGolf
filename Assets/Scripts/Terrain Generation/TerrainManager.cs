@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -127,6 +128,13 @@ public class TerrainManager : MonoBehaviour
     /// <param name="data"></param>
     public void LoadTerrain(TerrainData data, DateTime before)
     {
+        StartCoroutine(LoadTerrainAsync(data, before));
+    }
+
+
+
+    private IEnumerator LoadTerrainAsync(TerrainData data, DateTime before)
+    {
         Clear();
 
         // Load terrain
@@ -136,10 +144,11 @@ public class TerrainManager : MonoBehaviour
             TerrainChunk c = TerrainChunkManager.TryAddChunk(chunk, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
             // And instantiate all objects
             CheckObjectBeforeInstantiating(chunk, c.transform);
+
+
+            // Spead it out to one chunk per frame
+            yield return null;
         }
-
-
-
 
 
 
@@ -157,6 +166,20 @@ public class TerrainManager : MonoBehaviour
             Debug.Log(message);
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     public void AddChunks(IEnumerable<TerrainChunkData> chunks)

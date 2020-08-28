@@ -112,9 +112,14 @@ public class GameManager : MonoBehaviour
             TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius));
         }
 
-
+        // Set up the TerrainManager
         TerrainManager.Set(Gamerules.DoHideFarChunks, GolfBall.transform, Gamerules.ViewDistanceWorldUnits);
 
+        // Disable the golf ball if we dont need it
+        if (!Gamerules.UseGolfBall)
+        {
+            GolfBall.gameObject.SetActive(false);
+        }
 
         // Load the HUD if we need it
         if (Gamerules.UseHUD)
@@ -129,11 +134,6 @@ public class GameManager : MonoBehaviour
             }
 
             HUD.Active(false);
-        }
-
-        if (!Gamerules.UseGolfBall)
-        {
-            GolfBall.gameObject.SetActive(false);
         }
 
         // Ensure there is terrain before we start

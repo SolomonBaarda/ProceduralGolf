@@ -12,7 +12,8 @@ public class HUD : MonoBehaviour
     public UnityAction OnRestartPressed;
     public UnityAction OnQuitPressed;
 
-    public Canvas Canvas;
+    public Canvas CanvasShootingMenu;
+    public Canvas CanvasMainUI;
 
     [Header("Shooting Window")]
     public RectTransform ShootingWindow;
@@ -35,10 +36,6 @@ public class HUD : MonoBehaviour
     public TMP_Text Shots;
 
 
-    [Header("Map")]
-    public Transform MapParent;
-    public RectTransform MapVisual;
-
 
     public static HUD Instance;
 
@@ -52,7 +49,8 @@ public class HUD : MonoBehaviour
 
     public void Active(bool visible)
     {
-        Canvas.gameObject.SetActive(visible);
+        CanvasShootingMenu.gameObject.SetActive(visible);
+        CanvasMainUI.gameObject.SetActive(visible);
     }
 
 
