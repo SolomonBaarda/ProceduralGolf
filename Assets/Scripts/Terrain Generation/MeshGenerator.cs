@@ -17,7 +17,7 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                data.SetVertex(x, y, terrainMap.Points[x, y].LocalVertexPosition, Biome.BiomeToColour(terrainMap.Points[x, y].Biome));
+                data.SetVertex(x, y, terrainMap.Points[x, y].LocalVertexPosition);
             }
         }
 
@@ -31,7 +31,7 @@ public static class MeshGenerator
         private readonly int MaxVerticesWidth, MaxVerticesHeight;
         public Vector3[] Vertices;
         public Vector2[] UVs;
-        public Color[] Colours;
+        //public Color[] Colours;
 
 
         public MeshData(int verticesX, int verticesY)
@@ -41,7 +41,7 @@ public static class MeshGenerator
             // Assign memory for the arrays
             Vertices = new Vector3[MaxVerticesWidth * MaxVerticesHeight];
             UVs = new Vector2[Vertices.Length];
-            Colours = new Color[Vertices.Length];
+            //Colours = new Color[Vertices.Length];
         }
 
 
@@ -55,13 +55,13 @@ public static class MeshGenerator
             return -1;
         }
 
-        public void SetVertex(int x, int y, Vector3 vertex, Color colour)
+        public void SetVertex(int x, int y, Vector3 vertex)
         {
             int index = GetVertexIndex(x, y);
             if (index != -1)
             {
                 Vertices[index] = vertex;
-                Colours[index] = colour;
+                //Colours[index] = colour;
             }
         }
 
@@ -108,7 +108,7 @@ public static class MeshGenerator
 
             Vector3[] newVertices = new Vector3[newWidth * newHeight];
             Vector2[] newUVs = new Vector2[newVertices.Length];
-            Color[] newColours = new Color[newVertices.Length];
+            //Color[] newColours = new Color[newVertices.Length];
             int[] newTriangles = new int[newVertices.Length * 6];
             int triangleIndex = 0;
 
@@ -124,7 +124,7 @@ public static class MeshGenerator
                     // Add the UV
                     newUVs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
                     // Add the colour
-                    newColours[thisVertexIndex] = Colours[GetVertexIndex(x, y)];
+                    //newColours[thisVertexIndex] = Colours[GetVertexIndex(x, y)];
 
 
                     // Set the triangles
@@ -160,7 +160,7 @@ public static class MeshGenerator
             m.vertices = newVertices;
             m.triangles = newTriangles;
             m.uv = newUVs;
-            m.colors = newColours;
+            //m.colors = newColours;
 
             // Recalculate values
             m.RecalculateNormals();

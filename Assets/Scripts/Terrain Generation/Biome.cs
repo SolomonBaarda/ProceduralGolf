@@ -23,9 +23,9 @@ public static class Biome
     }
 
 
+    
 
-
-
+    /*
 
 
     public static Color BiomeToColour(Type t)
@@ -75,15 +75,18 @@ public static class Biome
     }
 
 
+    */
+    
 
     public enum Type
     {
         None,
         Grass,
         Sand,
-        Hole,
         Water,
         Ice,
+        GrassShort,
+        GrassLong,
     }
 
 

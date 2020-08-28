@@ -17,7 +17,7 @@ public class TerrainMap
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
     public TerrainMap(Vector2Int chunk, int width, int height, in Vector3[,] baseVertices, Bounds bounds,
-        in float[,] heightsBeforeHole, Biome.Type[,] biomes, Biome.Decoration[,] decoration)
+        in float[,] heightsBeforeHole, in bool[,] holeMask, Biome.Type[,] biomes, Biome.Decoration[,] decoration)
     {
         Chunk = chunk;
         Width = width;
@@ -37,7 +37,7 @@ public class TerrainMap
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
 
                 // Assign the terrain point
-                Points[x, y] = new Point(baseVertices[x, y], bounds.center, heightsBeforeHole[x,y], biomes[x,y], decoration[x,y], atEdge);
+                Points[x, y] = new Point(baseVertices[x, y], bounds.center, heightsBeforeHole[x,y], biomes[x,y], decoration[x,y], holeMask[x,y], atEdge);
             }
         }
 
@@ -252,7 +252,7 @@ public class TerrainMap
                 p.Neighbours.Add(neighbour);
 
                 // These neighbours are the same hole that is split by the chunk border
-                if (p.Biome == Biome.Type.Hole && neighbour.Biome == Biome.Type.Hole)
+                if (p.IsHole && neighbour.IsHole)
                 {
                     if (p.Hole != neighbour.Hole)
                     {
@@ -279,24 +279,26 @@ public class TerrainMap
 
         public bool IsAtEdgeOfMesh;
 
-        public Biome.Type Biome;
         public float Height;
         public float OriginalHeight;
 
+        public Biome.Type Biome;
         public Biome.Decoration Decoration;
 
         /// <summary>
         /// If this point is part of a Hole.
         /// </summary>
         public Hole Hole;
+        public bool IsHole;
         public List<Point> Neighbours;
 
 
-        public Point(Vector3 localVertexPos, Vector3 offset, float height, Biome.Type biome, Biome.Decoration decoration, bool isAtEdgeOfMesh)
+        public Point(Vector3 localVertexPos, Vector3 offset, float height, Biome.Type biome, Biome.Decoration decoration, bool isHole, bool isAtEdgeOfMesh)
         {
             LocalVertexBasePosition = localVertexPos;
             Offset = offset;
 
+            IsHole = isHole;
             IsAtEdgeOfMesh = isAtEdgeOfMesh;
 
             Neighbours = new List<Point>();

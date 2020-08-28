@@ -9,7 +9,6 @@ public class GameManager : MonoBehaviour
     public TerrainGenerator TerrainGenerator;
     public TerrainManager TerrainManager;
     public CourseManager CourseManager;
-    public Minimap Minimap;
 
     public GolfBall GolfBall;
     public Follower BallFollower;
@@ -28,8 +27,6 @@ public class GameManager : MonoBehaviour
 
     [Space]
     public Material Skybox;
-
-    private bool drawMap;
 
 
     [SerializeField] public List<TerrainData> WorldSaves = new List<TerrainData>();
@@ -168,8 +165,6 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        drawMap = Input.GetKey(KeyCode.Tab);
-
 
 
         if (Gamerules.UseGolfBall)
@@ -269,19 +264,6 @@ public class GameManager : MonoBehaviour
                 case GolfBall.PlayState.Rolling:
                     BallFollower.CurrentView = Follower.View.Behind;
                     break;
-            }
-
-
-            // Make minimap visible
-            Minimap.SetVisible(drawMap);
-            if (HUDHasLoaded)
-            {
-                HUD.MapParent.gameObject.SetActive(drawMap);
-                // Disable the shots counter in the minimap
-                HUD.ShotsDisplayParent.SetActive(!drawMap);
-
-                // Show the shooting window
-                HUD.ShootingWindow.gameObject.SetActive(!drawMap && isShooting);
             }
         }
     }

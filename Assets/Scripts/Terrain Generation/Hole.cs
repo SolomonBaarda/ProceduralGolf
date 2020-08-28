@@ -115,7 +115,7 @@ public class Hole
     private static void GetAllConnectedHolePointsWorker(TerrainMap.Point start, ref HashSet<TerrainMap.Point> connected, ref HashSet<Hole> holesFound)
     {
         // Ensure we start with a new hole point
-        if (start.Biome == Biome.Type.Hole && !connected.Contains(start))
+        if (start.IsHole && !connected.Contains(start))
         {
             connected.Add(start);
 
@@ -154,7 +154,7 @@ public class Hole
             pointsAlreadyChecked.Add(p);
 
             // Vertex is part of a hole
-            if (p.Biome == Biome.Type.Hole)
+            if (p.IsHole)
             {
                 HashSet<TerrainMap.Point> pointsInThisHole = GetAllConnectedHolePoints(p, out HashSet<Hole> holesFound);
 

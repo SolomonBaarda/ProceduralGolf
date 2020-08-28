@@ -14,11 +14,13 @@ public class TerrainSettings : VariablePreset
 
     [Header("Holes")]
     public Vector2 HoleNoiseThresholdMinMax = new Vector2(0.8f, 1.5f);
+    public Biome.Type HoleBiome;
 
     [Header("Bunkers")]
     public bool DoBunkers = true;
     public float BunkerMultiplier = 2f;
     public Vector2 BunkerNoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
+    public Biome.Type BunkerBiome;
 
     [Header("Procedural objects")]
     public ProceduralObject Trees;

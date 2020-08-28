@@ -413,8 +413,6 @@ MonoBehaviour:
     type: 2}
   Texture_GroundSettings: {fileID: 11400000, guid: 8c69bc2d118b0ae49a217aefa19d034a,
     type: 2}
-  Texture_MapSettings: {fileID: 11400000, guid: 8ac845c9b2e54a24eb921a7ea51148dd,
-    type: 2}
   Seed: 0
   DoRandomSeed: 0
 --- !u!114 &698838603
@@ -1033,7 +1031,6 @@ MonoBehaviour:
   TerrainGenerator: {fileID: 698838602}
   TerrainManager: {fileID: 1510809344}
   CourseManager: {fileID: 1684111220}
-  Minimap: {fileID: 1274750258}
   GolfBall: {fileID: 1324745660}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}

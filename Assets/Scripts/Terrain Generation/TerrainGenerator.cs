@@ -41,7 +41,6 @@ public class TerrainGenerator : MonoBehaviour
 
     [Space]
     public TextureSettings Texture_GroundSettings;
-    public TextureSettings Texture_MapSettings;
 
     [Space]
     public int Seed = 0;
@@ -290,7 +289,6 @@ public class TerrainGenerator : MonoBehaviour
 
             List<WorldObjectData> data = WorldObjectGenerator.CalculateDataForChunk(map);
            
-            //Debug.Log("prefabs: " + WorldObjects.Count);
 
 
             // Assign the biomes
@@ -300,20 +298,6 @@ public class TerrainGenerator : MonoBehaviour
                 for (int x = 0; x < map.Width; x++)
                 {
                     biomes[x, y] = map.Points[x, y].Biome;
-
-
-                    /*
-                    TerrainMap.Point p = map.Points[x, y];
-                    switch (p.Decoration)
-                    {
-                        case Biome.Decoration.Tree:
-                            Debug.DrawRay(p.LocalVertexPosition + p.Offset, Vector3.up * 5, Color.green, 500);
-                            break;
-                        case Biome.Decoration.Rock:
-                            Debug.DrawRay(p.LocalVertexPosition + p.Offset, Vector3.up * 5, Color.grey, 500);
-                            break;
-                    }
-                    */
                 }
             }
 
@@ -413,7 +397,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Return the terrain map
-        return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsBeforeHole, biomes, decoration);
+        return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsBeforeHole, holeMask, biomes, decoration);
     }
 
 
@@ -715,13 +699,13 @@ public class TerrainGenerator : MonoBehaviour
                 // Do a bunker
                 if (settings.DoBunkers && !Mathf.Approximately(bunkerHeights[x, y], TerrainMap.Point.Empty))
                 {
-                    biome = Biome.Type.Sand;
+                    biome = settings.BunkerBiome;
                 }
 
                 // Hole is more important
                 if (holeMask[x, y])
                 {
-                    biome = Biome.Type.Hole;
+                    biome = settings.HoleBiome;
                 }
 
                 biomes[x, y] = biome;
@@ -746,7 +730,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
                 // Don't allow decoration to exist in these biomes
-                if(biomes[x,y] == Biome.Type.Sand || biomes[x,y] == Biome.Type.Ice || biomes[x,y] == Biome.Type.Water)
+                if(biomes[x,y] == settings.HoleBiome || biomes[x,y] == settings.BunkerBiome)
                 {
                     decor = Biome.Decoration.None;
                 }

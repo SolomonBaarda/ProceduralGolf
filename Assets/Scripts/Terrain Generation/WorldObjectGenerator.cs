@@ -35,7 +35,21 @@ public class WorldObjectGenerator : MonoBehaviour
 
 
 
+    private float GetLowestYPosFromNeighbours(TerrainMap.Point point)
+    {
+        float lowest = (point.LocalVertexPosition + point.Offset).y;
 
+        foreach(TerrainMap.Point neighbour in point.Neighbours)
+        {
+            float y = (neighbour.LocalVertexPosition + neighbour.Offset).y;
+            if (y < lowest)
+            {
+                lowest = y;
+            }
+        }
+
+        return lowest;
+    }
 
     public List<WorldObjectData> CalculateDataForChunk(TerrainMap m)
     {
@@ -57,7 +71,7 @@ public class WorldObjectGenerator : MonoBehaviour
             // Get the correct world pos
             Vector3 worldPos = new Vector3(pos.x, 0, pos.y) + offset;
             TerrainMap.Point p = Utils.GetClosestTo(worldPos, m.Bounds.min, m.Bounds.max, in m.Points);
-            worldPos.y = p.LocalVertexPosition.y;
+            worldPos.y = GetLowestYPosFromNeighbours(p);
 
             // Find its type
             Biome.Decoration type = p.Decoration;

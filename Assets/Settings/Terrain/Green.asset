@@ -40,9 +40,11 @@ MonoBehaviour:
   HeightMultiplier: 16
   MainBiome: 1
   HoleNoiseThresholdMinMax: {x: 0.8, y: 1.5}
+  HoleBiome: 5
   DoBunkers: 1
   BunkerMultiplier: 2
   BunkerNoiseThresholdMinMax: {x: 0.75, y: 1.5}
+  BunkerBiome: 2
   Trees:
     DoObject: 1
     SamplePointRadius: 1
