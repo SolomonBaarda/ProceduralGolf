@@ -110,7 +110,22 @@ public class WorldObjectGenerator : MonoBehaviour
 
 
 
-
+    public void CheckWorldObjectDistancesBetweenChunks(List<WorldObjectData> chunk, List<WorldObjectData> neighbour)
+    {
+        foreach (WorldObjectData neighbourObject in neighbour)
+        {
+            // Loop through each position in the neighbour chunk
+            foreach (Vector3 neighbourPosition in neighbourObject.WorldPositions)
+            {
+                // Check each object for 
+                foreach (WorldObjectData thisChunkObject in chunk)
+                {
+                    // Remove all that are too close
+                    thisChunkObject.WorldPositions.RemoveAll(x => (x - neighbourPosition).sqrMagnitude < Radius * Radius);
+                }
+            }
+        }
+    }
 
 
 

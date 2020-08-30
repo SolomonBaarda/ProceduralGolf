@@ -414,6 +414,7 @@ public class TerrainGenerator : MonoBehaviour
             {
                 Vector2Int relativePos = new Vector2Int(x, y);
                 Vector2Int neighbour = data.TerrainMap.Chunk + relativePos;
+
                 // Don't add its self
                 if (!(neighbour.x == data.TerrainMap.Chunk.x && neighbour.y == data.TerrainMap.Chunk.y))
                 {
@@ -421,10 +422,25 @@ public class TerrainGenerator : MonoBehaviour
                     if (Chunks.TryGetValue(neighbour, out ChunkData d))
                     {
                         relativeNeighbours.Add((d.TerrainMap, relativePos));
+
+
+                        // Now check this chunk against it's neighbours world objects
+                        // Horrendous big-oh complexity
+                        WorldObjectGenerator.CheckWorldObjectDistancesBetweenChunks(data.Data.WorldObjects, d.Data.WorldObjects);
                     }
                 }
             }
         }
+
+
+
+
+
+
+
+
+
+
 
         // Now add the neighbours
         Task<HashSet<TerrainMap>> addNeighboursTask = Task<HashSet<TerrainMap>>.Factory.StartNew(
