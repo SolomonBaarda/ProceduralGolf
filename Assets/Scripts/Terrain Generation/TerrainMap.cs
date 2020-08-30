@@ -17,7 +17,7 @@ public class TerrainMap
     public List<Point.NeighbourDirection> EdgeNeighboursAdded;
 
     public TerrainMap(Vector2Int chunk, int width, int height, in Vector3[,] baseVertices, Bounds bounds,
-        in float[,] heightsBeforeHole, in bool[,] holeMask, Biome.Type[,] biomes, Biome.Decoration[,] decoration)
+        in float[,] heightsBeforeHole, in bool[,] holeMask, Biome.Type[,] biomes, List<Biome.Decoration>[,] decoration)
     {
         Chunk = chunk;
         Width = width;
@@ -283,7 +283,7 @@ public class TerrainMap
         public float OriginalHeight;
 
         public Biome.Type Biome;
-        public Biome.Decoration Decoration;
+        public List<Biome.Decoration> ValidDecoration;
 
         /// <summary>
         /// If this point is part of a Hole.
@@ -293,7 +293,7 @@ public class TerrainMap
         public List<Point> Neighbours;
 
 
-        public Point(Vector3 localVertexPos, Vector3 offset, float height, Biome.Type biome, Biome.Decoration decoration, bool isHole, bool isAtEdgeOfMesh)
+        public Point(Vector3 localVertexPos, Vector3 offset, float height, Biome.Type biome, List<Biome.Decoration> decoration, bool isHole, bool isAtEdgeOfMesh)
         {
             LocalVertexBasePosition = localVertexPos;
             Offset = offset;
@@ -304,7 +304,7 @@ public class TerrainMap
             Neighbours = new List<Point>();
 
             Biome = biome;
-            Decoration = decoration;
+            ValidDecoration = decoration;
             Height = height;
             OriginalHeight = Height;
         }

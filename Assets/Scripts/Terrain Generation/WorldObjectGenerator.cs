@@ -39,7 +39,7 @@ public class WorldObjectGenerator : MonoBehaviour
     {
         float lowest = (point.LocalVertexPosition + point.Offset).y;
 
-        foreach(TerrainMap.Point neighbour in point.Neighbours)
+        foreach (TerrainMap.Point neighbour in point.Neighbours)
         {
             float y = (neighbour.LocalVertexPosition + neighbour.Offset).y;
             if (y < lowest)
@@ -59,7 +59,6 @@ public class WorldObjectGenerator : MonoBehaviour
 
         // Get the local position
         List<Vector2> localPosition2D = PoissonDiscSampling.GenerateLocalPoints(Radius, new Vector2(m.Bounds.size.x, m.Bounds.size.z), seed, Iterations);
-        //Debug.Log("valid points in chunk:" + localPosition2D.Count);
 
         System.Random r = new System.Random(seed);
 
@@ -74,16 +73,20 @@ public class WorldObjectGenerator : MonoBehaviour
             worldPos.y = GetLowestYPosFromNeighbours(p);
 
             // Find its type
-            Biome.Decoration type = p.Decoration;
-            if (type != Biome.Decoration.None)
+            List<Biome.Decoration> types = p.ValidDecoration;
+            if (types.Count > 0)
             {
+                // Randomly choose the object type to go here
+                int typeIndex = r.Next(0, types.Count);
+                Biome.Decoration type = types[typeIndex];
+
                 if (Prefabs.TryGetValue(type, out List<GameObject> prefabs))
                 {
                     if (prefabs.Count > 0)
                     {
-                        // Choose the prefab
-                        int index = r.Next(0, prefabs.Count);
-                        GameObject prefab = prefabs[index];
+                        // Randomly choose the prefab to go here
+                        int prefabIndex = r.Next(0, prefabs.Count);
+                        GameObject prefab = prefabs[prefabIndex];
 
                         // Create it if we need to
                         if (!prefabsInChunk.TryGetValue(prefab, out WorldObjectData d))

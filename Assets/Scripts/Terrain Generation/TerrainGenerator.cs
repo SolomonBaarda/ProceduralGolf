@@ -288,7 +288,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
             List<WorldObjectData> data = WorldObjectGenerator.CalculateDataForChunk(map);
-           
+
 
 
             // Assign the biomes
@@ -392,7 +392,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         float[,] heightsBeforeHole = CalculateHeightsBeforeHole(width, height, TerrainSettings_Green, heightsRaw, bunkerFloatMask, holeMask,
-            treeMask, rockMask, out Biome.Type[,] biomes, out Biome.Decoration[,] decoration);
+            treeMask, rockMask, out Biome.Type[,] biomes, out List<Biome.Decoration>[,] decoration);
 
 
 
@@ -657,14 +657,14 @@ public class TerrainGenerator : MonoBehaviour
 
 
     private float[,] CalculateHeightsBeforeHole(int width, int height, in TerrainSettings settings, in float[,] rawHeights, in float[,] bunkerHeights,
-        bool[,] holeMask, bool[,] treeMask, bool[,] rockMask, out Biome.Type[,] biomes, out Biome.Decoration[,] decoration)
+        bool[,] holeMask, bool[,] treeMask, bool[,] rockMask, out Biome.Type[,] biomes, out List<Biome.Decoration>[,] decoration)
     {
         settings.ValidateValues();
 
         // Assign memory for it all
         float[,] heights = new float[width, height];
         biomes = new Biome.Type[width, height];
-        decoration = new Biome.Decoration[width, height];
+        decoration = new List<Biome.Decoration>[width, height];
         // Get a new animation curve to use in the thread
         AnimationCurve threadSafe = new AnimationCurve(settings.HeightDistribution.keys);
 
@@ -714,25 +714,21 @@ public class TerrainGenerator : MonoBehaviour
 
 
                 // Decoration stuff
-                Biome.Decoration decor = Biome.Decoration.None;
-
-                // Do a rock
-                if (settings.Rocks.DoObject && rockMask[x, y])
-                {
-                    decor = Biome.Decoration.Rock;
-                }
-
-                // Tree is more important 
-                if (settings.Trees.DoObject && treeMask[x, y])
-                {
-                    decor = Biome.Decoration.Tree;
-                }
-
+                List<Biome.Decoration> decor = new List<Biome.Decoration>();
 
                 // Don't allow decoration to exist in these biomes
-                if(biomes[x,y] == settings.HoleBiome || biomes[x,y] == settings.BunkerBiome)
+                if (!(biomes[x, y] == settings.HoleBiome || biomes[x, y] == settings.BunkerBiome))
                 {
-                    decor = Biome.Decoration.None;
+                    // Do a rock
+                    if (settings.Rocks.DoObject && rockMask[x, y])
+                    {
+                        decor.Add(Biome.Decoration.Rock);
+                    }
+                    // Tree 
+                    if (settings.Trees.DoObject && treeMask[x, y])
+                    {
+                        decor.Add(Biome.Decoration.Tree);
+                    }
                 }
 
                 decoration[x, y] = decor;
