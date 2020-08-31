@@ -303,7 +303,12 @@ MonoBehaviour:
     type: 2}
   NoiseSettings_Rocks: {fileID: 11400000, guid: 2b17e637a7a9f5e40bf322d19a7dea5d,
     type: 2}
+  Current: {fileID: 11400000, guid: 392c806505110884192175365aabbd81, type: 2}
   TerrainSettings_Green: {fileID: 11400000, guid: 392c806505110884192175365aabbd81,
+    type: 2}
+  TerrainSettings_Snow: {fileID: 11400000, guid: 940851a351c44ba4f9cd3f7ee15aeecb,
+    type: 2}
+  TerrainSettings_Sand: {fileID: 11400000, guid: 297cc4b4428c6f448af93d40d9427616,
     type: 2}
   Texture_GroundSettings: {fileID: 11400000, guid: 8c69bc2d118b0ae49a217aefa19d034a,
     type: 2}

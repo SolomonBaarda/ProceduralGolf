@@ -37,7 +37,10 @@ public class TerrainGenerator : MonoBehaviour
     public NoiseSettings NoiseSettings_Trees;
     public NoiseSettings NoiseSettings_Rocks;
     [Space]
+    public TerrainSettings Current;
     public TerrainSettings TerrainSettings_Green;
+    public TerrainSettings TerrainSettings_Snow;
+    public TerrainSettings TerrainSettings_Sand;
 
     [Space]
     public TextureSettings Texture_GroundSettings;
@@ -349,7 +352,7 @@ public class TerrainGenerator : MonoBehaviour
     private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, in Bounds chunkBounds)
     {
         // Get the vertex points
-        Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, TerrainSettings_Green);
+        Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, Current);
         Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
         Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
 
@@ -366,7 +369,7 @@ public class TerrainGenerator : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 // Not a bunker here
-                if (!(bunkerFloatMask[x, y] >= TerrainSettings_Green.BunkerNoiseThresholdMinMax.x && bunkerFloatMask[x, y] <= TerrainSettings_Green.BunkerNoiseThresholdMinMax.y))
+                if (!(bunkerFloatMask[x, y] >= Current.BunkerNoiseThresholdMinMax.x && bunkerFloatMask[x, y] <= Current.BunkerNoiseThresholdMinMax.y))
                 {
                     bunkerFloatMask[x, y] = TerrainMap.Point.Empty;
                 }
@@ -378,20 +381,20 @@ public class TerrainGenerator : MonoBehaviour
 
         // Hole
         int holeSeed = Noise.Seed(bunkerSeed.ToString());
-        bool[,] holeMask = Noise.PerlinMask(NoiseSettings_Holes, holeSeed, TerrainSettings_Green.HoleNoiseThresholdMinMax, noiseSamplePoints);
+        bool[,] holeMask = Noise.PerlinMask(NoiseSettings_Holes, holeSeed, Current.HoleNoiseThresholdMinMax, noiseSamplePoints);
 
 
         // Trees
         int treeSeed = Noise.Seed(holeSeed.ToString());
-        bool[,] treeMask = Noise.PerlinMask(NoiseSettings_Trees, treeSeed, TerrainSettings_Green.Trees.NoiseThresholdMinMax, noiseSamplePoints);
+        bool[,] treeMask = Noise.PerlinMask(NoiseSettings_Trees, treeSeed, Current.Trees.NoiseThresholdMinMax, noiseSamplePoints);
 
         // Rocks
         int rockSeed = Noise.Seed(treeSeed.ToString());
-        bool[,] rockMask = Noise.PerlinMask(NoiseSettings_Rocks, rockSeed, TerrainSettings_Green.Rocks.NoiseThresholdMinMax, noiseSamplePoints);
+        bool[,] rockMask = Noise.PerlinMask(NoiseSettings_Rocks, rockSeed, Current.Rocks.NoiseThresholdMinMax, noiseSamplePoints);
 
 
 
-        float[,] heightsBeforeHole = CalculateHeightsBeforeHole(width, height, TerrainSettings_Green, heightsRaw, bunkerFloatMask, holeMask,
+        float[,] heightsBeforeHole = CalculateHeightsBeforeHole(width, height, Current, heightsRaw, bunkerFloatMask, holeMask,
             treeMask, rockMask, out Biome.Type[,] biomes, out List<Biome.Decoration>[,] decoration);
 
 
