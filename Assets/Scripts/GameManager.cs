@@ -177,6 +177,7 @@ public class GameManager : MonoBehaviour
             GolfBall.ShotNormalPreview.gameObject.SetActive(isShooting);
             GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
 
+            HUD.CanvasShootingMenu.gameObject.SetActive(isShooting);
 
             // Update the camera angles
             switch (GolfBall.State)
@@ -185,10 +186,11 @@ public class GameManager : MonoBehaviour
                 case GolfBall.PlayState.Shooting:
 
                     int buttonMultiplier = 24;
+                    int touchMultiplier = 10;
 
                     // Calculate the deltas for each 
-                    Vector2 rotationAndAngleDelta = Controller.DeltaPosition(HUD.ShootingWindow) * Time.deltaTime * Controller.TouchMultiplier;
-                    Vector2 powerDelta = Controller.DeltaPosition(HUD.Power.TouchBounds) * Time.deltaTime * Controller.TouchMultiplier;
+                    Vector2 rotationAndAngleDelta = HUD.ShootingSliderArea.DeltaPosition * Time.deltaTime * touchMultiplier;
+                    Vector2 powerDelta = HUD.Power.DeltaPosition * Time.deltaTime * touchMultiplier;
 
                     // Make sure power has priority over rotation and angle
                     if (powerDelta.x != 0 || powerDelta.y != 0)
