@@ -643,7 +643,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1852344705}
   - component: {fileID: 1852344706}
-  m_Layer: 0
+  m_Layer: 15
   m_Name: Post Processing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -673,18 +673,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1852344704}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b9a305e18de0c04dbd257a21cd47087, type: 3}
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sharedProfile: {fileID: 0}
   isGlobal: 1
+  priority: 1
   blendDistance: 0
   weight: 1
-  priority: 1
-  m_PreviousLayer: 0
-  m_PreviousPriority: 1
-  m_TempColliders: []
-  m_InternalProfile: {fileID: 0}
+  sharedProfile: {fileID: 11400000, guid: 2c859c84ba3188a4c9d7fb7525e80179, type: 2}
 --- !u!1 &1872898002
 GameObject:
   m_ObjectHideFlags: 0
