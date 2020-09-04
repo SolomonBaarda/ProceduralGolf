@@ -4,12 +4,14 @@ public class Follower : MonoBehaviour
 {
     public static readonly Vector3 Up = Vector3.up;
 
+
     public Transform Following;
     private ICanBeFollowed target;
 
     public View CurrentView;
     private ViewPreset view;
 
+    public const float MinimumHeightAboveGround = 0.5f;
     public const float SecondsToReachTarget = 0.5f;
 
     // Views
@@ -93,6 +95,22 @@ public class Follower : MonoBehaviour
                 newPos = Vector3.MoveTowards(transform.position, newPos, distanceToMove * Time.deltaTime + extra);
 
             }
+
+
+            // If the target is on the ground, ensure the new pos is never below the surface
+            if (target.IsOnGround)
+            {
+                if (GetGroundPositionBelow(transform.position, out Vector3 groundBelow))
+                {
+                    float minimumY = groundBelow.y + MinimumHeightAboveGround;
+                    if (newPos.y < minimumY)
+                    {
+                        newPos.y = minimumY;
+                    }
+                }
+            }
+
+
             // Assign the value
             transform.position = newPos;
 
@@ -105,7 +123,7 @@ public class Follower : MonoBehaviour
             else
             {
                 // Ensure it is not zero to stop the editor spam message
-                if(target.Forward != Vector3.zero)
+                if (target.Forward != Vector3.zero)
                 {
                     transform.forward = target.Forward;
                 }
@@ -119,6 +137,27 @@ public class Follower : MonoBehaviour
 
 
 
+
+    private bool GetGroundPositionBelow(Vector3 pos, out Vector3 point)
+    {
+        point = default;
+
+        float raycastDistance = 10;
+
+        // Do a raycast down using the ground mask
+        if (Physics.Raycast(new Ray(pos + (TerrainManager.UP * raycastDistance / 2), -TerrainManager.UP), out RaycastHit hit, raycastDistance, GroundCheck.GroundMask))
+        {
+            point = hit.point;
+            return true;
+        }
+        return false;
+    }
+
+
+
+
+
+
     private void OnValidate()
     {
         if (Following != null)
@@ -128,8 +167,6 @@ public class Follower : MonoBehaviour
                 target = f;
             }
         }
-
-
     }
 
 

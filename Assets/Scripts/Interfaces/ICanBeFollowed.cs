@@ -6,4 +6,5 @@ public interface ICanBeFollowed
 
     Vector3 Position { get; }
 
+    bool IsOnGround { get; }
 }

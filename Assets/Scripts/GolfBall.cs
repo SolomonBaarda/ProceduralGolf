@@ -22,8 +22,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     // States
     public PlayState State;
-    public bool IsOnGround = false;
-    public bool IsFrozen = false;
+    public bool IsOnGround { get; private set; } = false;
+    public bool IsFrozen { get; private set; } = false;
 
     [Space]
     public Biome.Type CurrentBiome;
