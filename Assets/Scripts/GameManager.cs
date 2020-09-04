@@ -177,7 +177,12 @@ public class GameManager : MonoBehaviour
             GolfBall.ShotNormalPreview.gameObject.SetActive(isShooting);
             GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
 
-            HUD.CanvasShootingMenu.gameObject.SetActive(isShooting);
+            
+            if(Gamerules.UseHUD && HUD != null)
+            {
+                HUD.CanvasShootingMenu.gameObject.SetActive(isShooting);
+            }
+
 
             // Update the camera angles
             switch (GolfBall.State)
@@ -185,7 +190,7 @@ public class GameManager : MonoBehaviour
                 // Shooting mode
                 case GolfBall.PlayState.Shooting:
 
-                    int buttonMultiplier = 24;
+                    int heldButtonMultiplier = 24;
                     int touchMultiplier = 10;
 
                     // Calculate the deltas for each 
@@ -205,24 +210,24 @@ public class GameManager : MonoBehaviour
                     // Move less
                     if (HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
                     {
-                        rotationDelta = -buttonMultiplier * Time.deltaTime;
+                        rotationDelta = -heldButtonMultiplier * Time.deltaTime;
                     }
                     // Move more
                     else if (!HUD.RotationLess.IsPressed && HUD.RotationMore.IsPressed)
                     {
-                        rotationDelta = buttonMultiplier * Time.deltaTime;
+                        rotationDelta = heldButtonMultiplier * Time.deltaTime;
                     }
 
                     // Angle
                     // Move less
                     if (HUD.AngleLess.IsPressed && !HUD.AngleMore.IsPressed)
                     {
-                        angleDelta = -buttonMultiplier * Time.deltaTime;
+                        angleDelta = -heldButtonMultiplier * Time.deltaTime;
                     }
                     // Move more
                     else if (!HUD.AngleLess.IsPressed && HUD.AngleMore.IsPressed)
                     {
-                        angleDelta = buttonMultiplier * Time.deltaTime;
+                        angleDelta = heldButtonMultiplier * Time.deltaTime;
                     }
 
                     // Calculate the new values
