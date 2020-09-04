@@ -14,7 +14,7 @@ public class TerrainGenerator : MonoBehaviour
     public WorldObjectGenerator WorldObjectGenerator;
 
     public Transform HolesWorldObjectParent;
-    private HashSet<Hole> GolfHoles = new HashSet<Hole>();
+    private HashSet<ConnectedPoints> GolfHoles = new HashSet<ConnectedPoints>();
 
     private List<NeedsUpdating> chunksThatNeedUpdating = new List<NeedsUpdating>();
     public const float ChunkWaitSecondsBeforeUpdate = 0.5f;
@@ -73,7 +73,7 @@ public class TerrainGenerator : MonoBehaviour
         Chunks.Clear();
         chunksThatNeedUpdating.Clear();
 
-        foreach (Hole h in GolfHoles)
+        foreach (ConnectedPoints h in GolfHoles)
         {
             h.Destroy();
         }
@@ -105,7 +105,7 @@ public class TerrainGenerator : MonoBehaviour
     public List<HoleData> GetHoleData()
     {
         List<HoleData> holes = new List<HoleData>();
-        foreach (Hole h in GolfHoles)
+        foreach (ConnectedPoints h in GolfHoles)
         {
             holes.Add(new HoleData(h.Centre));
         }
@@ -277,10 +277,10 @@ public class TerrainGenerator : MonoBehaviour
 
 
             // Continue and get the holes
-            Task<HashSet<Hole>> newHoles = generateMap.ContinueWith((m) => Hole.CalculateHoles(ref map), TaskCancelToken.Token);
+            Task<HashSet<ConnectedPoints>> newHoles = generateMap.ContinueWith((m) => ConnectedPoints.CalculatePoints(ref map, Current.HoleBiome), TaskCancelToken.Token);
 
             // Update them all
-            foreach (Hole hole in newHoles.Result)
+            foreach (ConnectedPoints hole in newHoles.Result)
             {
                 hole.UpdateHole();
 
@@ -453,7 +453,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Destroy any holes that need to be
-        foreach (Hole h in GolfHoles)
+        foreach (ConnectedPoints h in GolfHoles)
         {
             if (h.ShouldBeDestroyed)
             {
@@ -465,7 +465,7 @@ public class TerrainGenerator : MonoBehaviour
         GolfHoles.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
 
         // Update any holes
-        foreach (Hole h in GolfHoles)
+        foreach (ConnectedPoints h in GolfHoles)
         {
             if (h.NeedsUpdating)
             {
@@ -692,23 +692,22 @@ public class TerrainGenerator : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 // Height stuff
-                float finalHeight = rawHeights[x, y];
+                heights[x, y] = rawHeights[x, y];
 
                 // Apply curve 
                 if (settings.UseCurve)
                 {
-                    finalHeight = threadSafe.Evaluate(rawHeights[x, y]);
+                    heights[x, y] = threadSafe.Evaluate(rawHeights[x, y]);
                 }
 
-                finalHeight *= settings.HeightMultiplier;
+                heights[x, y] *= settings.HeightMultiplier;
 
                 // Take away the bunker if we need to
                 if (settings.DoBunkers)
                 {
-                    finalHeight -= (bunkerHeights[x, y] * settings.BunkerMultiplier);
+                    heights[x, y] -= (bunkerHeights[x, y] * settings.BunkerMultiplier);
                 }
 
-                heights[x, y] = finalHeight;
 
 
 
@@ -717,37 +716,32 @@ public class TerrainGenerator : MonoBehaviour
 
 
                 // Decoration stuff
-                List<Biome.Decoration> decor = new List<Biome.Decoration>();
+                decoration[x, y] = new List<Biome.Decoration>();
 
                 bool canDoBunkerHere = !Mathf.Approximately(bunkerHeights[x, y], TerrainMap.Point.Empty);
                 // Don't allow decoration to exist in these biomes
-                if (!(holeMask[x,y] || canDoBunkerHere))
+                if (!(holeMask[x, y] || canDoBunkerHere))
                 {
                     // Do a rock
                     if (settings.Rocks.DoObject && rockMask[x, y])
                     {
-                        decor.Add(Biome.Decoration.Rock);
+                        decoration[x, y].Add(Biome.Decoration.Rock);
                     }
                     // Tree 
                     if (settings.Trees.DoObject && treeMask[x, y])
                     {
-                        decor.Add(Biome.Decoration.Tree);
+                        decoration[x, y].Add(Biome.Decoration.Tree);
                     }
                 }
-
-                decoration[x, y] = decor;
-
-
-
 
 
 
 
 
                 // Biome stuff
-                biomes[x,y] = settings.MainBiome;
+                biomes[x, y] = settings.MainBiome;
 
-                if(decoration[x,y].Count > 0)
+                if (decoration[x, y].Count > 0)
                 {
                     biomes[x, y] = settings.Trees.DesiredBiome;
                 }

@@ -254,10 +254,10 @@ public class TerrainMap
                 // These neighbours are the same hole that is split by the chunk border
                 if (p.IsHole && neighbour.IsHole)
                 {
-                    if (p.Hole != neighbour.Hole)
+                    if (p.Connected != neighbour.Connected)
                     {
                         terrainNeedsUpdating = true;
-                        p.Hole.Merge(ref neighbour.Hole);
+                        p.Connected.Merge(ref neighbour.Connected);
                     }
                 }
             }
@@ -288,7 +288,7 @@ public class TerrainMap
         /// <summary>
         /// If this point is part of a Hole.
         /// </summary>
-        public Hole Hole;
+        public ConnectedPoints Connected;
         public bool IsHole;
         public List<Point> Neighbours;
 
