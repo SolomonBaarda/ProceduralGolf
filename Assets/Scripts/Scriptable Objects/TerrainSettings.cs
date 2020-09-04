@@ -47,5 +47,7 @@ public class TerrainSettings : VariablePreset
         public bool DoObject = true;
         public float SamplePointRadius = 1f;
         public Vector2 NoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
+
+        public Biome.Type DesiredBiome;
     }
 }

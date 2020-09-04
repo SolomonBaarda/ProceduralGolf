@@ -913,7 +913,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93c438cfba179aa43a40a9dcf9428491, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MainCamera: {fileID: 295252891}
   Following: {fileID: 784421682}
   CurrentView: 0
-  MinimumHeightAboveGround: 0.1

@@ -49,7 +49,9 @@ MonoBehaviour:
     DoObject: 1
     SamplePointRadius: 1
     NoiseThresholdMinMax: {x: 0.6, y: 1.5}
+    DesiredBiome: 6
   Rocks:
     DoObject: 1
     SamplePointRadius: 1
     NoiseThresholdMinMax: {x: 0.75, y: 1.5}
+    DesiredBiome: 6

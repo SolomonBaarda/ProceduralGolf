@@ -19,8 +19,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0
       value: 0
-      inSlope: 2
-      outSlope: 2
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -28,8 +28,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 0
-      outSlope: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -49,7 +49,9 @@ MonoBehaviour:
     DoObject: 1
     SamplePointRadius: 1
     NoiseThresholdMinMax: {x: 0.6, y: 1.5}
+    DesiredBiome: 6
   Rocks:
     DoObject: 1
     SamplePointRadius: 1
     NoiseThresholdMinMax: {x: 0.75, y: 1.5}
+    DesiredBiome: 6

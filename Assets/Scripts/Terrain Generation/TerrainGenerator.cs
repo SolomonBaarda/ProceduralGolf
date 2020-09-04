@@ -712,22 +712,6 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-                // Biome stuff
-                Biome.Type biome = settings.MainBiome;
-
-                // Do a bunker
-                if (settings.DoBunkers && !Mathf.Approximately(bunkerHeights[x, y], TerrainMap.Point.Empty))
-                {
-                    biome = settings.BunkerBiome;
-                }
-
-                // Hole is more important
-                if (holeMask[x, y])
-                {
-                    biome = settings.HoleBiome;
-                }
-
-                biomes[x, y] = biome;
 
 
 
@@ -735,8 +719,9 @@ public class TerrainGenerator : MonoBehaviour
                 // Decoration stuff
                 List<Biome.Decoration> decor = new List<Biome.Decoration>();
 
+                bool canDoBunkerHere = !Mathf.Approximately(bunkerHeights[x, y], TerrainMap.Point.Empty);
                 // Don't allow decoration to exist in these biomes
-                if (!(biomes[x, y] == settings.HoleBiome || biomes[x, y] == settings.BunkerBiome))
+                if (!(holeMask[x,y] || canDoBunkerHere))
                 {
                     // Do a rock
                     if (settings.Rocks.DoObject && rockMask[x, y])
@@ -751,6 +736,33 @@ public class TerrainGenerator : MonoBehaviour
                 }
 
                 decoration[x, y] = decor;
+
+
+
+
+
+
+
+
+                // Biome stuff
+                biomes[x,y] = settings.MainBiome;
+
+                if(decoration[x,y].Count > 0)
+                {
+                    biomes[x, y] = settings.Trees.DesiredBiome;
+                }
+
+                // Do a bunker
+                if (settings.DoBunkers && canDoBunkerHere)
+                {
+                    biomes[x, y] = settings.BunkerBiome;
+                }
+
+                // Hole is more important
+                if (holeMask[x, y])
+                {
+                    biomes[x, y] = settings.HoleBiome;
+                }
             }
         }
 
