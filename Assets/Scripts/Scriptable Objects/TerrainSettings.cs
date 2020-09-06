@@ -16,11 +16,9 @@ public class TerrainSettings : VariablePreset
     public Vector2 HoleNoiseThresholdMinMax = new Vector2(0.8f, 1.5f);
     public Biome.Type HoleBiome;
 
-    [Header("Bunkers")]
-    public bool DoBunkers = true;
-    public float BunkerMultiplier = 2f;
-    public Vector2 BunkerNoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
-    public Biome.Type BunkerBiome;
+    [Header("Terrain Cutouts")]
+    public Cutout Bunker;
+    public Cutout Lake;
 
     [Header("Procedural objects")]
     public ProceduralObject Trees;
@@ -49,5 +47,16 @@ public class TerrainSettings : VariablePreset
         public Vector2 NoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
 
         public Biome.Type DesiredBiome;
+    }
+
+
+    [Serializable]
+    public class Cutout
+    {
+        public bool Do = true;
+        public float Multiplier = 1;
+        public Vector2 NoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
+
+        public Biome.Type Biome;
     }
 }

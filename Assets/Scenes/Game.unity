@@ -313,10 +313,11 @@ MonoBehaviour:
   MeshSettings: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
   NoiseSettings_Green: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3,
     type: 2}
-  NoiseSettings_Bunker: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0,
-    type: 2}
   NoiseSettings_Holes: {fileID: 11400000, guid: a8d302693e9275142bea12d81d6b216f,
     type: 2}
+  NoiseSettings_Bunker: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0,
+    type: 2}
+  NoiseSettings_Lake: {fileID: 11400000, guid: 901e65ef209326d4598982228a4dbd6a, type: 2}
   NoiseSettings_Trees: {fileID: 11400000, guid: ce96eb26623280241a00adfb17ab6aec,
     type: 2}
   NoiseSettings_Rocks: {fileID: 11400000, guid: 2b17e637a7a9f5e40bf322d19a7dea5d,

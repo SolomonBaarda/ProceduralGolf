@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -32,8 +34,9 @@ public class TerrainGenerator : MonoBehaviour
     public MeshSettings MeshSettings;
     [Space]
     public NoiseSettings NoiseSettings_Green;
-    public NoiseSettings NoiseSettings_Bunker;
     public NoiseSettings NoiseSettings_Holes;
+    public NoiseSettings NoiseSettings_Bunker;
+    public NoiseSettings NoiseSettings_Lake;
     public NoiseSettings NoiseSettings_Trees;
     public NoiseSettings NoiseSettings_Rocks;
     [Space]
@@ -361,31 +364,45 @@ public class TerrainGenerator : MonoBehaviour
         // Heights
         float[,] heightsRaw = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
 
+
+        // Masks
+
+        // Hole
+        int holeSeed = Noise.Seed(seed.ToString());
+        bool[,] holeMask = Noise.PerlinMask(NoiseSettings_Holes, holeSeed, Current.HoleNoiseThresholdMinMax, noiseSamplePoints);
+
         // Bunkers
-        int bunkerSeed = Noise.Seed(seed.ToString());
+        int bunkerSeed = Noise.Seed(holeSeed.ToString());
         float[,] bunkerFloatMask = Noise.Perlin(NoiseSettings_Bunker, bunkerSeed, noiseSamplePoints);
+
+        // Lakes
+        int lakeSeed = Noise.Seed(bunkerSeed.ToString());
+        float[,] lakeFloatMask = Noise.Perlin(NoiseSettings_Lake, lakeSeed, noiseSamplePoints);
+
+        // Apply the masks here
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
                 // Not a bunker here
-                if (!(bunkerFloatMask[x, y] >= Current.BunkerNoiseThresholdMinMax.x && bunkerFloatMask[x, y] <= Current.BunkerNoiseThresholdMinMax.y))
+                if (!(bunkerFloatMask[x, y] >= Current.Bunker.NoiseThresholdMinMax.x && bunkerFloatMask[x, y] <= Current.Bunker.NoiseThresholdMinMax.y))
                 {
                     bunkerFloatMask[x, y] = TerrainMap.Point.Empty;
+                }
+                // Not a lake here
+                if (!(lakeFloatMask[x, y] >= Current.Lake.NoiseThresholdMinMax.x && lakeFloatMask[x, y] <= Current.Lake.NoiseThresholdMinMax.y))
+                {
+                    lakeFloatMask[x, y] = TerrainMap.Point.Empty;
                 }
             }
         }
 
 
-        // Masks
 
-        // Hole
-        int holeSeed = Noise.Seed(bunkerSeed.ToString());
-        bool[,] holeMask = Noise.PerlinMask(NoiseSettings_Holes, holeSeed, Current.HoleNoiseThresholdMinMax, noiseSamplePoints);
 
 
         // Trees
-        int treeSeed = Noise.Seed(holeSeed.ToString());
+        int treeSeed = Noise.Seed(lakeSeed.ToString());
         bool[,] treeMask = Noise.PerlinMask(NoiseSettings_Trees, treeSeed, Current.Trees.NoiseThresholdMinMax, noiseSamplePoints);
 
         // Rocks
@@ -394,7 +411,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-        float[,] heightsBeforeHole = CalculateHeightsBeforeHole(width, height, Current, heightsRaw, bunkerFloatMask, holeMask,
+        float[,] heightsBeforeHole = CalculateHeightsBeforeHole(width, height, Current, heightsRaw, bunkerFloatMask, lakeFloatMask, holeMask,
             treeMask, rockMask, out Biome.Type[,] biomes, out List<Biome.Decoration>[,] decoration);
 
 
@@ -675,7 +692,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private float[,] CalculateHeightsBeforeHole(int width, int height, in TerrainSettings settings, in float[,] rawHeights, in float[,] bunkerHeights,
+    private float[,] CalculateHeightsBeforeHole(int width, int height, in TerrainSettings settings, in float[,] rawHeights, in float[,] bunkerHeights, in float[,] lakeHeights,
         bool[,] holeMask, bool[,] treeMask, bool[,] rockMask, out Biome.Type[,] biomes, out List<Biome.Decoration>[,] decoration)
     {
         settings.ValidateValues();
@@ -691,72 +708,12 @@ public class TerrainGenerator : MonoBehaviour
         {
             for (int x = 0; x < width; x++)
             {
-                // Height stuff
-                heights[x, y] = rawHeights[x, y];
+                // Calculate the biome
+                decoration[x, y] = CalculateDecorationBeforeBiome(settings, treeMask[x, y], rockMask[x, y]);
+                biomes[x, y] = CalculateBiomeAndEditDecoration(settings, holeMask[x, y], bunkerHeights[x, y], lakeHeights[x, y], ref decoration[x, y]);
 
-                // Apply curve 
-                if (settings.UseCurve)
-                {
-                    heights[x, y] = threadSafe.Evaluate(rawHeights[x, y]);
-                }
-
-                heights[x, y] *= settings.HeightMultiplier;
-
-                // Take away the bunker if we need to
-                if (settings.DoBunkers)
-                {
-                    heights[x, y] -= (bunkerHeights[x, y] * settings.BunkerMultiplier);
-                }
-
-
-
-
-
-
-
-
-                // Decoration stuff
-                decoration[x, y] = new List<Biome.Decoration>();
-
-                bool canDoBunkerHere = !Mathf.Approximately(bunkerHeights[x, y], TerrainMap.Point.Empty);
-                // Don't allow decoration to exist in these biomes
-                if (!(holeMask[x, y] || canDoBunkerHere))
-                {
-                    // Do a rock
-                    if (settings.Rocks.DoObject && rockMask[x, y])
-                    {
-                        decoration[x, y].Add(Biome.Decoration.Rock);
-                    }
-                    // Tree 
-                    if (settings.Trees.DoObject && treeMask[x, y])
-                    {
-                        decoration[x, y].Add(Biome.Decoration.Tree);
-                    }
-                }
-
-
-
-
-
-                // Biome stuff
-                biomes[x, y] = settings.MainBiome;
-
-                if (decoration[x, y].Count > 0)
-                {
-                    biomes[x, y] = settings.Trees.DesiredBiome;
-                }
-
-                // Do a bunker
-                if (settings.DoBunkers && canDoBunkerHere)
-                {
-                    biomes[x, y] = settings.BunkerBiome;
-                }
-
-                // Hole is more important
-                if (holeMask[x, y])
-                {
-                    biomes[x, y] = settings.HoleBiome;
-                }
+                // Calculate the height
+                heights[x, y] = CalculateHeight(settings, rawHeights[x, y], threadSafe, bunkerHeights[x, y], lakeHeights[x, y]);
             }
         }
 
@@ -765,8 +722,94 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
+    private float CalculateHeight(TerrainSettings settings, float rawHeight, AnimationCurve threadSafe, float bunkerHeight, float lakeHeight)
+    {
+        float height = rawHeight * settings.HeightMultiplier;
+
+        // Apply curve 
+        if (settings.UseCurve)
+        {
+            height = threadSafe.Evaluate(rawHeight) * settings.HeightMultiplier;
+        }
 
 
+        // Take away the lake if we need to
+        if (settings.Lake.Do && !Mathf.Approximately(lakeHeight, TerrainMap.Point.Empty))
+        {
+            height -= (lakeHeight * settings.Lake.Multiplier);
+        }
+        // Only do the bunker if the lake fails
+        else if (settings.Bunker.Do)
+        {
+            height -= (bunkerHeight * settings.Bunker.Multiplier);
+        }
+
+
+
+        return height;
+    }
+
+
+    private List<Biome.Decoration> CalculateDecorationBeforeBiome(TerrainSettings settings, bool treeMask, bool rockMask)
+    {
+        List<Biome.Decoration> decoration = new List<Biome.Decoration>();
+
+        // Do tree
+        if (settings.Trees.DoObject && treeMask)
+        {
+            decoration.Add(Biome.Decoration.Tree);
+        }
+        // Do rock
+        if (settings.Rocks.DoObject && rockMask)
+        {
+            decoration.Add(Biome.Decoration.Rock);
+        }
+
+        return decoration;
+    }
+
+
+    private Biome.Type CalculateBiomeAndEditDecoration(TerrainSettings settings, bool isHole, float bunkerHeight, float lakeHeight, ref List<Biome.Decoration> decoration)
+    {
+        // Hole has first priority
+        if (isHole)
+        {
+            decoration.Clear();
+            return settings.HoleBiome;
+        }
+
+        // Lake should be here
+        if (settings.Lake.Do && !Mathf.Approximately(lakeHeight, TerrainMap.Point.Empty))
+        {
+            decoration.Clear();
+            return settings.Lake.Biome;
+        }
+
+        // Next is bunker
+        if (settings.Bunker.Do && !Mathf.Approximately(bunkerHeight, TerrainMap.Point.Empty))
+        {
+            decoration.Clear();
+            return settings.Bunker.Biome;
+        }
+
+
+        // Set forest biome
+        if (decoration.Count > 0)
+        {
+            if (decoration.Contains(Biome.Decoration.Tree))
+            {
+                return settings.Trees.DesiredBiome;
+            }
+            if (decoration.Contains(Biome.Decoration.Rock))
+            {
+                return settings.Rocks.DesiredBiome;
+            }
+        }
+
+
+        // Set main biome
+        return settings.MainBiome;
+    }
 
 
 
