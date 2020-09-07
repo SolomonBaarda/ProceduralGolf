@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,7 +17,8 @@ public class TerrainGenerator : MonoBehaviour
     public WorldObjectGenerator WorldObjectGenerator;
 
     public Transform HolesWorldObjectParent;
-    private HashSet<ConnectedPoints> GolfHoles = new HashSet<ConnectedPoints>();
+    private Dictionary<Biome.Type, HashSet<FloodFillBiome>> FloodFillBiomes = new Dictionary<Biome.Type, HashSet<FloodFillBiome>>();
+    private HashSet<FloodFillBiome> GolfHoles = new HashSet<FloodFillBiome>();
 
     private List<NeedsUpdating> chunksThatNeedUpdating = new List<NeedsUpdating>();
     public const float ChunkWaitSecondsBeforeUpdate = 0.5f;
@@ -76,9 +78,21 @@ public class TerrainGenerator : MonoBehaviour
         Chunks.Clear();
         chunksThatNeedUpdating.Clear();
 
-        foreach (ConnectedPoints h in GolfHoles)
+        // Clear all the flood fill biomes
+        foreach (HashSet<FloodFillBiome> h in FloodFillBiomes.Values)
         {
-            h.Destroy();
+            foreach (FloodFillBiome f in h)
+            {
+                f.Destroy();
+            }
+            h.Clear();
+        }
+        FloodFillBiomes.Clear();
+
+        // Clear all the golf holes
+        foreach (FloodFillBiome f in GolfHoles)
+        {
+            f.Destroy();
         }
         GolfHoles.Clear();
 
@@ -105,16 +119,17 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
+
     public List<HoleData> GetHoleData()
     {
         List<HoleData> holes = new List<HoleData>();
-        foreach (ConnectedPoints h in GolfHoles)
+        foreach (FloodFillBiome h in GolfHoles)
         {
             holes.Add(new HoleData(h.Centre));
         }
         return holes;
-
     }
+
 
     public bool GetTerrainChunkData(Vector2Int chunk, out TerrainChunkData data)
     {
@@ -280,15 +295,40 @@ public class TerrainGenerator : MonoBehaviour
 
 
             // Continue and get the holes
-            Task<HashSet<ConnectedPoints>> newHoles = generateMap.ContinueWith((m) => ConnectedPoints.CalculatePoints(ref map, Current.HoleBiome), TaskCancelToken.Token);
+            Task<HashSet<FloodFillBiome>> newHoles = generateMap.ContinueWith((m) => FloodFillBiome.CalculatePoints(ref map, Current.HoleBiome), TaskCancelToken.Token);
 
             // Update them all
-            foreach (ConnectedPoints hole in newHoles.Result)
+            foreach (FloodFillBiome hole in newHoles.Result)
             {
-                hole.UpdateHole();
+                hole.Update();
 
                 GolfHoles.Add(hole);
             }
+
+
+            Biome.Type lakeBiome = TerrainSettings_Green.Lake.Biome;
+
+            // Get the lakes
+            HashSet<FloodFillBiome> newLakes = FloodFillBiome.CalculatePoints(ref map, lakeBiome);
+
+            Debug.Log("found " + newLakes.Count + " new lakes");
+
+
+            // Update them all
+            foreach (FloodFillBiome l in newLakes)
+            {
+                l.Update();
+            }
+            if (!FloodFillBiomes.TryGetValue(lakeBiome, out HashSet<FloodFillBiome> lakes))
+            {
+                lakes = new HashSet<FloodFillBiome>();
+                FloodFillBiomes.Add(lakeBiome, lakes);
+            }
+
+            lakes.UnionWith(newLakes);
+
+
+
 
 
 
@@ -469,24 +509,33 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-        // Destroy any holes that need to be
-        foreach (ConnectedPoints h in GolfHoles)
+        // Update and destroy any holes if we need to
+        foreach (FloodFillBiome h in GolfHoles)
         {
-            if (h.ShouldBeDestroyed)
+            if (h.NeedsUpdating)
+            {
+                h.Update();
+            }
+
+            if (h.ShouldBeDestroyed || h.Vertices.Count == 0)
             {
                 h.Destroy();
             }
         }
-
-        // Remove all holes that have no vertices
-        GolfHoles.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
-
-        // Update any holes
-        foreach (ConnectedPoints h in GolfHoles)
+        // Do the same for any other biomes
+        foreach (HashSet<FloodFillBiome> h in FloodFillBiomes.Values)
         {
-            if (h.NeedsUpdating)
+            foreach (FloodFillBiome f in h)
             {
-                h.UpdateHole();
+                if (f.NeedsUpdating)
+                {
+                    f.Update();
+                }
+
+                if (f.ShouldBeDestroyed || f.Vertices.Count == 0)
+                {
+                    f.Destroy();
+                }
             }
         }
 

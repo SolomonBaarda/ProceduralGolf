@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ConnectedPoints
+public class FloodFillBiome
 {
     public Biome.Type Biome;
 
@@ -14,7 +14,7 @@ public class ConnectedPoints
     public HashSet<TerrainMap.Point> Vertices = new HashSet<TerrainMap.Point>();
     public Vector3 Centre => EvaluateMidpoint();
 
-    public ConnectedPoints(Biome.Type biome)
+    public FloodFillBiome(Biome.Type biome)
     {
         Biome = biome;
     }
@@ -75,7 +75,7 @@ public class ConnectedPoints
 
 
 
-    public void UpdateHole()
+    public void Update()
     {
         NeedsUpdating = false;
 
@@ -86,7 +86,7 @@ public class ConnectedPoints
 
 
 
-    public void Merge(ref ConnectedPoints points)
+    public void Merge(ref FloodFillBiome points)
     {
         if (this != points && Biome == points.Biome)
         {
@@ -119,7 +119,13 @@ public class ConnectedPoints
     }
 
 
-    private static void GetAllConnectedPointsWorker(TerrainMap.Point start, ref HashSet<TerrainMap.Point> connected, ref HashSet<ConnectedPoints> holesFound, Biome.Type biome)
+
+
+
+
+
+
+    private static void GetAllConnectedPointsWorker(TerrainMap.Point start, ref HashSet<TerrainMap.Point> connected, ref HashSet<FloodFillBiome> holesFound, Biome.Type biome)
     {
         // Ensure we start with a new hole point
         if (start.Biome == biome && !connected.Contains(start))
@@ -141,9 +147,9 @@ public class ConnectedPoints
     }
 
 
-    private static HashSet<TerrainMap.Point> GetAllConnectedPoints(TerrainMap.Point start, out HashSet<ConnectedPoints> anyHolesFound, Biome.Type biome)
+    private static HashSet<TerrainMap.Point> GetAllConnectedPoints(TerrainMap.Point start, out HashSet<FloodFillBiome> anyHolesFound, Biome.Type biome)
     {
-        anyHolesFound = new HashSet<ConnectedPoints>();
+        anyHolesFound = new HashSet<FloodFillBiome>();
         HashSet<TerrainMap.Point> points = new HashSet<TerrainMap.Point>();
 
         // Calculate all the hole points
@@ -154,34 +160,34 @@ public class ConnectedPoints
 
 
 
-    private static void CheckPoint(TerrainMap.Point p, ref HashSet<TerrainMap.Point> pointsAlreadyChecked, ref HashSet<ConnectedPoints> holes, Biome.Type biome)
+    private static void CheckPoint(TerrainMap.Point p, ref HashSet<TerrainMap.Point> pointsAlreadyChecked, ref HashSet<FloodFillBiome> holes, Biome.Type biome)
     {
         if (!pointsAlreadyChecked.Contains(p))
         {
             pointsAlreadyChecked.Add(p);
 
-            // Vertex is part of a hole
-            if (p.IsHole)
+            // Vertex is the correct biome
+            if (p.Biome == biome)
             {
-                HashSet<TerrainMap.Point> pointsInThisHole = GetAllConnectedPoints(p, out HashSet<ConnectedPoints> holesFound, biome);
+                HashSet<TerrainMap.Point> pointsInThisFlood = GetAllConnectedPoints(p, out HashSet<FloodFillBiome> floods, biome);
 
                 // We have checked all the points in this hole now, don't do it again
-                pointsAlreadyChecked.UnionWith(pointsInThisHole);
+                pointsAlreadyChecked.UnionWith(pointsInThisFlood);
 
 
                 // No holes found - need to create a new one
-                if (holesFound.Count == 0)
+                if (floods.Count == 0)
                 {
                     // Make a new hole
-                    ConnectedPoints h = new ConnectedPoints(biome);
+                    FloodFillBiome h = new FloodFillBiome(biome);
 
                     // Add all the vertices
-                    h.Vertices.UnionWith(pointsInThisHole);
+                    h.Vertices.UnionWith(pointsInThisFlood);
                     // Add this hole
                     holes.Add(h);
 
                     // Set the hole for each point
-                    foreach (TerrainMap.Point point in pointsInThisHole)
+                    foreach (TerrainMap.Point point in pointsInThisFlood)
                     {
                         point.Connected = h;
                     }
@@ -189,12 +195,12 @@ public class ConnectedPoints
                 // Multiple holes found - need to merge them
                 else
                 {
-                    List<ConnectedPoints> holesToMerge = holesFound.ToList();
+                    List<FloodFillBiome> holesToMerge = floods.ToList();
 
                     // Merge the holes until there is only one left
                     while (holesToMerge.Count > 1)
                     {
-                        ConnectedPoints toMerge = holesToMerge[1];
+                        FloodFillBiome toMerge = holesToMerge[1];
                         holesToMerge[0].Merge(ref toMerge);
                         holesToMerge.Remove(toMerge);
                     }
@@ -207,9 +213,9 @@ public class ConnectedPoints
     }
 
 
-    public static HashSet<ConnectedPoints> CalculatePoints(ref TerrainMap t, Biome.Type biome)
+    public static HashSet<FloodFillBiome> CalculatePoints(ref TerrainMap t, Biome.Type biome)
     {
-        HashSet<ConnectedPoints> holes = new HashSet<ConnectedPoints>();
+        HashSet<FloodFillBiome> holes = new HashSet<FloodFillBiome>();
         HashSet<TerrainMap.Point> alreadyChecked = new HashSet<TerrainMap.Point>();
 
         // Check each point

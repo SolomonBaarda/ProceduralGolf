@@ -288,7 +288,7 @@ public class TerrainMap
         /// <summary>
         /// If this point is part of a Hole.
         /// </summary>
-        public ConnectedPoints Connected;
+        public FloodFillBiome Connected;
         public bool IsHole;
         public List<Point> Neighbours;
 
