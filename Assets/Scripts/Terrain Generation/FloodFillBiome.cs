@@ -96,14 +96,20 @@ public class FloodFillBiome
 
             points.ShouldBeDestroyed = true;
 
-            // Assign the points hole to be this
-            foreach (TerrainMap.Point p in Vertices)
-            {
-                p.Connected = this;
-            }
 
+            SetAllVerticesConnectedToThis();
 
             NeedsUpdating = true;
+        }
+    }
+
+
+    public void SetAllVerticesConnectedToThis()
+    {
+        // Assign the points hole to be this
+        foreach (TerrainMap.Point p in Vertices)
+        {
+            p.Connected = this;
         }
     }
 
@@ -125,42 +131,49 @@ public class FloodFillBiome
 
 
 
-    private static void GetAllConnectedPointsWorker(TerrainMap.Point start, ref HashSet<TerrainMap.Point> connected, ref HashSet<FloodFillBiome> holesFound, Biome.Type biome)
+
+
+
+    private static void GetAllConnectedPointsWorker(TerrainMap.Point p, ref HashSet<TerrainMap.Point> pointsInThisFlood, ref HashSet<FloodFillBiome> biomesFound, Biome.Type biome)
     {
         // Ensure we start with a new hole point
-        if (start.Biome == biome && !connected.Contains(start))
+        if (!pointsInThisFlood.Contains(p) && p.Biome == biome)
         {
-            connected.Add(start);
+            pointsInThisFlood.Add(p);
 
-            // If this is a new hole found, then add it
-            if (start.Connected != null && !holesFound.Contains(start.Connected))
+            // If this is a new biome then add it
+            if (p.Connected != null && !biomesFound.Contains(p.Connected))
             {
-                holesFound.Add(start.Connected);
+                biomesFound.Add(p.Connected);
+
+                pointsInThisFlood.UnionWith(p.Connected.Vertices);
             }
 
             // Then check each neighbour
-            foreach (TerrainMap.Point p in start.Neighbours)
+            foreach (TerrainMap.Point neighbour in p.Neighbours)
             {
-                GetAllConnectedPointsWorker(p, ref connected, ref holesFound, biome);
+                GetAllConnectedPointsWorker(neighbour, ref pointsInThisFlood, ref biomesFound, biome);
             }
         }
+
     }
 
 
-    private static HashSet<TerrainMap.Point> GetAllConnectedPoints(TerrainMap.Point start, out HashSet<FloodFillBiome> anyHolesFound, Biome.Type biome)
+    private static HashSet<TerrainMap.Point> GetAllConnectedPoints(TerrainMap.Point start, out HashSet<FloodFillBiome> biomesFound, Biome.Type biome)
     {
-        anyHolesFound = new HashSet<FloodFillBiome>();
-        HashSet<TerrainMap.Point> points = new HashSet<TerrainMap.Point>();
+        biomesFound = new HashSet<FloodFillBiome>();
+        HashSet<TerrainMap.Point> pointsInThisFlood = new HashSet<TerrainMap.Point>();
+
 
         // Calculate all the hole points
-        GetAllConnectedPointsWorker(start, ref points, ref anyHolesFound, biome);
+        GetAllConnectedPointsWorker(start, ref pointsInThisFlood, ref biomesFound, biome); ;
 
-        return points;
+        return pointsInThisFlood;
     }
 
 
 
-    private static void CheckPoint(TerrainMap.Point p, ref HashSet<TerrainMap.Point> pointsAlreadyChecked, ref HashSet<FloodFillBiome> holes, Biome.Type biome)
+    private static void CheckPoint(TerrainMap.Point p, ref HashSet<TerrainMap.Point> pointsAlreadyChecked, ref HashSet<FloodFillBiome> floodsFound, Biome.Type biome)
     {
         if (!pointsAlreadyChecked.Contains(p))
         {
@@ -169,44 +182,50 @@ public class FloodFillBiome
             // Vertex is the correct biome
             if (p.Biome == biome)
             {
-                HashSet<TerrainMap.Point> pointsInThisFlood = GetAllConnectedPoints(p, out HashSet<FloodFillBiome> floods, biome);
 
-                // We have checked all the points in this hole now, don't do it again
-                pointsAlreadyChecked.UnionWith(pointsInThisFlood);
-
-
-                // No holes found - need to create a new one
-                if (floods.Count == 0)
+                // Do the flood fill for all the connected points
+                if (p.Connected == null)
                 {
-                    // Make a new hole
-                    FloodFillBiome h = new FloodFillBiome(biome);
+                    HashSet<TerrainMap.Point> pointsInThisFlood = GetAllConnectedPoints(p, out HashSet<FloodFillBiome> floods, biome);
 
-                    // Add all the vertices
-                    h.Vertices.UnionWith(pointsInThisFlood);
-                    // Add this hole
-                    holes.Add(h);
+                    // We have checked all the points in this hole now, don't do it again
+                    pointsAlreadyChecked.UnionWith(pointsInThisFlood);
 
-                    // Set the hole for each point
-                    foreach (TerrainMap.Point point in pointsInThisFlood)
+
+                    // No holes found - need to create a new one
+                    if (floods.Count == 0)
                     {
-                        point.Connected = h;
+                        // Make a new hole
+                        FloodFillBiome h = new FloodFillBiome(biome);
+
+                        // Add all the vertices
+                        h.Vertices.UnionWith(pointsInThisFlood);
+                        // Add this hole
+                        floodsFound.Add(h);
+
+                        h.SetAllVerticesConnectedToThis();
+                    }
+                    // Multiple floods found - need to merge them
+                    else
+                    {
+                        List<FloodFillBiome> floodsToMerge = floods.ToList();
+
+                        // Merge the floods until there is only one left
+                        while (floodsToMerge.Count >= 2)
+                        {
+                            FloodFillBiome toMerge = floodsToMerge[1];
+                            floodsToMerge[0].Merge(ref toMerge);
+                            floodsToMerge.Remove(toMerge);
+                        }
+
+                        // When we get here, there is only one flood left so just add it
+                        floodsFound.UnionWith(floodsToMerge);
                     }
                 }
-                // Multiple holes found - need to merge them
+                // Don't bother doing the flood - it has already been done
                 else
                 {
-                    List<FloodFillBiome> holesToMerge = floods.ToList();
-
-                    // Merge the holes until there is only one left
-                    while (holesToMerge.Count > 1)
-                    {
-                        FloodFillBiome toMerge = holesToMerge[1];
-                        holesToMerge[0].Merge(ref toMerge);
-                        holesToMerge.Remove(toMerge);
-                    }
-
-                    // When we get here, there is only one hole left so just add it
-                    holes.UnionWith(holesToMerge);
+                    floodsFound.Add(p.Connected);
                 }
             }
         }
@@ -228,7 +247,7 @@ public class FloodFillBiome
         }
 
         // Remove ones that we don't need
-        holes.RemoveWhere((x) => x.Vertices.Count == 0 || x.ShouldBeDestroyed);
+        holes.RemoveWhere((x) => x.ShouldBeDestroyed || x.Vertices.Count == 0);
 
         return holes;
     }

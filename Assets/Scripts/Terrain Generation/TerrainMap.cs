@@ -37,7 +37,7 @@ public class TerrainMap
                 bool atEdge = x == 0 || x == width - 1 || y == 0 || y == height - 1;
 
                 // Assign the terrain point
-                Points[x, y] = new Point(baseVertices[x, y], bounds.center, heightsBeforeHole[x,y], biomes[x,y], decoration[x,y], holeMask[x,y], atEdge);
+                Points[x, y] = new Point(baseVertices[x, y], bounds.center, heightsBeforeHole[x, y], biomes[x, y], decoration[x, y], holeMask[x, y], atEdge);
             }
         }
 
@@ -251,8 +251,8 @@ public class TerrainMap
             {
                 p.Neighbours.Add(neighbour);
 
-                // These neighbours are the same hole that is split by the chunk border
-                if (p.IsHole && neighbour.IsHole)
+                // These neighbours are the same biome that is split by the chunk border
+                if (p.Biome == neighbour.Biome)
                 {
                     if (p.Connected != neighbour.Connected)
                     {
@@ -272,24 +272,24 @@ public class TerrainMap
     {
         public const float Empty = 0f;
 
-        public Vector3 LocalVertexBasePosition;
+        public readonly Vector3 LocalVertexBasePosition;
         // Calculate the point of the vertex
         public Vector3 LocalVertexPosition => LocalVertexBasePosition + (TerrainManager.UP * Height);
-        public Vector3 Offset;
+        public readonly Vector3 Offset;
 
-        public bool IsAtEdgeOfMesh;
+        public readonly bool IsAtEdgeOfMesh;
 
         public float Height;
-        public float OriginalHeight;
+        public readonly float OriginalHeight;
 
-        public Biome.Type Biome;
+        public readonly Biome.Type Biome;
         public List<Biome.Decoration> ValidDecoration;
 
         /// <summary>
-        /// If this point is part of a Hole.
+        /// If this point is part of a FloodFill biome.
         /// </summary>
         public FloodFillBiome Connected;
-        public bool IsHole;
+        public readonly bool IsHole;
         public List<Point> Neighbours;
 
 

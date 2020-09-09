@@ -306,7 +306,7 @@ public class TerrainGenerator : MonoBehaviour
             }
 
 
-            Biome.Type lakeBiome = TerrainSettings_Green.Lake.Biome;
+            Biome.Type lakeBiome = Current.Lake.Biome;
 
             // Get the lakes
             HashSet<FloodFillBiome> newLakes = FloodFillBiome.CalculatePoints(ref map, lakeBiome);
