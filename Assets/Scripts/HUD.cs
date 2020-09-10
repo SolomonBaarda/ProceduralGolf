@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -14,6 +15,7 @@ public class HUD : MonoBehaviour
 
     public Canvas CanvasShootingMenu;
     public Canvas CanvasMainUI;
+    public Canvas CanvasScoreboard;
 
     [Header("Shooting Window")]
     public PointerSlider ShootingSliderArea;
@@ -37,7 +39,10 @@ public class HUD : MonoBehaviour
     public GameObject ShotsDisplayParent;
     public TMP_Text Shots;
 
-
+    [Header("Scoreboard")]
+    public GameObject ScoreRowPrefab;
+    public GameObject ScoreRowParent;
+    public List<ScoreboardRow> ScoreboardRows = new List<ScoreboardRow>();
 
     public static HUD Instance;
 
@@ -80,6 +85,13 @@ public class HUD : MonoBehaviour
     private void QuitPressed() { OnQuitPressed.Invoke(); }
 
 
-
+    public void Clear()
+    {
+        for(int i = 0; i < ScoreRowParent.transform.childCount; i++)
+        {
+            Destroy(ScoreRowParent.transform.GetChild(i).gameObject);
+        }
+        ScoreboardRows.Clear();
+    }
 
 }

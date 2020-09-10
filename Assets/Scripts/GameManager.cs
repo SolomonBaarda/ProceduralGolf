@@ -181,6 +181,34 @@ public class GameManager : MonoBehaviour
             if(Gamerules.UseHUD && HUD != null)
             {
                 HUD.CanvasShootingMenu.gameObject.SetActive(isShooting);
+
+                bool showScoreboard = false;
+                HUD.CanvasScoreboard.gameObject.SetActive(showScoreboard);
+
+                if(showScoreboard)
+                {
+                    // Make sure the holes completed are updated
+                    if (HUD.ScoreboardRows.Count < GolfBall.Progress.HolesReached.Count)
+                    {
+                        GolfBall.Stats.Pot[] holes = GolfBall.Progress.HolesReached.ToArray();
+                        for(int i = 0; i < holes.Length; i++)
+                        {
+                            // Instantiate the row if we need to
+                            if(HUD.ScoreboardRows[i] == null)
+                            {
+                                GameObject g = Instantiate(HUD.ScoreRowPrefab, HUD.ScoreRowParent.transform);
+                                ScoreboardRow row = g.GetComponent<ScoreboardRow>();
+                                row.Shots.text = holes[i].ShotsTaken.ToString();
+                                row.Time.text = holes[i].TimeReached.ToString();
+                                row.HoleNumber.text = "#" + holes[i].Hole.ToString();
+
+                                HUD.ScoreboardRows.Add(row);
+                            }
+
+                        }
+
+                    }
+                }
             }
 
 
@@ -318,6 +346,7 @@ public class GameManager : MonoBehaviour
         TerrainGenerator.Clear();
         TerrainManager.Clear();
         CourseManager.Clear();
+        HUD.Clear();
     }
 
 

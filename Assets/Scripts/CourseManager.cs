@@ -169,8 +169,6 @@ public class CourseManager : MonoBehaviour
 
     public void RespawnGolfBall(HoleData hole)
     {
-        Debug.Log("spawning at hole " + hole.Number + " pos " + hole.Centre);
-
         GolfBall.HoleReached(hole);
 
         // And move the ball there
