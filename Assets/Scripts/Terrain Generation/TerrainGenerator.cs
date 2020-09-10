@@ -307,6 +307,7 @@ public class TerrainGenerator : MonoBehaviour
             foreach (FloodFillBiome hole in newHoles.Result)
             {
                 hole.Update();
+                hole.SetAllVerticesConnectedToThis();
 
                 GolfHoles.Add(hole);
             }
@@ -336,10 +337,8 @@ public class TerrainGenerator : MonoBehaviour
             */
 
 
-
-
-            List<WorldObjectData> data = WorldObjectGenerator.CalculateDataForChunk(map);
-
+            // Get the positions of the world objects
+            Task<List<WorldObjectData>> worldObjectsTask = Task<List<WorldObjectData>>.Factory.StartNew(() => WorldObjectGenerator.CalculateDataForChunk(map), TaskCancelToken.Token);
 
 
             // Assign the biomes
@@ -362,7 +361,7 @@ public class TerrainGenerator : MonoBehaviour
             Mesh mesh = null;
             meshData.UpdateMesh(ref mesh, MeshSettings);
 
-            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Bounds.size, biomes, colourMap, mesh, data);
+            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Bounds.size, biomes, colourMap, mesh, worldObjectsTask.Result);
 
 
             ChunkData d = new ChunkData() { Data = chunkData, TerrainMap = map, MeshData = meshData };
@@ -527,6 +526,8 @@ public class TerrainGenerator : MonoBehaviour
                 h.Destroy();
             }
         }
+        GolfHoles.RemoveWhere(x => x.ShouldBeDestroyed);
+
         // Do the same for any other biomes
         foreach (HashSet<FloodFillBiome> h in FloodFillBiomes.Values)
         {
@@ -536,14 +537,16 @@ public class TerrainGenerator : MonoBehaviour
                 {
                     f.Update();
                 }
-
                 if (f.ShouldBeDestroyed || f.Vertices.Count == 0)
                 {
                     f.Destroy();
                 }
             }
+            h.RemoveWhere(x => x.ShouldBeDestroyed);
         }
 
+        
+        
 
 
         // Now let the terrain be updated

@@ -159,7 +159,7 @@ public class GameManager : MonoBehaviour
 
         LoadingScreen.Active(false);
 
-        Debug.Log("Game has started.");
+        Debug.Log("Game has started. There are " + CourseManager.NumberOfHoles + " holes.");
     }
 
 

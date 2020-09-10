@@ -12,6 +12,7 @@ public class CourseManager : MonoBehaviour
 
 
     private Dictionary<int, HoleData> Holes = new Dictionary<int, HoleData>();
+    public int NumberOfHoles => Holes.Count;
 
     public UnityAction OnHoleCompleted;
 
@@ -168,6 +169,8 @@ public class CourseManager : MonoBehaviour
 
     public void RespawnGolfBall(HoleData hole)
     {
+        Debug.Log("spawning at hole " + hole.Number + " pos " + hole.Centre);
+
         GolfBall.HoleReached(hole);
 
         // And move the ball there
