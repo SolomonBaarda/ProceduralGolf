@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-
-
+using System.Collections;
+using System;
 
 public class TerrainMap
 {
@@ -268,7 +268,7 @@ public class TerrainMap
 
 
 
-    public class Point
+    public class Point : IEqualityComparer
     {
         public const float Empty = 0f;
 
@@ -316,6 +316,34 @@ public class TerrainMap
             UpLeft, UpRight, DownLeft, DownRight,
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is Point point &&
+                   LocalVertexBasePosition.Equals(point.LocalVertexBasePosition) &&
+                   Offset.Equals(point.Offset) &&
+                   OriginalHeight == point.OriginalHeight &&
+                   Biome == point.Biome;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -1694761058;
+            hashCode = hashCode * -1521134295 + LocalVertexBasePosition.GetHashCode();
+            hashCode = hashCode * -1521134295 + Offset.GetHashCode();
+            hashCode = hashCode * -1521134295 + OriginalHeight.GetHashCode();
+            hashCode = hashCode * -1521134295 + Biome.GetHashCode();
+            return hashCode;
+        }
+
+        public new bool Equals(object x, object y)
+        {
+            return x is Point a && y is Point b && a.Equals(b);
+        }
+
+        public int GetHashCode(object obj)
+        {
+            return obj.GetHashCode();
+        }
     }
 
 

@@ -72,7 +72,7 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(WaitUntilGameStart());
 
-        InvokeRepeating("CheckTerrainGeneration", 1, 2);
+        InvokeRepeating(nameof(CheckTerrainGeneration), 1, 2);
     }
 
 

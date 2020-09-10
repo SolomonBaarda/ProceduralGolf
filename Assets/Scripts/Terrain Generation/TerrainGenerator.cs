@@ -297,6 +297,12 @@ public class TerrainGenerator : MonoBehaviour
             // Continue and get the holes
             Task<HashSet<FloodFillBiome>> newHoles = generateMap.ContinueWith((m) => FloodFillBiome.CalculatePoints(ref map, Current.HoleBiome), TaskCancelToken.Token);
 
+            // Continue and get the lakes
+            //Task<HashSet<FloodFillBiome>> newLakesTask = newHoles.ContinueWith((m) => FloodFillBiome.CalculatePoints(ref map, Current.Bunker.Biome), TaskCancelToken.Token);
+            //HashSet<FloodFillBiome> l = newLakesTask.Result;
+
+
+
             // Update them all
             foreach (FloodFillBiome hole in newHoles.Result)
             {
@@ -306,29 +312,28 @@ public class TerrainGenerator : MonoBehaviour
             }
 
 
-            Biome.Type lakeBiome = Current.Lake.Biome;
 
-            // Get the lakes
-            HashSet<FloodFillBiome> newLakes = FloodFillBiome.CalculatePoints(ref map, lakeBiome);
 
-            Debug.Log("found " + newLakes.Count + " new lakes");
-
+            /*
+            HashSet<FloodFillBiome> newLakes = newLakesTask.Result;
 
             // Update them all
+            
             foreach (FloodFillBiome l in newLakes)
             {
                 l.Update();
             }
-            if (!FloodFillBiomes.TryGetValue(lakeBiome, out HashSet<FloodFillBiome> lakes))
+
+            if (!FloodFillBiomes.TryGetValue(Current.Lake.Biome, out HashSet<FloodFillBiome> lakes))
             {
                 lakes = new HashSet<FloodFillBiome>();
-                FloodFillBiomes.Add(lakeBiome, lakes);
+                FloodFillBiomes.Add(Current.Lake.Biome, lakes);
             }
 
             lakes.UnionWith(newLakes);
 
-
-
+            
+            */
 
 
 

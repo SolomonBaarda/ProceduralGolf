@@ -152,7 +152,11 @@ public class FloodFillBiome
             // Then check each neighbour
             foreach (TerrainMap.Point neighbour in p.Neighbours)
             {
-                GetAllConnectedPointsWorker(neighbour, ref pointsInThisFlood, ref biomesFound, biome);
+                if (!pointsInThisFlood.Contains(neighbour) && neighbour.Biome == biome)
+                {
+                    GetAllConnectedPointsWorker(neighbour, ref pointsInThisFlood, ref biomesFound, biome);
+                }
+                    
             }
         }
 
