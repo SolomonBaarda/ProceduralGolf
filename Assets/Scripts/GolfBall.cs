@@ -374,10 +374,14 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-    public void HoleReached(HoleData reached)
+    public void HoleReached(HoleData hole, DateTime reached)
     {
+        Stats.Pot p = new Stats.Pot(hole, reached, Progress.ShotsForThisHole);
+
+        Debug.Log("new pot with shots: " + p.ShotsTaken);
+
         // Add the hole 
-        Progress.HolesReached.Push(new Stats.Pot() { Hole = reached, TimeReached = DateTime.Now, ShotsTaken = Progress.ShotsForThisHole });
+        Progress.HolesReached.Push(p);
 
         Progress.ShotsForThisHole = 0;
     }
@@ -388,7 +392,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public class Stats
     {
         public Stack<Pot> HolesReached = new Stack<Pot>();
-        public HoleData To;
 
         public int ShotsForThisHole;
         public int LastHoleReached { get { if (HolesReached.Count > 0) { return HolesReached.Peek().Hole.Number; } else { return 0; } } }
@@ -411,6 +414,13 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
             public HoleData Hole;
             public DateTime TimeReached;
             public int ShotsTaken;
+
+            public Pot(in HoleData reached, in DateTime time, in int shots)
+            {
+                Hole = reached;
+                TimeReached = time;
+                ShotsTaken = shots;
+            }
         }
     }
 

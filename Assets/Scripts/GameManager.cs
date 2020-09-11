@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -177,38 +178,12 @@ public class GameManager : MonoBehaviour
             GolfBall.ShotNormalPreview.gameObject.SetActive(isShooting);
             GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
 
-            
-            if(Gamerules.UseHUD && HUD != null)
+
+            if (Gamerules.UseHUD && HUD != null)
             {
                 HUD.CanvasShootingMenu.gameObject.SetActive(isShooting);
 
-                bool showScoreboard = false;
-                HUD.CanvasScoreboard.gameObject.SetActive(showScoreboard);
-
-                if(showScoreboard)
-                {
-                    // Make sure the holes completed are updated
-                    if (HUD.ScoreboardRows.Count < GolfBall.Progress.HolesReached.Count)
-                    {
-                        GolfBall.Stats.Pot[] holes = GolfBall.Progress.HolesReached.ToArray();
-                        for(int i = 0; i < holes.Length; i++)
-                        {
-                            // Instantiate the row if we need to
-                            if(HUD.ScoreboardRows[i] == null)
-                            {
-                                GameObject g = Instantiate(HUD.ScoreRowPrefab, HUD.ScoreRowParent.transform);
-                                ScoreboardRow row = g.GetComponent<ScoreboardRow>();
-                                row.Shots.text = holes[i].ShotsTaken.ToString();
-                                row.Time.text = holes[i].TimeReached.ToString();
-                                row.HoleNumber.text = "#" + holes[i].Hole.ToString();
-
-                                HUD.ScoreboardRows.Add(row);
-                            }
-
-                        }
-
-                    }
-                }
+                HUD.CanvasScoreboard.gameObject.SetActive(HUD.ShowScoreboard);
             }
 
 
@@ -382,7 +357,53 @@ public class GameManager : MonoBehaviour
 
     private void UpdateHUDShotCounter()
     {
-        HUD.Shots.text = GolfBall.Progress.ShotsForThisHole.ToString();
+        if (HUD != null)
+        {
+            // Update the shots counter
+            HUD.Shots.text = GolfBall.Progress.ShotsForThisHole.ToString();
+
+
+            GolfBall.Stats.Pot[] holes = GolfBall.Progress.HolesReached.ToArray();
+
+            if (holes != null && holes.Length > 0)
+            {
+                // Add rows until we have enough
+                while (HUD.ScoreboardRows.Count < holes.Length - 1)
+                {
+                    GameObject g = Instantiate(HUD.ScoreRowPrefab, HUD.ScoreRowParent.transform);
+                    ScoreboardRow row = g.GetComponent<ScoreboardRow>();
+
+                    HUD.ScoreboardRows.Add(row);
+                }
+
+                // Update each ones data
+                for (int holeIndex = 0; holeIndex < holes.Length - 1; holeIndex++)
+                {
+                    int rowIndex = HUD.ScoreboardRows.Count - 1 - holeIndex;
+
+                    HUD.ScoreboardRows[rowIndex].HoleNumber.text = "#" + holes[holeIndex].Hole.Number;
+                    HUD.ScoreboardRows[rowIndex].Shots.text = holes[holeIndex].ShotsTaken.ToString();
+
+
+                    TimeSpan time = holes[holeIndex].TimeReached - holes[holeIndex + 1].TimeReached;
+
+                    // Set the time message 
+                    string timeMessage;
+                    if (time.Minutes > 0)
+                    {
+                        timeMessage = time.Minutes + "m " + (time.TotalSeconds % 60).ToString("0.0") + "s";
+                    }
+                    else
+                    {
+                        timeMessage = time.TotalSeconds.ToString("0.0") + "s";
+                    }
+
+                    HUD.ScoreboardRows[rowIndex].Time.text = timeMessage;
+                }
+            }
+
+        }
+
     }
 
 

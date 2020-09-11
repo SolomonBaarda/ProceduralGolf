@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Events;
+using System;
 
 public class CourseManager : MonoBehaviour
 {
@@ -169,7 +170,7 @@ public class CourseManager : MonoBehaviour
 
     public void RespawnGolfBall(HoleData hole)
     {
-        GolfBall.HoleReached(hole);
+        GolfBall.HoleReached(hole, DateTime.Now);
 
         // And move the ball there
         MoveGolfBallAndWaitForNextShot(TerrainManager.CalculateSpawnPoint(GolfBall.Radius, hole.Centre));

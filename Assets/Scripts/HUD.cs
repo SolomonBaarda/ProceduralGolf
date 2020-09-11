@@ -34,6 +34,8 @@ public class HUD : MonoBehaviour
 
 
     [Header("Main UI")]
+    public Button Scoreboard;
+    public bool ShowScoreboard;
     public Button Restart;
     public Button Quit;
     public GameObject ShotsDisplayParent;
@@ -50,6 +52,8 @@ public class HUD : MonoBehaviour
     private void Awake()
     {
         Instance = FindObjectOfType<HUD>();
+
+        Scoreboard.onClick.AddListener(InvertScoreboard);
     }
 
 
@@ -59,6 +63,13 @@ public class HUD : MonoBehaviour
         CanvasShootingMenu.gameObject.SetActive(visible);
         CanvasMainUI.gameObject.SetActive(visible);
     }
+
+
+    private void InvertScoreboard()
+    {
+        ShowScoreboard = !ShowScoreboard;
+    }
+
 
 
 
@@ -77,6 +88,7 @@ public class HUD : MonoBehaviour
         Shoot.onClick.RemoveAllListeners();
         Restart.onClick.RemoveAllListeners();
         Quit.onClick.RemoveAllListeners();
+        Scoreboard.onClick.RemoveAllListeners();
     }
 
 
