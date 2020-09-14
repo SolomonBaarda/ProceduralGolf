@@ -42,7 +42,7 @@ public class TerrainChunkManager : MonoBehaviour
         // Need to create new chunk
         if (!TerrainChunkExists(position))
         {
-            Bounds bounds = new Bounds(data.Centre, data.Size);
+            Bounds bounds = new Bounds(data.Centre, data.BoundsSize);
 
             // Create the chunk
             chunk = new GameObject().AddComponent<TerrainChunk>();

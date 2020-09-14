@@ -9,7 +9,7 @@ public class TerrainChunkData
     public int X, Y;
 
     public Vector3 Centre;
-    public Vector3 Size;
+    public Vector3 BoundsSize { get { Vector3 size = MainMesh.bounds.size; size.y = 0; return size; } }
 
     [SerializeField] public Texture2D BiomeColourMap;
     [SerializeField] public Mesh MainMesh;
@@ -24,13 +24,12 @@ public class TerrainChunkData
 
 
 
-    public TerrainChunkData(int x, int y, Vector3 centre, Vector3 size, Biome.Type[,] biomes,
+    public TerrainChunkData(int x, int y, Vector3 centre, Biome.Type[,] biomes,
         Texture2D colourMap, Mesh main, List<WorldObjectData> worldObjects)
     {
         X = x;
         Y = y;
         Centre = centre;
-        Size = size;
 
         BiomeColourMap = colourMap;
         MainMesh = main;

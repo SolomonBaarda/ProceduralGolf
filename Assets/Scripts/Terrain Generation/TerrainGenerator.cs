@@ -361,7 +361,7 @@ public class TerrainGenerator : MonoBehaviour
             Mesh mesh = null;
             meshData.UpdateMesh(ref mesh, MeshSettings);
 
-            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Bounds.size, biomes, colourMap, mesh, worldObjectsTask.Result);
+            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, biomes, colourMap, mesh, worldObjectsTask.Result);
 
 
             ChunkData d = new ChunkData() { Data = chunkData, TerrainMap = map, MeshData = meshData };
