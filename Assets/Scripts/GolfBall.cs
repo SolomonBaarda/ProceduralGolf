@@ -236,8 +236,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Undo any freezes
         Freeze(false);
 
+        ValidateValues();
         // Log the shot
-        Progress.Shots.Push(new Stats.Shot(Position));
+        Progress.Shots.Push(new Stats.Shot(Position, Rotation, Angle, Power));
 
         // Reset the drag just for the shot
         rigid.drag = 0;
@@ -449,10 +450,16 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         public class Shot
         {
             public Vector3 PositionFrom;
+            public float Rotation;
+            public float Angle;
+            public float Power;
 
-            public Shot(Vector3 from)
+            public Shot(Vector3 from, float rotation, float angle, float power)
             {
                 PositionFrom = from;
+                Rotation = rotation;
+                Angle = angle;
+                Power = power;
             }
         }
     }

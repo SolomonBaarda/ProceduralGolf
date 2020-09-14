@@ -175,6 +175,8 @@ public class CourseManager : MonoBehaviour
             GolfBall.Stats.Shot s = GolfBall.Progress.Shots.Peek();
 
             MoveGolfBallAndWaitForNextShot(s.PositionFrom);
+
+            GolfBall.SetValues(s.Rotation, s.Angle, s.Power);
         }
     }
 
