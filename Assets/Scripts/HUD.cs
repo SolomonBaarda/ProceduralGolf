@@ -13,28 +13,27 @@ public class HUD : MonoBehaviour
     public UnityAction OnRestartPressed;
     public UnityAction OnQuitPressed;
 
-    public Canvas CanvasShootingMenu;
-    public Canvas CanvasMainUI;
+    public Canvas CanvasInteraction;
     public Canvas CanvasScoreboard;
+    [Space]
+    public GameObject ShootingMenu;
+    public GameObject MainHUD;
 
     [Header("Shooting Window")]
-    public PointerSlider ShootingSliderArea;
+    public PointerSlider MainSlider;
+    [Range(0, 1)] public float PowerSliderBackgroundAlpha = 0.75f;
+    public PointerSlider PowerSlider;
     public Button Shoot;
-
-    [Header("Sliders")]
+    [Space]
     public HeldButton RotationLess;
     public HeldButton RotationMore;
     [Space]
     public HeldButton AngleLess;
     public HeldButton AngleMore;
-    [Space]
-    public PointerSlider Power;
-    [Range(0, 1)]
-    public float SliderBackgroundAlpha = 0.75f;
 
 
     [Header("Main UI")]
-    public Button Scoreboard;
+    public Button ShowScoreboardButton;
     public bool ShowScoreboard;
     public Button Restart;
     public Button Quit;
@@ -42,6 +41,7 @@ public class HUD : MonoBehaviour
     public TMP_Text Shots;
 
     [Header("Scoreboard")]
+    public Button HideScoreboardButton;
     public GameObject ScoreRowPrefab;
     public GameObject ScoreRowParent;
     public List<ScoreboardRow> ScoreboardRows = new List<ScoreboardRow>();
@@ -53,15 +53,16 @@ public class HUD : MonoBehaviour
     {
         Instance = FindObjectOfType<HUD>();
 
-        Scoreboard.onClick.AddListener(InvertScoreboard);
+        ShowScoreboardButton.onClick.AddListener(InvertScoreboard);
+        HideScoreboardButton.onClick.AddListener(InvertScoreboard);
     }
 
 
 
     public void Active(bool visible)
     {
-        CanvasShootingMenu.gameObject.SetActive(visible);
-        CanvasMainUI.gameObject.SetActive(visible);
+        CanvasInteraction.gameObject.SetActive(visible);
+        CanvasScoreboard.gameObject.SetActive(visible);
     }
 
 
@@ -88,7 +89,8 @@ public class HUD : MonoBehaviour
         Shoot.onClick.RemoveAllListeners();
         Restart.onClick.RemoveAllListeners();
         Quit.onClick.RemoveAllListeners();
-        Scoreboard.onClick.RemoveAllListeners();
+        ShowScoreboardButton.onClick.RemoveAllListeners();
+        HideScoreboardButton.onClick.RemoveAllListeners();
     }
 
 

@@ -181,7 +181,10 @@ public class GameManager : MonoBehaviour
 
             if (Gamerules.UseHUD && HUD != null)
             {
-                HUD.CanvasShootingMenu.gameObject.SetActive(isShooting);
+                HUD.CanvasInteraction.gameObject.SetActive(true);
+                HUD.MainHUD.SetActive(true);
+
+                HUD.ShootingMenu.SetActive(isShooting);
 
                 HUD.CanvasScoreboard.gameObject.SetActive(HUD.ShowScoreboard);
             }
@@ -197,8 +200,8 @@ public class GameManager : MonoBehaviour
                     int touchMultiplier = 10;
 
                     // Calculate the deltas for each 
-                    Vector2 rotationAndAngleDelta = HUD.ShootingSliderArea.DeltaPosition * Time.deltaTime * touchMultiplier;
-                    Vector2 powerDelta = HUD.Power.DeltaPosition * Time.deltaTime * touchMultiplier;
+                    Vector2 rotationAndAngleDelta = HUD.MainSlider.DeltaPosition * Time.deltaTime * touchMultiplier;
+                    Vector2 powerDelta = HUD.PowerSlider.DeltaPosition * Time.deltaTime * touchMultiplier;
 
                     // Make sure power has priority over rotation and angle
                     if (powerDelta.x != 0 || powerDelta.y != 0)
@@ -256,12 +259,12 @@ public class GameManager : MonoBehaviour
                     // Update the HUD to display the correct values
                     //HUD.Rotation.DisplayValue.text = GolfBall.Rotation.ToString("0") + "°";
                     //HUD.Angle.DisplayValue.text = GolfBall.Angle.ToString("0") + "°";
-                    HUD.Power.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
+                    HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
 
                     // Set the power slider colour
-                    Color p = HUD.Power.Gradient.Evaluate(GolfBall.Power);
-                    p.a = HUD.SliderBackgroundAlpha;
-                    HUD.Power.Background.color = p;
+                    Color p = HUD.PowerSlider.Gradient.Evaluate(GolfBall.Power);
+                    p.a = HUD.PowerSliderBackgroundAlpha;
+                    HUD.PowerSlider.Background.color = p;
 
                     break;
 

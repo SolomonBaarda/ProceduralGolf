@@ -216,11 +216,12 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Undo any freezes
         Freeze(false);
 
+        // Log the shot
+        Progress.Shots.Push(new Stats.Shot(Position));
+
         // Apply the force in direction
         Vector3 force = transform.forward * Power * FullPower;
         rigid.AddForce(force, ForceMode.Impulse);
-
-        Progress.ShotsForThisHole++;
     }
 
 
@@ -376,14 +377,10 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public void HoleReached(HoleData hole, DateTime reached)
     {
-        Stats.Pot p = new Stats.Pot(hole, reached, Progress.ShotsForThisHole);
-
-        Debug.Log("new pot with shots: " + p.ShotsTaken);
-
         // Add the hole 
-        Progress.HolesReached.Push(p);
+        Progress.HolesReached.Push(new Stats.Pot(hole, reached, Progress.ShotsForThisHole));
 
-        Progress.ShotsForThisHole = 0;
+        Progress.Shots.Clear();
     }
 
 
@@ -393,7 +390,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     {
         public Stack<Pot> HolesReached = new Stack<Pot>();
 
-        public int ShotsForThisHole;
+        public Stack<Shot> Shots = new Stack<Shot>();
+        public int ShotsForThisHole => Shots.Count;
+
         public int LastHoleReached { get { if (HolesReached.Count > 0) { return HolesReached.Peek().Hole.Number; } else { return 0; } } }
 
 
@@ -405,14 +404,14 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         public void Clear()
         {
             HolesReached.Clear();
-
-            ShotsForThisHole = 0;
+            Shots.Clear();
         }
 
         public class Pot
         {
             public HoleData Hole;
             public DateTime TimeReached;
+
             public int ShotsTaken;
 
             public Pot(in HoleData reached, in DateTime time, in int shots)
@@ -420,6 +419,16 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
                 Hole = reached;
                 TimeReached = time;
                 ShotsTaken = shots;
+            }
+        }
+
+        public class Shot
+        {
+            public Vector3 PositionFrom;
+
+            public Shot(Vector3 from)
+            {
+                PositionFrom = from;
             }
         }
     }
