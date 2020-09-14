@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -12,13 +11,14 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public static int Mask => LayerMask.GetMask(LAYER_NAME);
 
     // Constants 
-    public readonly static RigidPreset Preset_Air = new RigidPreset(0f, 0f);
-    public readonly static RigidPreset Preset_Grass = new RigidPreset(3f, 1f);
-    public readonly static RigidPreset Preset_GrassShort = new RigidPreset(1.5f, 1f);
-    public readonly static RigidPreset Preset_GrassLong = new RigidPreset(5f, 2f);
-    public readonly static RigidPreset Preset_Sand = new RigidPreset(9f, 12f);
-    public readonly static RigidPreset Preset_Water = new RigidPreset(20f, 50f);
-    public readonly static RigidPreset Preset_Ice = new RigidPreset(0f, 0f);
+    public readonly static RigidPreset Preset_Air = new RigidPreset(0f, 0f, 1f);
+    public readonly static RigidPreset Preset_Grass = new RigidPreset(3f, 1f, 1f);
+    public readonly static RigidPreset Preset_GrassShort = new RigidPreset(1.5f, 1f, 1f);
+    public readonly static RigidPreset Preset_GrassLong = new RigidPreset(5f, 2f, 0.9f);
+    public readonly static RigidPreset Preset_Sand = new RigidPreset(9f, 12f, 0.8f);
+    public readonly static RigidPreset Preset_Water = new RigidPreset(20f, 50f, 0.5f);
+    public readonly static RigidPreset Preset_Ice = new RigidPreset(0f, 0f, 1f);
+    [SerializeField] private RigidPreset CurrentPreset;
 
     // States
     public PlayState State;
@@ -172,46 +172,48 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
         // Update the rigidbody properties
-        RigidPreset r = Preset_Air;
         // On the ground
-        if (State == PlayState.Rolling)
+        if (IsOnGround)
         {
             switch (CurrentBiome)
             {
                 case Biome.Type.Grass:
-                    r = Preset_Grass;
+                    CurrentPreset = Preset_Grass;
                     break;
                 case Biome.Type.Sand:
-                    r = Preset_Sand;
+                    CurrentPreset = Preset_Sand;
                     break;
                 case Biome.Type.GrassShort:
-                    r = Preset_GrassShort;
+                    CurrentPreset = Preset_GrassShort;
                     break;
                 case Biome.Type.GrassLong:
-                    r = Preset_GrassLong;
+                    CurrentPreset = Preset_GrassLong;
                     break;
                 case Biome.Type.Water:
-                    r = Preset_Water;
+                    CurrentPreset = Preset_Water;
                     break;
                 case Biome.Type.Ice:
-                    r = Preset_Ice;
+                    CurrentPreset = Preset_Ice;
                     break;
             }
-
+        }
+        else
+        {
+            CurrentPreset = Preset_Air;
         }
 
         // Set the values
-        rigid.angularDrag = r.AngularDrag;
-        rigid.drag = r.Drag;
+        rigid.angularDrag = CurrentPreset.AngularDrag;
+        rigid.drag = CurrentPreset.Drag;
+
 
 
 
         // Record the last direction we were rolling in
-        if(State == PlayState.Rolling)
+        if (State == PlayState.Rolling)
         {
             LastDirectionWhenRolling = Facing;
         }
-
 
 
 
@@ -237,8 +239,12 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Log the shot
         Progress.Shots.Push(new Stats.Shot(Position));
 
+        // Reset the drag just for the shot
+        rigid.drag = 0;
+        rigid.angularDrag = 0;
+
         // Apply the force in direction
-        Vector3 force = transform.forward * Power * FullPower;
+        Vector3 force = transform.forward * Power * FullPower * CurrentPreset.ShotPowerMultiplier;
         rigid.AddForce(force, ForceMode.Impulse);
     }
 
@@ -453,16 +459,18 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-
+    [Serializable]
     public struct RigidPreset
     {
         public float Drag;
         public float AngularDrag;
+        public float ShotPowerMultiplier;
 
-        public RigidPreset(float drag, float angularDrag)
+        public RigidPreset(float drag, float angularDrag, float shotPowerMultiplier)
         {
             Drag = drag;
             AngularDrag = angularDrag;
+            ShotPowerMultiplier = shotPowerMultiplier;
         }
     }
 
