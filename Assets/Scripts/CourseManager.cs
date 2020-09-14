@@ -168,6 +168,17 @@ public class CourseManager : MonoBehaviour
     }
 
 
+    public void UndoShot()
+    {
+        if(GolfBall.Progress.ShotsForThisHole > 0)
+        {
+            GolfBall.Stats.Shot s = GolfBall.Progress.Shots.Peek();
+
+            MoveGolfBallAndWaitForNextShot(s.PositionFrom);
+        }
+    }
+
+
     public void RespawnGolfBall(HoleData hole)
     {
         GolfBall.HoleReached(hole, DateTime.Now);

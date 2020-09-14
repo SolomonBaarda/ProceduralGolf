@@ -150,6 +150,13 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
+
+        if(Gamerules.UseGolfBall)
+        {
+            GolfBall.OnOutOfBounds += CourseManager.UndoShot;
+        }
+
+
         // Start the game
         ResetGame();
 

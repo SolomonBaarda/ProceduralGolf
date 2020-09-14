@@ -80,6 +80,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     /// Event called when the GolfBall has finished rolling and the Shooting state has been entered.
     /// </summary>
     public UnityAction OnRollingFinished;
+    public UnityAction OnOutOfBounds;
 
 
     [Header("References")]
@@ -100,6 +101,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         transform.localScale = new Vector3(Scale, Scale, Scale);
 
         OnRollingFinished += Utils.EMPTY;
+        OnOutOfBounds += Utils.EMPTY;
 
 
         ShotPowerPreview.enabled = false;
@@ -110,21 +112,23 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private void FixedUpdate()
     {
         // Get the onground value
-        Collider[] groundCollisions = GroundCheck.GetGroundCollisions(transform.position, sphereCollider.radius + GroundCheck.DEFAULT_RADIUS);
-        IsOnGround = groundCollisions.Length > 0;
+        IsOnGround = GroundCheck.IsOnGround(transform.position, sphereCollider.radius + GroundCheck.DEFAULT_RADIUS);
 
-        // Get the current biome
+        // Do a raycast down to find the gameobject below
         Collider c = null;
-        if (groundCollisions.Length > 0)
+        float maxRaycastDistance = 1000;
+        if (Physics.Raycast(new Ray(transform.position, -TerrainManager.UP * maxRaycastDistance), out RaycastHit hit, maxRaycastDistance, GroundCheck.GroundMask))
         {
-            c = groundCollisions[0];
+            c = hit.transform.gameObject.GetComponent<Collider>();
         }
 
 
-        CurrentBiome = Biome.GetBiomeSamplePoint(c, Position);
-        if (!IsOnGround)
+        // Get the biome
+        CurrentBiome = Biome.Type.None;
+        Biome.Type biomeBelow = Biome.GetBiomeSamplePoint(c, Position); ;
+        if (IsOnGround)
         {
-            CurrentBiome = Biome.Type.None;
+            CurrentBiome = biomeBelow;
         }
 
 
@@ -207,6 +211,20 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         {
             LastDirectionWhenRolling = Facing;
         }
+
+
+
+
+        // Check out of bounds
+        if (!IsFrozen)
+        {
+            // We are in water or there is nothing below us (left the map)
+            if (CurrentBiome == Biome.Type.Water || biomeBelow == Biome.Type.None)
+            {
+                OnOutOfBounds.Invoke();
+            }
+        }
+
     }
 
 

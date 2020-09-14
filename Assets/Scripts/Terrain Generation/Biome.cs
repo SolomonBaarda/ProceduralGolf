@@ -15,7 +15,7 @@ public static class Biome
             }
         }
 
-        return default;
+        return Type.None;
     }
 
 
