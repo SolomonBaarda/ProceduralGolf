@@ -203,8 +203,6 @@ public class GameManager : MonoBehaviour
                 HUD.MainHUD.SetActive(true);
 
                 HUD.ShootingMenu.SetActive(isShooting);
-
-                HUD.CanvasScoreboard.gameObject.SetActive(HUD.ShowScoreboard);
             }
 
 

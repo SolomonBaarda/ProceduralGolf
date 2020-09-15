@@ -15,6 +15,7 @@ public class HUD : MonoBehaviour
 
     public Canvas CanvasInteraction;
     public Canvas CanvasScoreboard;
+    public Canvas CanvasOptions;
     [Space]
     public GameObject ShootingMenu;
     public GameObject MainHUD;
@@ -23,7 +24,6 @@ public class HUD : MonoBehaviour
     public PointerSlider MainSlider;
     [Range(0, 1)] public float PowerSliderBackgroundAlpha = 0.75f;
     public PointerSlider PowerSlider;
-    public Button Shoot;
     [Space]
     public HeldButton RotationLess;
     public HeldButton RotationMore;
@@ -33,20 +33,16 @@ public class HUD : MonoBehaviour
 
 
     [Header("Main UI")]
-    public Button ShowScoreboardButton;
-    public bool ShowScoreboard;
-    public Button Restart;
-    public Button Quit;
     public GameObject ShotsDisplayParent;
     public TMP_Text Shots;
 
     public Compass Compass;
 
     [Header("Scoreboard")]
-    public Button HideScoreboardButton;
     public GameObject ScoreRowPrefab;
     public GameObject ScoreRowParent;
     public List<ScoreboardRow> ScoreboardRows = new List<ScoreboardRow>();
+
 
     public static HUD Instance;
 
@@ -54,9 +50,6 @@ public class HUD : MonoBehaviour
     private void Awake()
     {
         Instance = FindObjectOfType<HUD>();
-
-        ShowScoreboardButton.onClick.AddListener(InvertScoreboard);
-        HideScoreboardButton.onClick.AddListener(InvertScoreboard);
     }
 
 
@@ -64,13 +57,13 @@ public class HUD : MonoBehaviour
     public void Active(bool visible)
     {
         CanvasInteraction.gameObject.SetActive(visible);
-        CanvasScoreboard.gameObject.SetActive(visible);
+        HideAllMenus();
     }
 
-
-    private void InvertScoreboard()
+    private void HideAllMenus()
     {
-        ShowScoreboard = !ShowScoreboard;
+        CanvasScoreboard.gameObject.SetActive(false);
+        CanvasOptions.gameObject.SetActive(false);
     }
 
 
@@ -79,31 +72,19 @@ public class HUD : MonoBehaviour
     private void Start()
     {
         OnHudLoaded.Invoke();
-
-        Shoot.onClick.AddListener(ShootPressed);
-        Restart.onClick.AddListener(RestartPressed);
-        Quit.onClick.AddListener(QuitPressed);
     }
 
 
-    private void OnDestroy()
-    {
-        Shoot.onClick.RemoveAllListeners();
-        Restart.onClick.RemoveAllListeners();
-        Quit.onClick.RemoveAllListeners();
-        ShowScoreboardButton.onClick.RemoveAllListeners();
-        HideScoreboardButton.onClick.RemoveAllListeners();
-    }
 
 
-    private void ShootPressed() { OnShootPressed.Invoke(); }
-    private void RestartPressed() { OnRestartPressed.Invoke(); }
-    private void QuitPressed() { OnQuitPressed.Invoke(); }
+    public void ShootPressed() { OnShootPressed.Invoke(); HideAllMenus(); }
+    public void RestartPressed() { OnRestartPressed.Invoke(); HideAllMenus(); }
+    public void QuitPressed() { OnQuitPressed.Invoke(); HideAllMenus(); }
 
 
     public void Clear()
     {
-        for(int i = 0; i < ScoreRowParent.transform.childCount; i++)
+        for (int i = 0; i < ScoreRowParent.transform.childCount; i++)
         {
             Destroy(ScoreRowParent.transform.GetChild(i).gameObject);
         }
