@@ -40,6 +40,8 @@ public class HUD : MonoBehaviour
     public GameObject ShotsDisplayParent;
     public TMP_Text Shots;
 
+    public Compass Compass;
+
     [Header("Scoreboard")]
     public Button HideScoreboardButton;
     public GameObject ScoreRowPrefab;

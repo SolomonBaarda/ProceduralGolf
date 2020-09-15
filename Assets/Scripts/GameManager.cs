@@ -89,7 +89,17 @@ public class GameManager : MonoBehaviour
 
             Gamerules = FromFile;
 
-            TerrainData d = Instantiate(WorldSaves[0]);
+
+            TerrainData data = WorldSaves[0];
+
+            if(data.Chunks[0].MainMesh == null || data.Chunks[0].BiomeColourMap == null)
+            {
+                throw new Exception("World save " + data.name + " object references not set.");
+            }
+
+            TerrainData d = Instantiate(data);
+
+
 
             // Load the terrain data into the manager
             TerrainManager.LoadTerrain(d, before);
@@ -162,6 +172,7 @@ public class GameManager : MonoBehaviour
 
         if (Gamerules.UseHUD)
         {
+            HUD.Compass.Following = GolfBall.transform;
             HUD.Active(true);
         }
 
