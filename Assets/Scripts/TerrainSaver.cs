@@ -3,36 +3,9 @@ using UnityEditor;
 using UnityEngine;
 
 
-[ExecuteInEditMode]
-[CustomEditor(typeof(TerrainManager))]
-public class TerrainSaver : Editor
+public static class TerrainSaver
 {
     public const string DefaultWorldSavePath = "Assets/World Saves";
-
-
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-
-        TerrainManager m = (TerrainManager)target;
-
-
-
-        if (m.CurrentLoadedTerrain != null)
-        {
-            if (GUILayout.Button("Save terrain to file"))
-            {
-                // Save the currently used TerrainData to file
-                SaveTerrain(m.CurrentLoadedTerrain);
-            }
-        }
-    }
-
-
-
-
-
-
 
 
     private static string FolderPath(int seed)
@@ -44,7 +17,6 @@ public class TerrainSaver : Editor
     {
         return "/(" + x + "," + y + ") ";
     }
-
 
 
     public static void SaveTerrain(TerrainData data)

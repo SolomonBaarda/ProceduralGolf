@@ -92,9 +92,10 @@ public class GameManager : MonoBehaviour
 
             TerrainData data = WorldSaves[0];
 
-            if(data.Chunks[0].MainMesh == null || data.Chunks[0].BiomeColourMap == null)
+            if (data.Chunks[0].MainMesh == null || data.Chunks[0].BiomeColourMap == null)
             {
-                throw new Exception("World save " + data.name + " object references not set.");
+                Debug.Log("Updating all world save references.");
+                UpdateAllWorldSaveReferences();
             }
 
             TerrainData d = Instantiate(data);
@@ -161,7 +162,7 @@ public class GameManager : MonoBehaviour
         }
 
 
-        if(Gamerules.UseGolfBall)
+        if (Gamerules.UseGolfBall)
         {
             GolfBall.OnOutOfBounds += CourseManager.UndoShot;
         }
@@ -299,6 +300,19 @@ public class GameManager : MonoBehaviour
 
 
 
+
+    public void UpdateAllWorldSaveReferences()
+    {
+        foreach (TerrainData d in WorldSaves)
+        {
+            TerrainData data = d;
+
+            TerrainSaver.UpdateReferences(ref data);
+        }
+    }
+
+
+
     private void InitialTerrainGenerated()
     {
         TerrainManager.LoadTerrain(TerrainGenerator.TerrainData, DateTime.MinValue);
@@ -424,14 +438,6 @@ public class GameManager : MonoBehaviour
         }
 
     }
-
-
-
-
-
-
-
-
 
 
 

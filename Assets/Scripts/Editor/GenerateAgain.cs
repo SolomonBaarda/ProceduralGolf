@@ -29,15 +29,8 @@ public class GenerateAgain : Editor
 
         if (GUILayout.Button("Update world save references"))
         {
-            foreach(TerrainData d in g.WorldSaves)
-            {
-                TerrainData data = d;
-                TerrainSaver.UpdateReferences(ref data);
-            }
+            g.UpdateAllWorldSaveReferences();
         }
-
-
-
 
     }
 
