@@ -4,7 +4,7 @@ using UnityEngine;
 
 [ExecuteInEditMode]
 [CustomEditor(typeof(GameManager))]
-public class GenerateAgain : Editor
+public class GameManagerEditor : Editor
 {
 
     public override void OnInspectorGUI()

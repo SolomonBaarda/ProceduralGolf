@@ -5,10 +5,8 @@ using UnityEngine;
 
 [ExecuteInEditMode]
 [CustomEditor(typeof(TerrainManager))]
-public class SaveTerrainEditor : Editor
+public class TerrainManagerEditor : Editor
 {
-    public const string DefaultWorldSavePath = "Assets/World Saves";
-
 
     public override void OnInspectorGUI()
     {

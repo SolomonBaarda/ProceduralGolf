@@ -67,7 +67,7 @@ public class CourseManager : MonoBehaviour
             float distanceSqr = (target.Centre - GolfBall.Position).sqrMagnitude;
             float maximumDistance = TerrainChunkManager.ChunkSizeWorldUnits * 2;
             float percent = Mathf.Clamp(distanceSqr / (maximumDistance * maximumDistance), 0f, 1f);
-            
+
             // Set the width
             NextHoleBeacon.UpdateLineWidth(Mathf.Lerp(0.05f, 10, percent));
 
@@ -82,6 +82,16 @@ public class CourseManager : MonoBehaviour
     private bool CalculateNextHole(out HoleData nextHole)
     {
         return Holes.TryGetValue(GolfBall.Progress.LastHoleReached + 1, out nextHole);
+    }
+
+
+    public void TeleportBallToNextHole()
+    {
+        if (CalculateNextHole(out HoleData next))
+        {
+            MoveGolfBallAndWaitForNextShot(next.Centre);
+            Debug.Log("Teleported ball to hole " + next.Number + ".");
+        }
     }
 
 
@@ -170,7 +180,7 @@ public class CourseManager : MonoBehaviour
 
     public void UndoShot()
     {
-        if(GolfBall.Progress.ShotsForThisHole > 0)
+        if (GolfBall.Progress.ShotsForThisHole > 0)
         {
             GolfBall.Stats.Shot s = GolfBall.Progress.Shots.Peek();
 
