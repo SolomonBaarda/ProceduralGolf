@@ -6,36 +6,42 @@ using UnityEngine;
 [CustomEditor(typeof(GameManager))]
 public class GameManagerEditor : Editor
 {
+    private GameManager G => (GameManager) target;
+
 
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
 
-        GameManager g = (GameManager)target;
-
-
-        if (g.TerrainMode == GameManager.TerrainGenerationMethod.FixedArea)
+        if (G.TerrainMode == GameManager.TerrainGenerationMethod.FixedArea)
         {
             if (GUILayout.Button("Generate again"))
             {
-                g.GenerateAgain();
+                G.GenerateAgain();
             }
         }
 
         if (GUILayout.Button("Clear terrain"))
         {
-            g.Clear();
+            G.Clear();
         }
 
         if (GUILayout.Button("Update world save references"))
         {
-            g.UpdateAllWorldSaveReferences();
+            UpdateAllWorldSaveReferences();
         }
-
     }
 
 
+    public void UpdateAllWorldSaveReferences()
+    {
+        foreach (TerrainData d in G.WorldSaves)
+        {
+            TerrainData data = d;
 
+            TerrainSaver.UpdateReferences(ref data);
+        }
+    }
 
 
 

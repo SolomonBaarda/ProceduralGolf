@@ -92,10 +92,13 @@ public class GameManager : MonoBehaviour
 
             TerrainData data = WorldSaves[0];
 
+
             if (data.Chunks[0].MainMesh == null || data.Chunks[0].BiomeColourMap == null)
             {
                 Debug.Log("Updating all world save references.");
-                UpdateAllWorldSaveReferences();
+
+                //UpdateAllWorldSaveReferences();
+                throw new Exception("World references not set.");
             }
 
             TerrainData d = Instantiate(data);
@@ -301,15 +304,7 @@ public class GameManager : MonoBehaviour
 
 
 
-    public void UpdateAllWorldSaveReferences()
-    {
-        foreach (TerrainData d in WorldSaves)
-        {
-            TerrainData data = d;
 
-            TerrainSaver.UpdateReferences(ref data);
-        }
-    }
 
 
 
