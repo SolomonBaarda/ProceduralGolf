@@ -16,13 +16,21 @@ public class TerrainSettings : VariablePreset
     public Vector2 HoleNoiseThresholdMinMax = new Vector2(0.8f, 1.5f);
     public Biome.Type HoleBiome;
 
-    [Header("Terrain Cutouts")]
+    [Header("Terrain cutouts")]
     public Cutout Bunker;
     public Cutout Lake;
 
     [Header("Procedural objects")]
     public ProceduralObject Trees;
     public ProceduralObject Rocks;
+
+    [Header("Noise settings")]
+    public NoiseSettings NoiseMain;
+    public NoiseSettings NoiseHole;
+    public NoiseSettings NoiseBunker;
+    public NoiseSettings NoiseLake;
+    public NoiseSettings NoiseTree;
+    public NoiseSettings NoiseRock;
 
 
 

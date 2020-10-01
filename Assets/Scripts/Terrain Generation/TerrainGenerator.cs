@@ -35,20 +35,10 @@ public class TerrainGenerator : MonoBehaviour
     [Header("Settings")]
     public MeshSettings MeshSettings;
     [Space]
-    public NoiseSettings NoiseSettings_Green;
-    public NoiseSettings NoiseSettings_Holes;
-    public NoiseSettings NoiseSettings_Bunker;
-    public NoiseSettings NoiseSettings_Lake;
-    public NoiseSettings NoiseSettings_Trees;
-    public NoiseSettings NoiseSettings_Rocks;
-    [Space]
-    public TerrainSettings Current;
-    public TerrainSettings TerrainSettings_Green;
-    public TerrainSettings TerrainSettings_Snow;
-    public TerrainSettings TerrainSettings_Sand;
+    public TerrainSettings Settings;
 
     [Space]
-    public TextureSettings Texture_GroundSettings;
+    public TextureSettings TextureSettings;
 
     [Space]
     public int Seed = 0;
@@ -113,7 +103,7 @@ public class TerrainGenerator : MonoBehaviour
 
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, chunks, GetHoleData());
+            terrain.SetData(Seed, chunks, GetHoleData(), Settings.name);
 
             return terrain;
         }
@@ -295,7 +285,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
             // Continue and get the holes
-            Task<HashSet<FloodFillBiome>> newHoles = generateMap.ContinueWith((m) => FloodFillBiome.CalculatePoints(ref map, Current.HoleBiome), TaskCancelToken.Token);
+            Task<HashSet<FloodFillBiome>> newHoles = generateMap.ContinueWith((m) => FloodFillBiome.CalculatePoints(ref map, Settings.HoleBiome), TaskCancelToken.Token);
 
             // Continue and get the lakes
             //Task<HashSet<FloodFillBiome>> newLakesTask = newHoles.ContinueWith((m) => FloodFillBiome.CalculatePoints(ref map, Current.Bunker.Biome), TaskCancelToken.Token);
@@ -353,7 +343,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, Texture_GroundSettings);
+            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, TextureSettings);
 
             MeshGenerator.MeshData meshData = null;
             MeshGenerator.UpdateMeshData(ref meshData, map);
@@ -399,29 +389,29 @@ public class TerrainGenerator : MonoBehaviour
     private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, in Bounds chunkBounds)
     {
         // Get the vertex points
-        Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, Current);
+        Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, Settings);
         Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
         Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
 
         int width = vertices.GetLength(0), height = vertices.GetLength(1);
 
         // Heights
-        float[,] heightsRaw = Noise.Perlin(NoiseSettings_Green, seed, noiseSamplePoints);
+        float[,] heightsRaw = Noise.Perlin(Settings.NoiseMain, seed, noiseSamplePoints);
 
 
         // Masks
 
         // Hole
         int holeSeed = Noise.Seed(seed.ToString());
-        bool[,] holeMask = Noise.PerlinMask(NoiseSettings_Holes, holeSeed, Current.HoleNoiseThresholdMinMax, noiseSamplePoints);
+        bool[,] holeMask = Noise.PerlinMask(Settings.NoiseHole, holeSeed, Settings.HoleNoiseThresholdMinMax, noiseSamplePoints);
 
         // Bunkers
         int bunkerSeed = Noise.Seed(holeSeed.ToString());
-        float[,] bunkerFloatMask = Noise.Perlin(NoiseSettings_Bunker, bunkerSeed, noiseSamplePoints);
+        float[,] bunkerFloatMask = Noise.Perlin(Settings.NoiseBunker, bunkerSeed, noiseSamplePoints);
 
         // Lakes
         int lakeSeed = Noise.Seed(bunkerSeed.ToString());
-        float[,] lakeFloatMask = Noise.Perlin(NoiseSettings_Lake, lakeSeed, noiseSamplePoints);
+        float[,] lakeFloatMask = Noise.Perlin(Settings.NoiseLake, lakeSeed, noiseSamplePoints);
 
         // Apply the masks here
         for (int y = 0; y < height; y++)
@@ -429,12 +419,12 @@ public class TerrainGenerator : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 // Not a bunker here
-                if (!(bunkerFloatMask[x, y] >= Current.Bunker.NoiseThresholdMinMax.x && bunkerFloatMask[x, y] <= Current.Bunker.NoiseThresholdMinMax.y))
+                if (!(bunkerFloatMask[x, y] >= Settings.Bunker.NoiseThresholdMinMax.x && bunkerFloatMask[x, y] <= Settings.Bunker.NoiseThresholdMinMax.y))
                 {
                     bunkerFloatMask[x, y] = TerrainMap.Point.Empty;
                 }
                 // Not a lake here
-                if (!(lakeFloatMask[x, y] >= Current.Lake.NoiseThresholdMinMax.x && lakeFloatMask[x, y] <= Current.Lake.NoiseThresholdMinMax.y))
+                if (!(lakeFloatMask[x, y] >= Settings.Lake.NoiseThresholdMinMax.x && lakeFloatMask[x, y] <= Settings.Lake.NoiseThresholdMinMax.y))
                 {
                     lakeFloatMask[x, y] = TerrainMap.Point.Empty;
                 }
@@ -447,15 +437,15 @@ public class TerrainGenerator : MonoBehaviour
 
         // Trees
         int treeSeed = Noise.Seed(lakeSeed.ToString());
-        bool[,] treeMask = Noise.PerlinMask(NoiseSettings_Trees, treeSeed, Current.Trees.NoiseThresholdMinMax, noiseSamplePoints);
+        bool[,] treeMask = Noise.PerlinMask(Settings.NoiseTree, treeSeed, Settings.Trees.NoiseThresholdMinMax, noiseSamplePoints);
 
         // Rocks
         int rockSeed = Noise.Seed(treeSeed.ToString());
-        bool[,] rockMask = Noise.PerlinMask(NoiseSettings_Rocks, rockSeed, Current.Rocks.NoiseThresholdMinMax, noiseSamplePoints);
+        bool[,] rockMask = Noise.PerlinMask(Settings.NoiseRock, rockSeed, Settings.Rocks.NoiseThresholdMinMax, noiseSamplePoints);
 
 
 
-        float[,] heightsBeforeHole = CalculateHeightsBeforeHole(width, height, Current, heightsRaw, bunkerFloatMask, lakeFloatMask, holeMask,
+        float[,] heightsBeforeHole = CalculateHeightsBeforeHole(width, height, Settings, heightsRaw, bunkerFloatMask, lakeFloatMask, holeMask,
             treeMask, rockMask, out Biome.Type[,] biomes, out List<Biome.Decoration>[,] decoration);
 
 

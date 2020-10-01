@@ -21,10 +21,12 @@ public class GameManagerEditor : Editor
             }
         }
 
+        /*
         if (GUILayout.Button("Clear terrain"))
         {
             G.Clear();
         }
+        */
 
         if (GUILayout.Button("Update world save references"))
         {

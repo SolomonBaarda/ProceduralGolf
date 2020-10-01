@@ -95,9 +95,6 @@ public class GameManager : MonoBehaviour
 
             if (data.Chunks[0].MainMesh == null || data.Chunks[0].BiomeColourMap == null)
             {
-                Debug.Log("Updating all world save references.");
-
-                //UpdateAllWorldSaveReferences();
                 throw new Exception("World references not set.");
             }
 

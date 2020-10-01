@@ -8,10 +8,16 @@ public static class TerrainSaver
     public const string DefaultWorldSavePath = "Assets/World Saves";
 
 
-    private static string FolderPath(int seed)
+    private static string FolderPath(TerrainData data)
     {
-        return DefaultWorldSavePath + "/" + seed;
+        return DefaultWorldSavePath + "/" + WorldSaveName(data);
     }
+
+    private static string WorldSaveName(TerrainData data)
+    {
+        return data.TerrainSettingsName + data.Seed;
+    }
+
 
     private static string Chunk(int x, int y)
     {
@@ -23,11 +29,11 @@ public static class TerrainSaver
     {
         DateTime before = DateTime.Now;
 
-        string folder = FolderPath(data.Seed);
-        string path = folder + "/" + data.Seed + ".asset";
+        string folder = FolderPath(data);
+        string path = folder + "/" + WorldSaveName(data) + ".asset";
 
         AssetDatabase.DeleteAsset(folder);
-        AssetDatabase.CreateFolder(DefaultWorldSavePath, data.Seed.ToString());
+        AssetDatabase.CreateFolder(DefaultWorldSavePath, WorldSaveName(data));
 
         // Create the asset and add all of the chunks
         AssetDatabase.CreateAsset(data, path);
@@ -56,7 +62,7 @@ public static class TerrainSaver
 
     public static bool UpdateReferences(ref TerrainData data)
     {
-        string folderPath = FolderPath(data.Seed);
+        string folderPath = FolderPath(data);
 
         // Assign the texture and mesh
         foreach (TerrainChunkData chunk in data.Chunks)
