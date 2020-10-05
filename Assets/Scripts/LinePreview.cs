@@ -9,6 +9,7 @@ public class LinePreview : MonoBehaviour
     [Min(0)] public float LineWidth = 0.05f;
     [Min(0)] public float LineLength = 1;
     public Material LineMaterial;
+    public int OrderInLayer = 0;
 
 
 
@@ -22,6 +23,8 @@ public class LinePreview : MonoBehaviour
 
         LineRenderer.material = LineMaterial;
         LineRenderer.colorGradient = LineColour;
+
+        LineRenderer.sortingOrder = OrderInLayer;
     }
 
 
@@ -38,6 +41,7 @@ public class LinePreview : MonoBehaviour
     {
         LineRenderer.widthMultiplier = width;
     }
+
 
 
 }

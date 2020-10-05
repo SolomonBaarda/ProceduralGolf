@@ -143,6 +143,7 @@ GameObject:
   - component: {fileID: 295252890}
   - component: {fileID: 295252889}
   - component: {fileID: 295252893}
+  - component: {fileID: 295252894}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -263,6 +264,20 @@ MonoBehaviour:
   blendDistance: 0
   weight: 1
   sharedProfile: {fileID: 11400000, guid: 2c859c84ba3188a4c9d7fb7525e80179, type: 2}
+--- !u!114 &295252894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 295252888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75d8c2af58b655a4b90e9e0058f7d66c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Width: 1920
+  Height: 1080
 --- !u!1 &698838600
 GameObject:
   m_ObjectHideFlags: 0
@@ -391,6 +406,10 @@ PrefabInstance:
     - target: {fileID: 291345258, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
       propertyPath: m_LocalPosition.y
       value: -14
+      objectReference: {fileID: 0}
+    - target: {fileID: 387170643, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
+      propertyPath: OrderInLayer
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4213627502347566067, guid: 8b5ace1036e996949aaff71ced827337,
         type: 3}
@@ -834,7 +853,7 @@ MonoBehaviour:
   GolfBall: {fileID: 1324745660}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
-  TerrainMode: 2
+  TerrainMode: 0
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
   WorldSaves:
   - {fileID: 11400000, guid: 8e6b2ecf0da267944b57d1def9673305, type: 2}
