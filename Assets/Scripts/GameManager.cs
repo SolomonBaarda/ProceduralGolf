@@ -253,13 +253,9 @@ public class GameManager : MonoBehaviour
                         angleDelta = heldButtonMultiplier * Time.deltaTime;
                     }
 
-                    // Calculate the new values
-                    float rotation = GolfBall.Rotation + rotationDelta;
-                    float angle = GolfBall.Angle + angleDelta;
-                    float power = GolfBall.Power + powerDelta.y / 50f;
 
                     // Set the new values
-                    GolfBall.SetValues(rotation, angle, power);
+                    GolfBall.SetValues(GolfBall.Rotation + rotationDelta, GolfBall.Angle + angleDelta, GolfBall.Power + powerDelta.y / 50f);
 
 
                     // Just use the one camera view for now
@@ -273,9 +269,8 @@ public class GameManager : MonoBehaviour
                     BallFollower.CurrentView = Follower.View.ShootingBehind;
 
 
+
                     // Update the HUD to display the correct values
-                    //HUD.Rotation.DisplayValue.text = GolfBall.Rotation.ToString("0") + "°";
-                    //HUD.Angle.DisplayValue.text = GolfBall.Angle.ToString("0") + "°";
                     HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
 
                     // Set the power slider colour

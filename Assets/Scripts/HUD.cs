@@ -78,7 +78,7 @@ public class HUD : MonoBehaviour
 
 
     public void ShootPressed() { OnShootPressed.Invoke(); HideAllMenus(); }
-    public void RestartPressed() { OnRestartPressed.Invoke(); HideAllMenus(); }
+    public void RestartPressed() { OnRestartPressed.Invoke(); Clear(); HideAllMenus(); }
     public void QuitPressed() { OnQuitPressed.Invoke(); HideAllMenus(); }
 
 
