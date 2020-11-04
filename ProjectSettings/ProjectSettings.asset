@@ -168,9 +168,10 @@ PlayerSettings:
   resolutionScalingMode: 0
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
-  applicationIdentifier: {}
+  applicationIdentifier:
+    Android: com.SolomonBaarda.Golf
   buildNumber: {}
-  AndroidBundleVersionCode: 3
+  AndroidBundleVersionCode: 4
   AndroidMinSdkVersion: 19
   AndroidTargetSdkVersion: 29
   AndroidPreferredInstallLocation: 1
@@ -247,7 +248,7 @@ PlayerSettings:
   AndroidTargetArchitectures: 3
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: C:/Unity keys/Golf.keystore
+  AndroidKeystoreName: C:/Users/Solom/OneDrive/Documents/Unity keys/Golf.keystore
   AndroidKeyaliasName: solomon
   AndroidBuildApkPerCpuArchitecture: 0
   AndroidTVCompatibility: 0
