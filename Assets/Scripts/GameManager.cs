@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     private static readonly Gamerule RealtimeEndless = new Gamerule(true, true, 3, 400, true, true);
     private static readonly Gamerule FixedArea = new Gamerule(false, false, 3, 0, false, false);
 
+    public delegate void OnGenerated(TerrainData data);
 
 
     [Space]
@@ -43,8 +44,7 @@ public class GameManager : MonoBehaviour
         CourseManager.TerrainManager = TerrainManager;
         TerrainGenerator.TerrainChunkManager = TerrainManager.TerrainChunkManager;
 
-        TerrainGenerator.OnInitialTerrainGenerated += InitialTerrainGenerated;
-        TerrainGenerator.OnChunksUpdated += ChunksUpdated;
+
 
         RenderSettings.skybox = Skybox;
     }
@@ -62,10 +62,6 @@ public class GameManager : MonoBehaviour
             HUD.OnQuitPressed -= Application.Quit;
         }
 
-
-
-        TerrainGenerator.OnInitialTerrainGenerated -= InitialTerrainGenerated;
-        TerrainGenerator.OnChunksUpdated -= ChunksUpdated;
     }
 
 
@@ -73,7 +69,7 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(WaitUntilGameStart());
 
-        InvokeRepeating(nameof(CheckTerrainGeneration), 1, 2);
+        //InvokeRepeating(nameof(CheckTerrainGeneration), 1, 2);
     }
 
 
@@ -82,16 +78,13 @@ public class GameManager : MonoBehaviour
     {
         LoadingScreen.Active(true);
 
+        OnGenerated done = InitialTerrainGenerated;
+
         // Load the map from file
         if (TerrainMode == TerrainGenerationMethod.LoadFromFile)
         {
-            DateTime before = DateTime.Now;
-
             Gamerules = FromFile;
-
-
             TerrainData data = WorldSaves[0];
-
 
             if (data.Chunks[0].MainMesh == null || data.Chunks[0].BiomeColourMap == null)
             {
@@ -100,29 +93,28 @@ public class GameManager : MonoBehaviour
 
             TerrainData d = Instantiate(data);
 
-
-
             // Load the terrain data into the manager
-            TerrainManager.LoadTerrain(d, before);
-
+            TerrainManager.LoadTerrain(d, DateTime.Now);
 
             // Force the coursemanager to order the holes
             CourseManager.UpdateGolfHoles(d.GolfHoles);
-        }
-        // Do endless terrain
-        else if (TerrainMode == TerrainGenerationMethod.RealtimeEndless)
-        {
-            Gamerules = RealtimeEndless;
-
-            TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius));
         }
         // Generate a fixed area to save to file
         else if (TerrainMode == TerrainGenerationMethod.FixedArea)
         {
             Gamerules = FixedArea;
 
-            TerrainGenerator.GenerateInitialTerrain(TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius));
+            List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();
+
+            TerrainGenerator.Generate(l, done);
+
+            while (TerrainGenerator.IsGenerating)
+            {
+                yield return null;
+            }
         }
+
+
 
         // Set up the TerrainManager
         TerrainManager.Set(Gamerules.DoHideFarChunks, GolfBall.transform, Gamerules.ViewDistanceWorldUnits);
@@ -133,11 +125,16 @@ public class GameManager : MonoBehaviour
             GolfBall.gameObject.SetActive(false);
         }
 
+        // Ensure there is terrain before we start
+        while (!TerrainManager.HasTerrain)
+        {
+            yield return null;
+        }
+
         // Load the HUD if we need it
         if (Gamerules.UseHUD)
         {
             SceneManager.LoadSceneAsync(HUD.SceneName, LoadSceneMode.Additive);
-
 
             // Ensure the hud has loaded if we want it
             while (!HUDHasLoaded)
@@ -148,17 +145,13 @@ public class GameManager : MonoBehaviour
             HUD.Active(false);
         }
 
-        // Ensure there is terrain before we start
-        while (!TerrainManager.HasTerrain)
-        {
-            yield return null;
-        }
+
 
 
         // Ensure all of the holes have been correctly numbered
         while (!CourseManager.HolesHaveBeenOrdered)
         {
-            yield return null;
+            //yield return null;
         }
 
 
@@ -300,24 +293,15 @@ public class GameManager : MonoBehaviour
 
 
 
-    private void InitialTerrainGenerated()
+    private void InitialTerrainGenerated(TerrainData data)
     {
-        TerrainManager.LoadTerrain(TerrainGenerator.TerrainData, DateTime.MinValue);
+        TerrainManager.LoadTerrain(data, DateTime.MinValue);
     }
 
 
-    private void ChunksUpdated(IEnumerable<Vector2Int> chunks)
-    {
-
-        // Update the chunk visuals 
-        TerrainManager.AddChunks(TerrainGenerator.GetChunkData(chunks));
 
 
-        // Update all of the golf holes
-        CourseManager.UpdateGolfHoles(TerrainGenerator.GetHoleData());
-    }
-
-
+    /*
     private void CheckTerrainGeneration()
     {
         if (Gamerules.DoEndlessTerrain)
@@ -326,6 +310,7 @@ public class GameManager : MonoBehaviour
             TerrainGenerator.TryGenerateChunks(TerrainGenerator.GetNearbyChunksToGenerate(GolfBall.Position, Gamerules.ViewDistanceWorldUnits), TerrainGenerator.Seed);
         }
     }
+    */
 
 
 
@@ -456,7 +441,6 @@ public class GameManager : MonoBehaviour
     public enum TerrainGenerationMethod
     {
         LoadFromFile,
-        RealtimeEndless,
         FixedArea,
     }
 }
