@@ -40,11 +40,10 @@ public class WorldObjectGenerator : MonoBehaviour
         Dictionary<GameObject, WorldObjectData> prefabsInChunk = new Dictionary<GameObject, WorldObjectData>();
 
         int seed = Noise.Seed(m.Chunk.ToString());
+        System.Random r = new System.Random(seed);
 
         // Get the local position
         List<Vector2> localPosition2D = PoissonDiscSampling.GenerateLocalPoints(Radius, new Vector2(m.Bounds.size.x, m.Bounds.size.z), seed, Iterations);
-
-        System.Random r = new System.Random(seed);
 
         // Add the offset to it
         Vector3 offset = new Vector3(m.Bounds.min.x, 0, m.Bounds.min.z);
@@ -53,8 +52,8 @@ public class WorldObjectGenerator : MonoBehaviour
         {
             // Get the correct world pos
             Vector3 worldPos = new Vector3(pos.x, 0, pos.y) + offset;
-            Vector3 v = Utils.GetClosestTo(worldPos, m.Bounds.min, m.Bounds.max, in m.BaseVertices, out int x, out int y);
-            worldPos.y = v.y;
+            Utils.GetClosestTo(worldPos, m.Bounds.min, m.Bounds.max, in m.BaseVertices, out int x, out int y);
+            worldPos.y = m.CalculateLocalVertexPosition(x, y).y - 0.1f;
 
             // Find its type
             List<Biome.Decoration> types = m.Decoration[x,y];

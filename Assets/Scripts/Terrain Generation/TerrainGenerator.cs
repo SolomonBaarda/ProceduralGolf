@@ -145,11 +145,18 @@ public class TerrainGenerator : MonoBehaviour
 
         // SECOND PASS
 
-        //
-
         // Normalisation
 
         // Do holes
+        List<FloodFillBiome> holes = new List<FloodFillBiome>();
+
+        foreach(KeyValuePair<Vector2Int, (TerrainMap, List<WorldObjectData>)> pair in maps)
+        {
+
+        }
+
+
+
 
         Debug.Log("* Second pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
