@@ -11,7 +11,7 @@ public static class Biome
 
             if (c != null)
             {
-                return Utils.GetClosestTo(worldPos, c.Bounds.min, c.Bounds.max, c.Biomes);
+                return Utils.GetClosestTo(worldPos, c.Bounds.min, c.Bounds.max, c.Biomes, out int _, out int _);
             }
         }
 

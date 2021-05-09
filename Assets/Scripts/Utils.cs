@@ -74,7 +74,7 @@ public static class Utils
 
 
 
-    public static T GetClosestTo<T>(Vector3 worldPos, Vector3 min, Vector3 max, in T[,] array)
+    public static T GetClosestTo<T>(Vector3 worldPos, Vector3 min, Vector3 max, in T[,] array, out int indexX, out int indexY)
     {
         int width = array.GetLength(0), height = array.GetLength(1);
 
@@ -82,10 +82,13 @@ public static class Utils
         int estimatedX = width - 1 - Mathf.RoundToInt((max.x - worldPos.x) / (max.x - min.x) * width);
         int estimatedY = height - 1 - Mathf.RoundToInt((max.z - worldPos.z) / (max.z - min.z) * height);
 
-        return array[Mathf.Clamp(estimatedX, 0, width - 1), Mathf.Clamp(estimatedY, 0, height - 1)];
+        indexX = Mathf.Clamp(estimatedX, 0, width - 1);
+        indexY = Mathf.Clamp(estimatedY, 0, height - 1);
+
+        return array[indexX, indexY];
     }
 
-    public static T GetClosestTo<T>(Vector2 worldPos, Vector2 min, Vector2 max, in T[,] array)
+    public static T GetClosestTo<T>(Vector2 worldPos, Vector2 min, Vector2 max, in T[,] array, out int indexX, out int indexY)
     {
         int width = array.GetLength(0), height = array.GetLength(1);
 
@@ -93,7 +96,10 @@ public static class Utils
         int estimatedX = width - 1 - Mathf.RoundToInt((max.x - worldPos.x) / (max.x - min.x) * width);
         int estimatedY = height - 1 - Mathf.RoundToInt((max.y - worldPos.y) / (max.y - min.y) * height);
 
-        return array[Mathf.Clamp(estimatedX, 0, width - 1), Mathf.Clamp(estimatedY, 0, height - 1)];
+        indexX = Mathf.Clamp(estimatedX, 0, width - 1);
+        indexY = Mathf.Clamp(estimatedY, 0, height - 1);
+
+        return array[indexX, indexY];
     }
 
 

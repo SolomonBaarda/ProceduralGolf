@@ -17,7 +17,7 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                data.SetVertex(x, y, terrainMap.Points[x, y].LocalVertexPosition);
+                data.SetVertex(x, y, terrainMap.CalculateLocalVertexPosition(x,y));
             }
         }
 

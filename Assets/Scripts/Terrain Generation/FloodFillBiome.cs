@@ -10,7 +10,7 @@ public class FloodFillBiome
     public bool ShouldBeDestroyed = false;
     public bool NeedsUpdating = false;
 
-
+    /*
     public HashSet<TerrainMap.Point> Vertices = new HashSet<TerrainMap.Point>();
     public Vector3 Centre => EvaluateMidpoint();
 
@@ -256,5 +256,5 @@ public class FloodFillBiome
         return holes;
     }
 
-
+    */
 }

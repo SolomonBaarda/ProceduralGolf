@@ -117,7 +117,7 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
-        Debug.Log("Finished generating");
+        //Debug.Log("Finished generating");
 
         TerrainManager.LoadTerrain(data, DateTime.Now);
 
@@ -126,7 +126,7 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
-        Debug.Log("Finished loading terrain");
+        //Debug.Log("Finished loading terrain");
 
         
         if(!TerrainManager.HasTerrain)
@@ -155,7 +155,7 @@ public class GameManager : MonoBehaviour
             {
                 yield return null;
             }
-            Debug.Log("Finished loading HUD");
+            //Debug.Log("Finished loading HUD");
 
             HUD.Active(false);
         }
