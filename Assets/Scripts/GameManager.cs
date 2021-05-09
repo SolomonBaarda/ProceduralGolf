@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour
     private static readonly Gamerule RealtimeEndless = new Gamerule(true, true, 3, 400, true, true);
     private static readonly Gamerule FixedArea = new Gamerule(false, false, 3, 0, false, false);
 
-    public delegate void OnGenerated(TerrainData data);
+    public delegate void LoadLevel(TerrainData data);
 
 
     [Space]
@@ -78,8 +78,6 @@ public class GameManager : MonoBehaviour
     {
         LoadingScreen.Active(true);
 
-        OnGenerated done = InitialTerrainGenerated;
-
         // Load the map from file
         if (TerrainMode == TerrainGenerationMethod.LoadFromFile)
         {
@@ -92,12 +90,9 @@ public class GameManager : MonoBehaviour
             }
 
             TerrainData d = Instantiate(data);
+            yield return null;
 
-            // Load the terrain data into the manager
-            TerrainManager.LoadTerrain(d, DateTime.Now);
-
-            // Force the coursemanager to order the holes
-            CourseManager.UpdateGolfHoles(d.GolfHoles);
+            LoadGame(d);
         }
         // Generate a fixed area to save to file
         else if (TerrainMode == TerrainGenerationMethod.FixedArea)
@@ -105,16 +100,41 @@ public class GameManager : MonoBehaviour
             Gamerules = FixedArea;
 
             List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();
+            yield return null;
 
-            TerrainGenerator.Generate(l, done);
-
-            while (TerrainGenerator.IsGenerating)
-            {
-                yield return null;
-            }
+            TerrainGenerator.Generate(l, LoadGame);
         }
+    }
 
+    private void LoadGame(TerrainData data)
+    {
+        StartCoroutine(WaitForLoadGame(data));
+    }
 
+    private IEnumerator WaitForLoadGame(TerrainData data)
+    {
+        while (TerrainGenerator.IsGenerating)
+        {
+            yield return null;
+        }
+        Debug.Log("Finished generating");
+
+        TerrainManager.LoadTerrain(data, DateTime.Now);
+
+        // Ensure there is terrain before we start
+        while (TerrainManager.IsLoading)
+        {
+            yield return null;
+        }
+        Debug.Log("Finished loading terrain");
+
+        
+        if(!TerrainManager.HasTerrain)
+        {
+            Debug.LogError("Terrain manager does not have terrain");
+            yield break;
+        }
+        
 
         // Set up the TerrainManager
         TerrainManager.Set(Gamerules.DoHideFarChunks, GolfBall.transform, Gamerules.ViewDistanceWorldUnits);
@@ -123,12 +143,6 @@ public class GameManager : MonoBehaviour
         if (!Gamerules.UseGolfBall)
         {
             GolfBall.gameObject.SetActive(false);
-        }
-
-        // Ensure there is terrain before we start
-        while (!TerrainManager.HasTerrain)
-        {
-            yield return null;
         }
 
         // Load the HUD if we need it
@@ -141,18 +155,22 @@ public class GameManager : MonoBehaviour
             {
                 yield return null;
             }
+            Debug.Log("Finished loading HUD");
 
             HUD.Active(false);
         }
 
-
-
+        // Force the coursemanager to order the holes
+        CourseManager.UpdateGolfHoles(data.GolfHoles);
 
         // Ensure all of the holes have been correctly numbered
+        /*
         while (!CourseManager.HolesHaveBeenOrdered)
         {
-            //yield return null;
+            yield return null;
         }
+        Debug.Log("Finished ordering holes");
+        */
 
 
         if (Gamerules.UseGolfBall)
@@ -174,6 +192,9 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Game has started. There are " + CourseManager.NumberOfHoles + " holes.");
     }
+
+
+
 
 
     private void Update()
@@ -292,11 +313,6 @@ public class GameManager : MonoBehaviour
 
 
 
-
-    private void InitialTerrainGenerated(TerrainData data)
-    {
-        TerrainManager.LoadTerrain(data, DateTime.MinValue);
-    }
 
 
 

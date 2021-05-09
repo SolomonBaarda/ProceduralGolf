@@ -90,7 +90,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public void Generate(List<Vector2Int> chunks, GameManager.OnGenerated callback)
+    public void Generate(List<Vector2Int> chunks, GameManager.LoadLevel callback)
     {
         DateTime before = DateTime.Now;
 
@@ -108,7 +108,7 @@ public class TerrainGenerator : MonoBehaviour
         StartCoroutine(WaitForGenerate(chunks, Seed, before, callback));
     }
 
-    private IEnumerator WaitForGenerate(List<Vector2Int> chunks, int seed, DateTime before, GameManager.OnGenerated callback)
+    private IEnumerator WaitForGenerate(List<Vector2Int> chunks, int seed, DateTime before, GameManager.LoadLevel callback)
     {
         // FIRST PASS
         // Generate the initial chunks

@@ -26,7 +26,7 @@ public class TerrainManager : MonoBehaviour
     private float ViewDistance = 0;
 
 
-
+    public bool IsLoading { get; private set; } = false;
 
     private void OnDestroy()
     {
@@ -136,6 +136,7 @@ public class TerrainManager : MonoBehaviour
     private IEnumerator LoadTerrainAsync(TerrainData data, DateTime before)
     {
         Clear();
+        IsLoading = true;
 
         // Load terrain
         foreach (TerrainChunkData chunk in data.Chunks)
@@ -155,16 +156,15 @@ public class TerrainManager : MonoBehaviour
         // Assign the terrain at the end
         HasTerrain = true;
         CurrentLoadedTerrain = data;
+        IsLoading = false;
 
 
         // Debug
-        if (before != DateTime.MinValue)
-        {
-            string message = "* Loaded terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0")
-                + " seconds with " + data.Chunks.Count + " chunks and " + data.GolfHoles.Count + " holes.";
+        string message = "* Loaded terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0")
+            + " seconds with " + data.Chunks.Count + " chunks and " + data.GolfHoles.Count + " holes.";
 
-            Debug.Log(message);
-        }
+        Debug.Log(message);
+
     }
 
 
