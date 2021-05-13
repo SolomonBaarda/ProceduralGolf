@@ -38,7 +38,6 @@ public class TerrainSettings : VariablePreset
     /// Number of Noise sample points taken in each chunk.
     /// </summary>
     public readonly int SamplePointFrequency = 241;
-    public int TerrainDivisions => SamplePointFrequency - 1;
 
 
     public override void ValidateValues()

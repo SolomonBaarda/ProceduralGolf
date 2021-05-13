@@ -128,8 +128,11 @@ public class TerrainGenerator : MonoBehaviour
                     }
                 }
                 );
-            threads.Add(t);
-            t.Start();
+            lock (threads)
+            {
+                threads.Add(t);
+                t.Start();
+            }
         }
 
         // Wait for threads to complete
@@ -141,7 +144,12 @@ public class TerrainGenerator : MonoBehaviour
 
         Debug.Log("* First pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
+        {
+            OnAbortThreads.RemoveListener(a);
+            IsGenerating = false;
+            Clear();
             yield break;
+        }
         last = DateTime.Now;
 
 
@@ -198,9 +206,6 @@ public class TerrainGenerator : MonoBehaviour
                                 map.Biomes[i] = Settings.MainBiome;
                             }
 
-
-
-
                             // Do holes next
                             //List<FloodFillBiome> holes = new List<FloodFillBiome>();
 
@@ -213,9 +218,11 @@ public class TerrainGenerator : MonoBehaviour
                     }
                 }
                 );
-            threads.Add(t);
-            t.Start();
-
+            lock (threads)
+            {
+                threads.Add(t);
+                t.Start();
+            }
         }
 
         // Wait for threads to complete
@@ -226,11 +233,15 @@ public class TerrainGenerator : MonoBehaviour
         }
 
 
-
-
         Debug.Log("* Second pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
+        {
+            OnAbortThreads.RemoveListener(a);
+            IsGenerating = false;
+            Clear();
             yield break;
+        }
+            
         last = DateTime.Now;
 
 
@@ -266,7 +277,12 @@ public class TerrainGenerator : MonoBehaviour
         // FINISHED GENERATING
         Debug.Log("* Third pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
+        {
+            OnAbortThreads.RemoveListener(a);
+            IsGenerating = false;
+            Clear();
             yield break;
+        }
         last = DateTime.Now;
 
         Debug.Log("* Generated terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
@@ -277,8 +293,6 @@ public class TerrainGenerator : MonoBehaviour
         // Callback when done
         callback(terrain);
     }
-
-
 
     private void GenerateTerrainMapRawData(Vector2Int chunk, int seed, Bounds chunkBounds, int width, int height, in Vector3[] localVertexPositions, out TerrainMap map)
     {
@@ -347,14 +361,14 @@ public class TerrainGenerator : MonoBehaviour
     public Vector3[] CalculateLocalVertexPointsForChunk(Vector3 size, int numSamplePoints)
     {
         Vector3[] localPositions = new Vector3[numSamplePoints * numSamplePoints];
-        Vector3 one = size / Settings.TerrainDivisions;
+        Vector3 one = size / (numSamplePoints - 1);
 
         for (int y = 0; y < numSamplePoints; y++)
         {
             for (int x = 0; x < numSamplePoints; x++)
             {
                 int index = y * numSamplePoints + x;
-                localPositions[index] = new Vector3(one.x * x, one.y, one.z * y);
+                localPositions[index] = new Vector3(one.x * x, 0, one.z * y);
             }
         }
 

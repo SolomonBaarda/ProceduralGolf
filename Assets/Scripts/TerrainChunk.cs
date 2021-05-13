@@ -74,7 +74,7 @@ public class TerrainChunk : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.green;
-        Gizmos.DrawCube(Bounds.center, Bounds.size);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(Bounds.center, Bounds.size);
     }
 }

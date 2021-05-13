@@ -342,7 +342,9 @@ public class GameManager : MonoBehaviour
         TerrainGenerator.Clear();
         TerrainManager.Clear();
         CourseManager.Clear();
-        HUD.Clear();
+
+        if(HUD)
+            HUD.Clear();
     }
 
 

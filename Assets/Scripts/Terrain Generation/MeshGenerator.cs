@@ -24,11 +24,6 @@ public static class MeshGenerator
             }
         }
 
-        //Debug.Log(baseVertices[0]);
-        //Debug.Log(terrainMap.Heights[0]);
-        //Debug.Log(data.Vertices[0]);
-        //return;
-
         data.UpdateUVS();
     }
 
@@ -132,9 +127,6 @@ public static class MeshGenerator
                     }
                 }
             }
-
-
-
 
             // Create the new mesh if we need to
             if (m == null)

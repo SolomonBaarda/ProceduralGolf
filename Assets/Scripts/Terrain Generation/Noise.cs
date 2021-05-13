@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public static class Noise
 {
     public static int RandomSeed => Environment.TickCount.ToString().GetHashCode();
-
-    // Simplex
-    // float scale = 1, int octaves = 3, float persistance = 0.6f,
-    // float lacunarity = 2
-
 
     public static float[] GetSimplex(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, out float min, out float max)
     {
@@ -35,9 +29,7 @@ public static class Noise
         // Fill the array with random position offsets
         for (int i = 0; i < s.octaves; i++)
         {
-            float offsetX = r.Next(-100000, 100000) + offset.x;
-            float offsetY = r.Next(-100000, 100000) - offset.y;
-            octaveOffsets[i] = new Vector2(offsetX, offsetY);
+            octaveOffsets[i] = new Vector2(r.Next(-100000, 100000), r.Next(-100000, 100000));
         }
 
         min = n.GetNoise(0, 0);
@@ -46,7 +38,7 @@ public static class Noise
         {
             for (int x = 0; x < width; x++)
             {
-                int index = y * height + x;
+                int index = y * width + x;
                 float amplitude = 1, frequency = 1, raw = 0;
 
                 // Loop through each octave
@@ -104,7 +96,7 @@ public static class Noise
         {
             for (int x = 0; x < width; x++)
             {
-                int index = y * height + x;
+                int index = y * width + x;
                 float amplitude = 1, frequency = 1, raw = 0;
 
                 // Loop through each octave
