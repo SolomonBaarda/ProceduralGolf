@@ -8,10 +8,13 @@ public class TerrainMap
     public Bounds Bounds;
 
     public float[] Heights;
+    public float HeightsMin, HeightsMax;
 
     // Raw values
     public float[] BunkerHeights;
+    public float BunkerHeightMin, BunkerHeightMax;
     public float[] LakeHeights;
+    public float LakeHeightMin, LakeHeightMax;
     public bool[] TreeMask;
     public bool[] RockMask;
 
@@ -26,9 +29,11 @@ public class TerrainMap
         Bounds = bounds;
     }
 
-    public void Normalise(float heightMin, float heightMax)
+    public void Normalise(float heightMin, float heightMax, float lakeMin, float lakeMax, float bunkerMin, float bunkerMax)
     {
         Noise.NormaliseNoise(ref Heights, heightMin, heightMax);
+        Noise.NormaliseNoise(ref LakeHeights, lakeMin, lakeMax); 
+        Noise.NormaliseNoise(ref BunkerHeights, bunkerMin, bunkerMax);
     }
 
 }

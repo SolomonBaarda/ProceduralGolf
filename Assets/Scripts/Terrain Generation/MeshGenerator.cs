@@ -18,7 +18,9 @@ public static class MeshGenerator
             for (int x = 0; x < terrainMap.Width; x++)
             {
                 int index = y * terrainMap.Width + x;
-                data.Vertices[index] = baseVertices[index] + (TerrainManager.UP * terrainMap.Heights[index]);
+
+                data.Vertices[index] = baseVertices[index];
+                data.Vertices[index].y += terrainMap.Heights[index];
             }
         }
 

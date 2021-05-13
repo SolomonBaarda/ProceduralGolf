@@ -21,10 +21,6 @@ public class TerrainChunk : MonoBehaviour
     public Biome.Type[,] Biomes;
 
 
-    [Header("Gizmos settings")]
-    public bool ShowGizmos = true;
-    [Range(0, 5)] public float Length = 2;
-
 
     public void Initialise(Vector2Int position, Bounds bounds, TerrainChunkData data, Material material, PhysicMaterial physics, Transform parent, int terrainLayer)
     {
@@ -44,12 +40,7 @@ public class TerrainChunk : MonoBehaviour
         // Physics material
         meshCollider.material = physics;
 
-
-
         UpdateChunkData(data);
-
-
-
 
         // Set an instance of the material
         meshRenderer.material = material;
@@ -64,8 +55,6 @@ public class TerrainChunk : MonoBehaviour
     public void UpdateChunkData(TerrainChunkData data)
     {
         Data = data;
-
-        // Un-flatten the array of biome data so that we can use it
         Biomes = Utils.UnFlatten(data.Biomes, data.Width, data.Height);
 
         meshFilter.sharedMesh = MainMesh;
@@ -83,5 +72,9 @@ public class TerrainChunk : MonoBehaviour
     }
 
 
-
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawCube(Bounds.center, Bounds.size);
+    }
 }

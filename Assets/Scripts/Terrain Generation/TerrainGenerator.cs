@@ -89,7 +89,7 @@ public class TerrainGenerator : MonoBehaviour
 
         // FIRST PASS
         // Generate the initial chunks
-        float min = float.MaxValue, max = float.MinValue;
+        float min = float.MaxValue, max = float.MinValue, minLake = float.MaxValue, maxLake = float.MinValue, minBunker = float.MaxValue, maxBunker = float.MinValue;
         object threadLock = new object();
 
         foreach (Vector2Int chunk in chunks)
@@ -101,23 +101,30 @@ public class TerrainGenerator : MonoBehaviour
             Thread t = new Thread(
                 () =>
                 {
-                    GenerateTerrainMapRawData(chunk, seed, chunkBounds, width, height, in localVertexPositions, out TerrainMap map, out float newMin, out float newMax);
-                    
+                    GenerateTerrainMapRawData(chunk, seed, chunkBounds, width, height, in localVertexPositions, out TerrainMap map);
+
                     // Gain access to the critical region once we have calculated the data
                     lock (threadLock)
                     {
                         maps.Add(chunk, map);
 
-                        //Noise.GetMinMax(d.Heights, out float newMin, out float newMax);
+                        // Heights min max
+                        if (map.HeightsMin < min)
+                            min = map.HeightsMin;
+                        if (map.HeightsMax > max)
+                            max = map.HeightsMax;
 
-                        if (newMin < min)
-                        {
-                            min = newMin;
-                        }
-                        if (newMax > max)
-                        {
-                            max = newMax;
-                        }
+                        // Lake min max
+                        if (map.LakeHeightMin < minLake)
+                            minLake = map.LakeHeightMin;
+                        if (map.LakeHeightMax > maxLake)
+                            maxLake = map.LakeHeightMax;
+
+                        // Bunker min max
+                        if (map.BunkerHeightMin < minBunker)
+                            minBunker = map.BunkerHeightMin;
+                        if (map.BunkerHeightMax > maxBunker)
+                            maxBunker = map.BunkerHeightMax;
                     }
                 }
                 );
@@ -150,7 +157,7 @@ public class TerrainGenerator : MonoBehaviour
                 () =>
                 {
                     // Normalise heights
-                    map.Normalise(min, max);
+                    map.Normalise(min, max, minLake, maxLake, minBunker, maxBunker);
 
                     map.Biomes = new Biome.Type[width * height];
                     map.Decoration = new Biome.Decoration[width * height];
@@ -172,7 +179,7 @@ public class TerrainGenerator : MonoBehaviour
                             map.Biomes[i] = Settings.Lake.Biome;
                         }
                         // Then bunker
-                        else if (Settings.Bunker.Do && map.BunkerHeights[i] < 0.15f)
+                        else if (Settings.Bunker.Do && map.BunkerHeights[i] < 0.2f)
                         {
                             map.Heights[i] -= (map.BunkerHeights[i] * Settings.Bunker.Multiplier);
                             map.Biomes[i] = Settings.Bunker.Biome;
@@ -183,7 +190,7 @@ public class TerrainGenerator : MonoBehaviour
                             // Should be 
                             if (map.Heights[i] < 0.1f)
                             {
-                                map.Heights[i] = 0.1f;
+                                //map.Heights[i] = 0.1f;
                                 map.Biomes[i] = Settings.MainBiome;
                             }
                             else
@@ -239,12 +246,6 @@ public class TerrainGenerator : MonoBehaviour
         {
             Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, TextureSettings);
 
-            //Debug.Log(map);
-            //Debug.Log(map.Heights);
-            //Debug.Log(map.Heights[0]);
-            //yield break;
-
-
             MeshGenerator.MeshData meshData = null;
             MeshGenerator.UpdateMeshData(ref meshData, map, localVertexPositions);
 
@@ -279,35 +280,28 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private void GenerateTerrainMapRawData(Vector2Int chunk, int seed, Bounds chunkBounds, int width, int height, in Vector3[] localVertexPositions, out TerrainMap map, out float minHeight, out float maxHeight)
+    private void GenerateTerrainMapRawData(Vector2Int chunk, int seed, Bounds chunkBounds, int width, int height, in Vector3[] localVertexPositions, out TerrainMap map)
     {
+        map = new TerrainMap(chunk, width, height, chunkBounds);
+
         // Heights
-        float[] heightsRaw = Noise.GetSimplex(Settings.NoiseMain, seed, chunkBounds.min, in localVertexPositions, width, height, out minHeight, out maxHeight);
+        map.Heights = Noise.GetSimplex(Settings.NoiseMain, seed, chunkBounds.min, in localVertexPositions, width, height, out map.HeightsMin, out map.HeightsMax);
 
         // Bunkers
         int bunkerSeed = seed.ToString().GetHashCode();
-        float[] bunkerHeights = Noise.GetPerlin(Settings.NoiseBunker, bunkerSeed, chunkBounds.min, in localVertexPositions, width, height, out float _, out float _);
+        map.BunkerHeights = Noise.GetPerlin(Settings.NoiseBunker, bunkerSeed, chunkBounds.min, in localVertexPositions, width, height, out map.BunkerHeightMin, out map.BunkerHeightMax);
 
         // Lakes
         int lakeSeed = bunkerSeed.ToString().GetHashCode();
-        float[] lakeHeights = Noise.GetPerlin(Settings.NoiseLake, lakeSeed, chunkBounds.min, in localVertexPositions, width, height, out float _, out float _);
+        map.LakeHeights = Noise.GetPerlin(Settings.NoiseLake, lakeSeed, chunkBounds.min, in localVertexPositions, width, height, out map.LakeHeightMin, out map.LakeHeightMax);
 
         // Tree mask
         int treeSeed = lakeSeed.ToString().GetHashCode();
-        bool[] treeMask = Noise.GetPerlinMask(Settings.NoiseTree, treeSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Trees.NoiseThresholdMinMax, out float _, out float _);
+        map.TreeMask = Noise.GetPerlinMask(Settings.NoiseTree, treeSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Trees.NoiseThresholdMinMax, out float _, out float _);
 
         // Rock mask
         int rockSeed = treeSeed.ToString().GetHashCode();
-        bool[] rockMask = Noise.GetPerlinMask(Settings.NoiseRock, rockSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Rocks.NoiseThresholdMinMax, out float _, out float _);
-
-        map = new TerrainMap(chunk, width, height, chunkBounds)
-        {
-            Heights = heightsRaw,
-            BunkerHeights = bunkerHeights,
-            LakeHeights = lakeHeights,
-            TreeMask = treeMask,
-            RockMask = rockMask
-        };
+        map.RockMask = Noise.GetPerlinMask(Settings.NoiseRock, rockSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Rocks.NoiseThresholdMinMax, out float _, out float _);
     }
 
 
@@ -348,40 +342,12 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public static Vector3 CalculateDistanceBetweenVertices(in Bounds b, int divisions)
-    {
-        return (b.max - b.min) / divisions;
-    }
 
 
-
-
-
-    public static Vector3[,] CalculateVertexPointsForChunk(in Bounds chunk, in TerrainSettings settings)
-    {
-        settings.ValidateValues();
-
-        Vector3[,] roughVertices = new Vector3[settings.SamplePointFrequency, settings.SamplePointFrequency];
-        Vector3 distanceBetweenVertices = CalculateDistanceBetweenVertices(chunk, settings.TerrainDivisions);
-
-        // Iterate over each point
-        for (int y = 0; y < settings.SamplePointFrequency; y++)
-        {
-            for (int x = 0; x < settings.SamplePointFrequency; x++)
-            {
-                // Calculate the 3d point
-                roughVertices[x, y] = chunk.min + new Vector3(x * distanceBetweenVertices.x, distanceBetweenVertices.y, y * distanceBetweenVertices.z);
-            }
-        }
-
-        return roughVertices;
-    }
-
-
-    public static Vector3[] CalculateLocalVertexPointsForChunk(Vector3 size, int numSamplePoints)
+    public Vector3[] CalculateLocalVertexPointsForChunk(Vector3 size, int numSamplePoints)
     {
         Vector3[] localPositions = new Vector3[numSamplePoints * numSamplePoints];
-        Vector3 one = size / numSamplePoints;
+        Vector3 one = size / Settings.TerrainDivisions;
 
         for (int y = 0; y < numSamplePoints; y++)
         {
