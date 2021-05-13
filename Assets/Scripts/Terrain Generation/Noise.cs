@@ -4,147 +4,157 @@ using UnityEngine;
 
 public static class Noise
 {
-    public static int RandomSeed => Seed(Environment.TickCount.ToString());
-    public static int Seed(string seed) => seed.GetHashCode();
+    public static int RandomSeed => Environment.TickCount.ToString().GetHashCode();
+
+    // Simplex
+    // float scale = 1, int octaves = 3, float persistance = 0.6f,
+    // float lacunarity = 2
 
 
-
-
-
-
-
-
-    public static bool[,] PerlinMask(NoiseSettings settings, int seed, Vector2 thresholdMinMax, Vector2[,] samplePoints)
+    public static float[] GetSimplex(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, out float min, out float max)
     {
-        int width = samplePoints.GetLength(0), height = samplePoints.GetLength(1);
-        bool[,] mask = new bool[width, height];
-        settings.ValidateValues();
+        return GetNoise(s, seed, offset, samplePoints, width, height, FastNoiseLite.NoiseType.OpenSimplex2, out min, out max);
+    }
 
+    public static float[] GetPerlin(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, out float min, out float max)
+    {
+        return GetNoise(s, seed, offset, samplePoints, width, height, FastNoiseLite.NoiseType.Perlin, out min, out max);
+    }
+
+    private static float[] GetNoise(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, FastNoiseLite.NoiseType noiseType, out float min, out float max)
+    {
+        s.ValidateValues();
+        FastNoiseLite n = new FastNoiseLite(seed);
+        n.SetNoiseType(noiseType);
+
+        float[] noise = new float[samplePoints.Length];
 
         System.Random r = new System.Random(seed);
-        Vector2[] octaveOffsets = new Vector2[settings.octaves];
+        Vector2[] octaveOffsets = new Vector2[s.octaves];
 
         // Fill the array with random position offsets
-        for (int i = 0; i < settings.octaves; i++)
+        for (int i = 0; i < s.octaves; i++)
         {
-            float offsetX = r.Next(-100000, 100000) + settings.offset.x;
-            float offsetY = r.Next(-100000, 100000) - settings.offset.y;
+            float offsetX = r.Next(-100000, 100000) + offset.x;
+            float offsetY = r.Next(-100000, 100000) - offset.y;
             octaveOffsets[i] = new Vector2(offsetX, offsetY);
         }
 
-        int octaves = settings.octaves;
-
-
-        Parallel.For(0, height, y =>
+        min = n.GetNoise(0, 0);
+        max = min;
+        for (int y = 0; y < height; y++)
         {
-            Parallel.For(0, width, x =>
+            for (int x = 0; x < width; x++)
             {
-                float amplitude = 1;
-                float frequency = 1;
-                float totalPerlinForIndex = 0;
+                int index = y * height + x;
+                float amplitude = 1, frequency = 1, raw = 0;
 
                 // Loop through each octave
-                for (int octave = 0; octave < octaves; octave++)
+                for (int octave = 0; octave < s.octaves; octave++)
                 {
                     // Calculate the position to sample the noise from
-                    Vector2 sample = octaveOffsets[octave] + samplePoints[x, y] / settings.scale * frequency;
+                    Vector2 sample = octaveOffsets[octave] + new Vector2(offset.x + samplePoints[index].x, offset.z + samplePoints[index].z) / s.scale * frequency;
 
                     // Get perlin in the range -1 to 1
-                    float perlinValue = Mathf.PerlinNoise(sample.x, sample.y) * 2 - 1;
-                    totalPerlinForIndex += perlinValue * amplitude;
+                    raw += n.GetNoise(sample.x, sample.y) * amplitude;
 
-                    amplitude *= settings.persistance;
-                    frequency *= settings.lacunarity;
+                    amplitude *= s.persistance;
+                    frequency *= s.lacunarity;
                 }
 
-                // Assign the perlin value and normalize it roughly
-                float value = (totalPerlinForIndex / 2.5f) + 0.5f;
-                mask[x, y] = value >= thresholdMinMax.x && value <= thresholdMinMax.y;
-            });
-        });
+                if (raw < min)
+                    min = raw;
+                if (raw > max)
+                    max = raw;
 
-        return mask;
-    }
-
-
-
-
-    public static float[,] Perlin(NoiseSettings settings, int seed, Vector2[,] samplePoints)
-    {
-        int width = samplePoints.GetLength(0), height = samplePoints.GetLength(1);
-        float[,] perlin = new float[width, height];
-        settings.ValidateValues();
-
-
-        System.Random r = new System.Random(seed);
-        Vector2[] octaveOffsets = new Vector2[settings.octaves];
-
-        // Fill the array with random position offsets
-        for (int i = 0; i < settings.octaves; i++)
-        {
-            float offsetX = r.Next(-100000, 100000) + settings.offset.x;
-            float offsetY = r.Next(-100000, 100000) - settings.offset.y;
-            octaveOffsets[i] = new Vector2(offsetX, offsetY);
+                noise[index] = raw;
+            }
         }
-
-        int octaves = settings.octaves;
-
-
-        Parallel.For(0, height, y =>
-        {
-            Parallel.For(0, width, x =>
-            {
-                float amplitude = 1;
-                float frequency = 1;
-                float totalPerlinForIndex = 0;
-
-                // Loop through each octave
-                for (int octave = 0; octave < octaves; octave++)
-                {
-                    // Calculate the position to sample the noise from
-                    Vector2 sample = octaveOffsets[octave] + samplePoints[x, y] / settings.scale * frequency;
-
-                    // Get perlin in the range -1 to 1
-                    float perlinValue = Mathf.PerlinNoise(sample.x, sample.y) * 2 - 1;
-                    totalPerlinForIndex += perlinValue * amplitude;
-
-                    amplitude *= settings.persistance;
-                    frequency *= settings.lacunarity;
-                }
-
-                // Assign the perlin value and normalize it roughly
-                perlin[x, y] = (totalPerlinForIndex / 2.5f) + 0.5f;
-            });
-        });
-
-        return perlin;
-    }
-
-
-
-
-    public static float[,] Cellular(float scale, Vector2 offset, int seed, Vector2[,] samplePoints)
-    {
-        int width = samplePoints.GetLength(0), height = samplePoints.GetLength(1);
-        float[,] noise = new float[width, height];
-
-        // Get the fast noise object
-        FastNoise n = new FastNoise(seed);
-        // Set some settings for it
-        n.SetCellularDistanceFunction(FastNoise.CellularDistanceFunction.Natural);
-
-        Parallel.For(0, height, y =>
-        {
-            Parallel.For(0, width, x =>
-            {
-                // Calculate the position to sample the noise from
-                Vector2 sample = offset + samplePoints[x, y] / scale;
-
-                noise[x, y] = n.GetCellular(sample.x, sample.y);
-            });
-        });
 
         return noise;
+    }
+
+    public static bool[] GetPerlinMask(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, Vector2 thresholdMinMax, out float min, out float max)
+    {
+        return GetMask(s, seed, offset, samplePoints, width, height, thresholdMinMax, FastNoiseLite.NoiseType.Perlin, out min, out max);
+    }
+
+    private static bool[] GetMask(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, Vector2 thresholdMinMax, FastNoiseLite.NoiseType noiseType, out float min, out float max)
+    {
+        s.ValidateValues();
+        FastNoiseLite n = new FastNoiseLite(seed);
+        n.SetNoiseType(noiseType);
+
+        bool[] noise = new bool[samplePoints.Length];
+
+        System.Random r = new System.Random(seed);
+        Vector2[] octaveOffsets = new Vector2[s.octaves];
+
+        // Fill the array with random position offsets
+        for (int i = 0; i < s.octaves; i++)
+        {
+            float offsetX = r.Next(-100000, 100000) + offset.x;
+            float offsetY = r.Next(-100000, 100000) - offset.y;
+            octaveOffsets[i] = new Vector2(offsetX, offsetY);
+        }
+
+        min = n.GetNoise(0, 0);
+        max = min;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = y * height + x;
+                float amplitude = 1, frequency = 1, raw = 0;
+
+                // Loop through each octave
+                for (int octave = 0; octave < s.octaves; octave++)
+                {
+                    // Calculate the position to sample the noise from
+                    Vector2 sample = octaveOffsets[octave] + new Vector2(offset.x + samplePoints[index].x, offset.z + samplePoints[index].z) / s.scale * frequency;
+
+                    // Get perlin in the range -1 to 1
+                    raw += n.GetNoise(sample.x, sample.y) * amplitude;
+
+                    amplitude *= s.persistance;
+                    frequency *= s.lacunarity;
+                }
+
+                if (raw < min)
+                    min = raw;
+                if (raw > max)
+                    max = raw;
+
+                noise[index] = raw >= thresholdMinMax.x && raw <= thresholdMinMax.y;
+            }
+        }
+
+        return noise;
+    }
+
+
+
+    public static void GetMinMax(in float[] array, out float min, out float max)
+    {
+        min = array[0];
+        max = min;
+        foreach (float f in array)
+        {
+            if (f < min)
+                min = f;
+            if (f > max)
+                max = f;
+        }
+    }
+
+    public static void NormaliseNoise(ref float[] array, float min, float max)
+    {
+        float maxMinusMin = max - min;
+
+        for (int i = 0; i < array.Length; i++)
+        {
+            array[i] = (array[i] - min) / maxMinusMin;
+        }
     }
 
 

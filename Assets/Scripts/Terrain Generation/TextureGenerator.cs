@@ -35,9 +35,9 @@ public static class TextureGenerator
         {
             for (int x = 0; x < map.Width; x++)
             {
-                Color c = settings.GetColour(map.Biomes[x, y]);
-
-                colours[y * map.Width + x] = c;
+                int index = y * map.Width + x;
+                Color c = settings.GetColour(map.Biomes[index]);
+                colours[index] = c;
             }
         }
 

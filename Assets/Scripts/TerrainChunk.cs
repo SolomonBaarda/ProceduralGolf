@@ -66,7 +66,7 @@ public class TerrainChunk : MonoBehaviour
         Data = data;
 
         // Un-flatten the array of biome data so that we can use it
-        Biomes = Utils.UnFlatten(data.BiomesFlat, data.Width, data.Height);
+        Biomes = Utils.UnFlatten(data.Biomes, data.Width, data.Height);
 
         meshFilter.sharedMesh = MainMesh;
         meshCollider.sharedMesh = MainMesh;

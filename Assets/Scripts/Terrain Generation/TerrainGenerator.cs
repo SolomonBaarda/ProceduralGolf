@@ -7,7 +7,6 @@ using UnityEngine.Events;
 
 public class TerrainGenerator : MonoBehaviour
 {
-    private Dictionary<Vector2Int, ChunkData> Chunks = new Dictionary<Vector2Int, ChunkData>();
     public TerrainChunkManager TerrainChunkManager;
     public WorldObjectGenerator WorldObjectGenerator;
 
@@ -36,30 +35,14 @@ public class TerrainGenerator : MonoBehaviour
 
     public void Clear()
     {
-        Chunks.Clear();
-
         InitialTerrainGenerated = false;
+        OnAbortThreads.Invoke();
     }
 
-
-    private TerrainData GenerateTerrainData()
+    private void OnDestroy()
     {
-        List<TerrainChunkData> chunks = new List<TerrainChunkData>();
-        // Add each TerrainMapData
-        foreach (ChunkData m in Chunks.Values)
-        {
-            chunks.Add(m.Data);
-        }
-
-        // Create the object and set the data
-        TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(Seed, chunks, new List<HoleData>(), Settings.name);
-
-        return terrain;
+        Clear();
     }
-
-
-
 
 
 
@@ -88,7 +71,7 @@ public class TerrainGenerator : MonoBehaviour
 
         List<Thread> threads = new List<Thread>();
         bool aborted = false;
-        UnityAction a = () =>
+        void a()
         {
             foreach (Thread t in threads)
             {
@@ -96,41 +79,53 @@ public class TerrainGenerator : MonoBehaviour
             }
             IsGenerating = false;
             aborted = true;
-        };
+        }
 
         OnAbortThreads.AddListener(a);
 
-        Dictionary<Vector2Int, (TerrainMap, List<WorldObjectData>)> maps = new Dictionary<Vector2Int, (TerrainMap, List<WorldObjectData>)>();
+        Dictionary<Vector2Int, TerrainMap> maps = new Dictionary<Vector2Int, TerrainMap>();
+        int width = Settings.SamplePointFrequency, height = Settings.SamplePointFrequency;
+        Vector3[] localVertexPositions = CalculateLocalVertexPointsForChunk(new Vector3(TerrainChunkManager.ChunkGrid.cellSize.x, 0, TerrainChunkManager.ChunkGrid.cellSize.y), Settings.SamplePointFrequency);
 
         // FIRST PASS
         // Generate the initial chunks
+        float min = float.MaxValue, max = float.MinValue;
+        object threadLock = new object();
 
         foreach (Vector2Int chunk in chunks)
         {
-            // Generate only if it does not already exist
-            if (!Chunks.TryGetValue(chunk, out ChunkData _))
-            {
-                // Get the chunk bounds
-                // This has to be called from the main thread
-                Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
+            // Get the chunk bounds
+            // This has to be called from the main thread
+            Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-                Thread t = new Thread(
-                    () =>
+            Thread t = new Thread(
+                () =>
+                {
+                    GenerateTerrainMapRawData(chunk, seed, chunkBounds, width, height, in localVertexPositions, out TerrainMap map, out float newMin, out float newMax);
+                    
+                    // Gain access to the critical region once we have calculated the data
+                    lock (threadLock)
                     {
-                        GenerateChunk(chunk, seed, chunkBounds, out TerrainMap m, out List<WorldObjectData> worldObjects);
+                        maps.Add(chunk, map);
 
-                        lock (maps)
+                        //Noise.GetMinMax(d.Heights, out float newMin, out float newMax);
+
+                        if (newMin < min)
                         {
-                            maps.Add(chunk, (m, worldObjects));
+                            min = newMin;
+                        }
+                        if (newMax > max)
+                        {
+                            max = newMax;
                         }
                     }
-                    );
-                threads.Add(t);
-
-                t.Start();
-            }
+                }
+                );
+            threads.Add(t);
+            t.Start();
         }
 
+        // Wait for threads to complete
         while (threads.Count > 0)
         {
             threads.RemoveAll((x) => !x.IsAlive);
@@ -145,14 +140,82 @@ public class TerrainGenerator : MonoBehaviour
 
         // SECOND PASS
 
-        // Normalisation
-
-        // Do holes
-        List<FloodFillBiome> holes = new List<FloodFillBiome>();
-
-        foreach(KeyValuePair<Vector2Int, (TerrainMap, List<WorldObjectData>)> pair in maps)
+        threads.Clear();
+        foreach (TerrainMap map in maps.Values)
         {
+            // Use height curve to calculate new height distribution
+            AnimationCurve threadSafe = new AnimationCurve(Settings.HeightDistribution.keys);
 
+            Thread t = new Thread(
+                () =>
+                {
+                    // Normalise heights
+                    map.Normalise(min, max);
+
+                    map.Biomes = new Biome.Type[width * height];
+                    map.Decoration = new Biome.Decoration[width * height];
+
+                    // Now calculate the actual heights from the noise
+                    for (int i = 0; i < map.Heights.Length; i++)
+                    {
+                        if (Settings.UseCurve)
+                        {
+                            map.Heights[i] = threadSafe.Evaluate(map.Heights[i]);
+                        }
+
+                        map.Heights[i] *= Settings.HeightMultiplier;
+
+                        // Lake has first priority
+                        if (Settings.Lake.Do && map.LakeHeights[i] < 0.1f)
+                        {
+                            map.Heights[i] -= (map.LakeHeights[i] * Settings.Lake.Multiplier);
+                            map.Biomes[i] = Settings.Lake.Biome;
+                        }
+                        // Then bunker
+                        else if (Settings.Bunker.Do && map.BunkerHeights[i] < 0.15f)
+                        {
+                            map.Heights[i] -= (map.BunkerHeights[i] * Settings.Bunker.Multiplier);
+                            map.Biomes[i] = Settings.Bunker.Biome;
+                        }
+                        // Then other land
+                        else
+                        {
+                            // Should be 
+                            if (map.Heights[i] < 0.1f)
+                            {
+                                map.Heights[i] = 0.1f;
+                                map.Biomes[i] = Settings.MainBiome;
+                            }
+                            else
+                            {
+                                map.Biomes[i] = Settings.MainBiome;
+                            }
+
+
+
+
+                            // Do holes next
+                            //List<FloodFillBiome> holes = new List<FloodFillBiome>();
+
+                            // Should do decoration here 
+                            // TODO
+                            // out List<WorldObjectData> worldObjects
+
+                            // Move sampling into here
+                        }
+                    }
+                }
+                );
+            threads.Add(t);
+            t.Start();
+
+        }
+
+        // Wait for threads to complete
+        while (threads.Count > 0)
+        {
+            threads.RemoveAll((x) => !x.IsAlive);
+            yield return null;
         }
 
 
@@ -168,30 +231,34 @@ public class TerrainGenerator : MonoBehaviour
 
         // Construct textures and meshes
         // This needs to be done in the main thread
-        foreach (KeyValuePair<Vector2Int, (TerrainMap, List<WorldObjectData>)> pair in maps)
+
+        List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
+
+
+        foreach (TerrainMap map in maps.Values)
         {
-            TerrainMap map = pair.Value.Item1;
             Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, TextureSettings);
 
+            //Debug.Log(map);
+            //Debug.Log(map.Heights);
+            //Debug.Log(map.Heights[0]);
+            //yield break;
+
+
             MeshGenerator.MeshData meshData = null;
-            MeshGenerator.UpdateMeshData(ref meshData, map);
+            MeshGenerator.UpdateMeshData(ref meshData, map, localVertexPositions);
 
             Mesh mesh = null;
             meshData.UpdateMesh(ref mesh, MeshSettings);
 
-            TerrainChunkData chunkData = new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Biomes, colourMap, mesh, pair.Value.Item2);
-
-
-            ChunkData d = new ChunkData() { Data = chunkData, TerrainMap = map, MeshData = meshData };
-
             // Create the new chunk
-            Chunks.Add(pair.Key, d);
+            terrainChunks.Add(new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Biomes, width, height, colourMap, mesh, new List<WorldObjectData>()));
         }
 
+        // Create the object and set the data
+        TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
+        terrain.SetData(Seed, terrainChunks, new List<HoleData>(), Settings.name);
 
-
-
-        // Instantiate trees etc
 
 
 
@@ -204,119 +271,46 @@ public class TerrainGenerator : MonoBehaviour
         Debug.Log("* Generated terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
 
         OnAbortThreads.RemoveListener(a);
-
         IsGenerating = false;
-        callback(GenerateTerrainData());
+
+        // Callback when done
+        callback(terrain);
     }
 
 
 
-    private void GenerateChunk(Vector2Int chunk, int seed, Bounds chunkBounds, out TerrainMap map, out List<WorldObjectData> worldObjects)
+    private void GenerateTerrainMapRawData(Vector2Int chunk, int seed, Bounds chunkBounds, int width, int height, in Vector3[] localVertexPositions, out TerrainMap map, out float minHeight, out float maxHeight)
     {
-        // Generate the TerrainMap
-        map = GenerateTerrainMap(chunk, seed, chunkBounds);
-
-        // Continue and get the holes
-        //Task<HashSet<FloodFillBiome>> newHoles = generateMap.ContinueWith((m) => FloodFillBiome.CalculatePoints(ref map, Settings.HoleBiome), TaskCancelToken.Token);
-
-        // Continue and get the lakes
-        //Task<HashSet<FloodFillBiome>> newLakesTask = newHoles.ContinueWith((m) => FloodFillBiome.CalculatePoints(ref map, Current.Bunker.Biome), TaskCancelToken.Token);
-        //HashSet<FloodFillBiome> l = newLakesTask.Result;
-
-
-
-        // Update them all
-        /*
-        foreach (FloodFillBiome hole in newHoles.Result)
-        {
-            hole.Update();
-            hole.SetAllVerticesConnectedToThis();
-
-            GolfHoles.Add(hole);
-        }
-        */
-
-
-
-        // Get the positions of the world objects
-        worldObjects = WorldObjectGenerator.CalculateDataForChunk(map);
-    }
-
-
-
-
-
-
-
-
-
-    private TerrainMap GenerateTerrainMap(Vector2Int chunk, int seed, in Bounds chunkBounds)
-    {
-        // Get the vertex points
-        Vector3[,] vertices = CalculateVertexPointsForChunk(chunkBounds, Settings);
-        Vector3[,] localVertexPositions = CalculateLocalVertexPointsForChunk(vertices, chunkBounds.center);
-        Vector2[,] noiseSamplePoints = ConvertWorldPointsToPerlinSample(vertices);
-
-        int width = vertices.GetLength(0), height = vertices.GetLength(1);
-
         // Heights
-        float[,] heightsRaw = Noise.Perlin(Settings.NoiseMain, seed, noiseSamplePoints);
-
-
-        // Masks
-
-        // Hole
-        int holeSeed = Noise.Seed(seed.ToString());
-        bool[,] holeMask = Noise.PerlinMask(Settings.NoiseHole, holeSeed, Settings.HoleNoiseThresholdMinMax, noiseSamplePoints);
+        float[] heightsRaw = Noise.GetSimplex(Settings.NoiseMain, seed, chunkBounds.min, in localVertexPositions, width, height, out minHeight, out maxHeight);
 
         // Bunkers
-        int bunkerSeed = Noise.Seed(holeSeed.ToString());
-        float[,] bunkerFloatMask = Noise.Perlin(Settings.NoiseBunker, bunkerSeed, noiseSamplePoints);
+        int bunkerSeed = seed.ToString().GetHashCode();
+        float[] bunkerHeights = Noise.GetPerlin(Settings.NoiseBunker, bunkerSeed, chunkBounds.min, in localVertexPositions, width, height, out float _, out float _);
 
         // Lakes
-        int lakeSeed = Noise.Seed(bunkerSeed.ToString());
-        float[,] lakeFloatMask = Noise.Perlin(Settings.NoiseLake, lakeSeed, noiseSamplePoints);
+        int lakeSeed = bunkerSeed.ToString().GetHashCode();
+        float[] lakeHeights = Noise.GetPerlin(Settings.NoiseLake, lakeSeed, chunkBounds.min, in localVertexPositions, width, height, out float _, out float _);
 
-        // Apply the masks here
-        for (int y = 0; y < height; y++)
+        // Tree mask
+        int treeSeed = lakeSeed.ToString().GetHashCode();
+        bool[] treeMask = Noise.GetPerlinMask(Settings.NoiseTree, treeSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Trees.NoiseThresholdMinMax, out float _, out float _);
+
+        // Rock mask
+        int rockSeed = treeSeed.ToString().GetHashCode();
+        bool[] rockMask = Noise.GetPerlinMask(Settings.NoiseRock, rockSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Rocks.NoiseThresholdMinMax, out float _, out float _);
+
+        map = new TerrainMap(chunk, width, height, chunkBounds)
         {
-            for (int x = 0; x < width; x++)
-            {
-                // Not a bunker here
-                if (!(bunkerFloatMask[x, y] >= Settings.Bunker.NoiseThresholdMinMax.x && bunkerFloatMask[x, y] <= Settings.Bunker.NoiseThresholdMinMax.y))
-                {
-                    bunkerFloatMask[x, y] = 0;
-                }
-                // Not a lake here
-                if (!(lakeFloatMask[x, y] >= Settings.Lake.NoiseThresholdMinMax.x && lakeFloatMask[x, y] <= Settings.Lake.NoiseThresholdMinMax.y))
-                {
-                    lakeFloatMask[x, y] = 0;
-                }
-            }
-        }
-
-
-
-
-
-        // Trees
-        int treeSeed = Noise.Seed(lakeSeed.ToString());
-        bool[,] treeMask = Noise.PerlinMask(Settings.NoiseTree, treeSeed, Settings.Trees.NoiseThresholdMinMax, noiseSamplePoints);
-
-        // Rocks
-        int rockSeed = Noise.Seed(treeSeed.ToString());
-        bool[,] rockMask = Noise.PerlinMask(Settings.NoiseRock, rockSeed, Settings.Rocks.NoiseThresholdMinMax, noiseSamplePoints);
-
-
-
-        float[,] heightsBeforeHole = CalculateHeightsBeforeHole(width, height, Settings, heightsRaw, bunkerFloatMask, lakeFloatMask, holeMask,
-            treeMask, rockMask, out Biome.Type[,] biomes, out List<Biome.Decoration>[,] decoration);
-
-
-
-        // Return the terrain map
-        return new TerrainMap(chunk, width, height, localVertexPositions, chunkBounds, heightsBeforeHole, biomes, decoration);
+            Heights = heightsRaw,
+            BunkerHeights = bunkerHeights,
+            LakeHeights = lakeHeights,
+            TreeMask = treeMask,
+            RockMask = rockMask
+        };
     }
+
+
 
 
 
@@ -351,50 +345,6 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public HashSet<Vector2Int> GetNearbyChunksToGenerate(Vector3 position, int chunks)
-    {
-        // Calculate the centre chunk
-        Vector2Int centre = TerrainChunkManager.WorldToChunk(position);
-        HashSet<Vector2Int> nearbyChunks = new HashSet<Vector2Int>();
-
-        // Generate in that area
-        for (int y = -chunks; y <= chunks; y++)
-        {
-            for (int x = -chunks; x <= chunks; x++)
-            {
-                Vector2Int chunk = new Vector2Int(centre.x + x, centre.y + y);
-                if (!Chunks.ContainsKey(chunk))
-                {
-                    nearbyChunks.Add(chunk);
-                }
-            }
-        }
-
-        return nearbyChunks;
-    }
-
-    public HashSet<Vector2Int> GetNearbyChunksToGenerate(Vector3 position, float radius)
-    {
-        return GetNearbyChunksToGenerate(position, Mathf.RoundToInt(radius / TerrainChunkManager.ChunkSizeWorldUnits));
-    }
-
-
-    private Vector2[,] ConvertWorldPointsToPerlinSample(in Vector3[,] points)
-    {
-        int width = points.GetLength(0), height = points.GetLength(1);
-        Vector2[,] points2D = new Vector2[width, height];
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                points2D[x, y] = new Vector2(points[x, y].x, points[x, y].z);
-            }
-        }
-
-        return points2D;
-    }
-
 
 
 
@@ -428,16 +378,17 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    public static Vector3[,] CalculateLocalVertexPointsForChunk(in Vector3[,] worldPoints, in Vector3 centre)
+    public static Vector3[] CalculateLocalVertexPointsForChunk(Vector3 size, int numSamplePoints)
     {
-        int width = worldPoints.GetLength(0), height = worldPoints.GetLength(1);
-        Vector3[,] localPositions = new Vector3[width, height];
+        Vector3[] localPositions = new Vector3[numSamplePoints * numSamplePoints];
+        Vector3 one = size / numSamplePoints;
 
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < numSamplePoints; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < numSamplePoints; x++)
             {
-                localPositions[x, y] = worldPoints[x, y] - centre;
+                int index = y * numSamplePoints + x;
+                localPositions[index] = new Vector3(one.x * x, one.y, one.z * y);
             }
         }
 
@@ -447,150 +398,6 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    private float[,] CalculateHeightsBeforeHole(int width, int height, in TerrainSettings settings, in float[,] rawHeights, in float[,] bunkerHeights, in float[,] lakeHeights,
-        bool[,] holeMask, bool[,] treeMask, bool[,] rockMask, out Biome.Type[,] biomes, out List<Biome.Decoration>[,] decoration)
-    {
-        settings.ValidateValues();
-
-        // Assign memory for it all
-        float[,] heights = new float[width, height];
-        biomes = new Biome.Type[width, height];
-        decoration = new List<Biome.Decoration>[width, height];
-        // Get a new animation curve to use in the thread
-        AnimationCurve threadSafe = new AnimationCurve(settings.HeightDistribution.keys);
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                // Calculate the biome
-                decoration[x, y] = CalculateDecorationBeforeBiome(settings, treeMask[x, y], rockMask[x, y]);
-                biomes[x, y] = CalculateBiomeAndEditDecoration(settings, holeMask[x, y], bunkerHeights[x, y], lakeHeights[x, y], ref decoration[x, y]);
-
-                // Calculate the height
-                heights[x, y] = CalculateHeight(settings, rawHeights[x, y], threadSafe, bunkerHeights[x, y], lakeHeights[x, y]);
-            }
-        }
-
-
-        return heights;
-    }
-
-
-    private float CalculateHeight(TerrainSettings settings, float rawHeight, AnimationCurve threadSafe, float bunkerHeight, float lakeHeight)
-    {
-        float height = rawHeight * settings.HeightMultiplier;
-
-        // Apply curve 
-        if (settings.UseCurve)
-        {
-            height = threadSafe.Evaluate(rawHeight) * settings.HeightMultiplier;
-        }
-
-
-        // Take away the lake if we need to
-        if (settings.Lake.Do && !Mathf.Approximately(lakeHeight, 0))
-        {
-            height -= (lakeHeight * settings.Lake.Multiplier);
-        }
-        // Only do the bunker if the lake fails
-        else if (settings.Bunker.Do)
-        {
-            height -= (bunkerHeight * settings.Bunker.Multiplier);
-        }
-
-
-
-        return height;
-    }
-
-
-    private List<Biome.Decoration> CalculateDecorationBeforeBiome(TerrainSettings settings, bool treeMask, bool rockMask)
-    {
-        List<Biome.Decoration> decoration = new List<Biome.Decoration>();
-
-        // Do tree
-        if (settings.Trees.DoObject && treeMask)
-        {
-            decoration.Add(Biome.Decoration.Tree);
-        }
-        // Do rock
-        if (settings.Rocks.DoObject && rockMask)
-        {
-            decoration.Add(Biome.Decoration.Rock);
-        }
-
-        return decoration;
-    }
-
-
-    private Biome.Type CalculateBiomeAndEditDecoration(TerrainSettings settings, bool isHole, float bunkerHeight, float lakeHeight, ref List<Biome.Decoration> decoration)
-    {
-        // Hole has first priority
-        if (isHole)
-        {
-            decoration.Clear();
-            return settings.HoleBiome;
-        }
-
-        // Lake should be here
-        if (settings.Lake.Do && !Mathf.Approximately(lakeHeight, 0))
-        {
-            decoration.Clear();
-            return settings.Lake.Biome;
-        }
-
-        // Next is bunker
-        if (settings.Bunker.Do && !Mathf.Approximately(bunkerHeight, 0))
-        {
-            decoration.Clear();
-            return settings.Bunker.Biome;
-        }
-
-
-        // Set forest biome
-        if (decoration.Count > 0)
-        {
-            if (decoration.Contains(Biome.Decoration.Tree))
-            {
-                return settings.Trees.DesiredBiome;
-            }
-            if (decoration.Contains(Biome.Decoration.Rock))
-            {
-                return settings.Rocks.DesiredBiome;
-            }
-        }
-
-
-        // Set main biome
-        return settings.MainBiome;
-    }
-
-
-
-
-
-
-
-    private struct ChunkData
-    {
-        public TerrainChunkData Data;
-        public TerrainMap TerrainMap;
-        public MeshGenerator.MeshData MeshData;
-    }
 
 
 }

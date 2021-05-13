@@ -68,7 +68,7 @@ public class FloodFillBiome
         {
             foreach ((int, int) pos in p.Indexes)
             {
-                totalHeight += p.Map.Heights[pos.Item1, pos.Item2];
+                //totalHeight += p.Map.Heights[pos.Item1, pos.Item2];
                 totalVertices++;
             }
         }

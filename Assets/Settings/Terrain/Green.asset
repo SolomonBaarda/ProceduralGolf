@@ -37,7 +37,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  HeightMultiplier: 16
+  HeightMultiplier: 4
   MainBiome: 1
   HoleNoiseThresholdMinMax: {x: 0.8, y: 1.5}
   HoleBiome: 5

@@ -37,6 +37,7 @@ public class WorldObjectGenerator : MonoBehaviour
 
     public List<WorldObjectData> CalculateDataForChunk(TerrainMap m)
     {
+        /*
         Dictionary<GameObject, WorldObjectData> prefabsInChunk = new Dictionary<GameObject, WorldObjectData>();
 
         int seed = Noise.Seed(m.Chunk.ToString());
@@ -84,9 +85,11 @@ public class WorldObjectGenerator : MonoBehaviour
                 }
             }
         }
-
+        
 
         return prefabsInChunk.Values.ToList();
+        */
+        return null;
     }
 
 

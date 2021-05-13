@@ -4,7 +4,7 @@ public static class MeshGenerator
 {
 
 
-    public static void UpdateMeshData(ref MeshData data, TerrainMap terrainMap)
+    public static void UpdateMeshData(ref MeshData data, TerrainMap terrainMap, Vector3[] baseVertices)
     {
         // Create the data if we need to 
         if (data == null)
@@ -17,9 +17,15 @@ public static class MeshGenerator
         {
             for (int x = 0; x < terrainMap.Width; x++)
             {
-                data.SetVertex(x, y, terrainMap.CalculateLocalVertexPosition(x,y));
+                int index = y * terrainMap.Width + x;
+                data.Vertices[index] = baseVertices[index] + (TerrainManager.UP * terrainMap.Heights[index]);
             }
         }
+
+        //Debug.Log(baseVertices[0]);
+        //Debug.Log(terrainMap.Heights[0]);
+        //Debug.Log(data.Vertices[0]);
+        //return;
 
         data.UpdateUVS();
     }
@@ -28,41 +34,20 @@ public static class MeshGenerator
 
     public class MeshData
     {
-        private readonly int MaxVerticesWidth, MaxVerticesHeight;
+        public int Width, Height;
         public Vector3[] Vertices;
         public Vector2[] UVs;
         //public Color[] Colours;
 
 
-        public MeshData(int verticesX, int verticesY)
+        public MeshData(int width, int height)
         {
-            MaxVerticesWidth = verticesX; MaxVerticesHeight = verticesY;
+            Width = width; Height = height;
 
             // Assign memory for the arrays
-            Vertices = new Vector3[MaxVerticesWidth * MaxVerticesHeight];
+            Vertices = new Vector3[Width * Height];
             UVs = new Vector2[Vertices.Length];
             //Colours = new Color[Vertices.Length];
-        }
-
-
-
-        private int GetVertexIndex(int x, int y)
-        {
-            if (x >= 0 && x < MaxVerticesWidth && y >= 0 && y < MaxVerticesHeight)
-            {
-                return y * MaxVerticesWidth + x;
-            }
-            return -1;
-        }
-
-        public void SetVertex(int x, int y, Vector3 vertex)
-        {
-            int index = GetVertexIndex(x, y);
-            if (index != -1)
-            {
-                Vertices[index] = vertex;
-                //Colours[index] = colour;
-            }
         }
 
 
@@ -70,11 +55,11 @@ public static class MeshGenerator
         {
             // Get the minimum and maximum points
             Vector2 min = Vertices[0], max = Vertices[0];
-            for (int y = 0; y < MaxVerticesHeight; y++)
+            for (int y = 0; y < Height; y++)
             {
-                for (int x = 0; x < MaxVerticesWidth; x++)
+                for (int x = 0; x < Width; x++)
                 {
-                    Vector3 v = Vertices[y * MaxVerticesWidth + x];
+                    Vector3 v = Vertices[y * Width + x];
 
                     if (v.x < min.x) { min.x = v.x; }
                     if (v.x > max.x) { max.x = v.x; }
@@ -87,13 +72,13 @@ public static class MeshGenerator
             Vector2 size = max - min;
 
             // Now assign each UV
-            for (int y = 0; y < MaxVerticesHeight; y++)
+            for (int y = 0; y < Height; y++)
             {
-                for (int x = 0; x < MaxVerticesWidth; x++)
+                for (int x = 0; x < Width; x++)
                 {
-                    Vector3 point = Vertices[y * MaxVerticesWidth + x];
+                    Vector3 point = Vertices[y * Width + x];
 
-                    UVs[y * MaxVerticesWidth + x] = (max - new Vector2(point.x, point.z)) / size;
+                    UVs[y * Width + x] = (max - new Vector2(point.x, point.z)) / size;
                 }
             }
         }
@@ -103,33 +88,32 @@ public static class MeshGenerator
         public void UpdateMesh(ref Mesh m, in MeshSettings settings)
         {
             int i = settings.SimplificationIncrement;
-
-            int newWidth = (MaxVerticesWidth - 1) / i + 1, newHeight = (MaxVerticesHeight - 1) / i + 1;
+            int newWidth = (Width - 1) / i + 1, newHeight = (Height - 1) / i + 1;
 
             Vector3[] newVertices = new Vector3[newWidth * newHeight];
             Vector2[] newUVs = new Vector2[newVertices.Length];
             //Color[] newColours = new Color[newVertices.Length];
             int[] newTriangles = new int[newVertices.Length * 6];
-            int triangleIndex = 0;
 
+            int triangleIndex = 0;
             // Add all the correct vertices
-            for (int y = 0; y < MaxVerticesHeight; y += i)
+            for (int y = 0; y < Height; y += i)
             {
-                for (int x = 0; x < MaxVerticesWidth; x += i)
+                for (int x = 0; x < Width; x += i)
                 {
                     int newX = x / i, newY = y / i;
                     int thisVertexIndex = newY * newWidth + newX;
+                    int oldIndex = y * Width + x;
                     // Add the vertex
-                    newVertices[thisVertexIndex] = Vertices[GetVertexIndex(x, y)];
+                    newVertices[thisVertexIndex] = Vertices[oldIndex];
                     // Add the UV
-                    newUVs[thisVertexIndex] = UVs[GetVertexIndex(x, y)];
+                    newUVs[thisVertexIndex] = UVs[oldIndex];
                     // Add the colour
                     //newColours[thisVertexIndex] = Colours[GetVertexIndex(x, y)];
 
-
-                    // Set the triangles
                     if (newX >= 0 && newX < newWidth - 1 && newY >= 0 && newY < newHeight - 1)
                     {
+                        // Set the triangles
                         newTriangles[triangleIndex] = thisVertexIndex;
                         // Below
                         newTriangles[triangleIndex + 1] = thisVertexIndex + newWidth;
@@ -165,7 +149,6 @@ public static class MeshGenerator
             // Recalculate values
             m.RecalculateNormals();
             m.Optimize();
-
         }
 
     }
