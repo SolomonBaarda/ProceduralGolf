@@ -25,18 +25,18 @@ public static class TextureGenerator
 
 
 
-    public static Color[] GenerateColourMap(in TerrainMap map, in TextureSettings settings)
+    public static Color32[] GenerateColourMap(in TerrainMap map, in TextureSettings settings)
     {
         settings.ValidateValues();
 
-        Color[] colours = new Color[map.Width * map.Height];
+        Color32[] colours = new Color32[map.Width * map.Height];
 
         for (int y = 0; y < map.Height; y++)
         {
             for (int x = 0; x < map.Width; x++)
             {
                 int index = y * map.Width + x;
-                Color c = settings.GetColour(map.Biomes[index]);
+                Color32 c = settings.GetColour(map.Biomes[index]);
                 colours[index] = c;
             }
         }
@@ -62,7 +62,7 @@ public static class TextureGenerator
 
         };
 
-        t.SetPixels(data.ColourMap);
+        t.SetPixels32(data.ColourMap);
         t.Apply();
 
         t.Compress(false);
@@ -75,10 +75,10 @@ public static class TextureGenerator
     public struct TextureData
     {
         public int Width, Height;
-        public Color[] ColourMap;
+        public Color32[] ColourMap;
         public TextureSettings Settings;
 
-        public TextureData(int width, int height, in Color[] colours, in TextureSettings settings)
+        public TextureData(int width, int height, in Color32[] colours, in TextureSettings settings)
         {
             Width = width;
             Height = height;

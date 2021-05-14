@@ -19,8 +19,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0
       value: 0
-      inSlope: 0
-      outSlope: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -37,7 +37,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  HeightMultiplier: 1
+  HeightMultiplier: 2
   MainBiome: 1
   HoleNoiseThresholdMinMax: {x: 0.8, y: 1.5}
   HoleBiome: 5

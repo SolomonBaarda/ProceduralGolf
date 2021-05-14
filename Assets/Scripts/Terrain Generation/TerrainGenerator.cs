@@ -127,7 +127,8 @@ public class TerrainGenerator : MonoBehaviour
                             maxBunker = map.BunkerHeightMax;
                     }
                 }
-                );
+                )
+            { Name = "Pass 1 (" + chunk.x + "," + chunk.y + ")" };
             lock (threads)
             {
                 threads.Add(t);
@@ -154,6 +155,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // SECOND PASS
+        Dictionary<Vector2Int, MeshGenerator.MeshData> meshData = new Dictionary<Vector2Int, MeshGenerator.MeshData>();
 
         threads.Clear();
         foreach (TerrainMap map in maps.Values)
@@ -166,13 +168,21 @@ public class TerrainGenerator : MonoBehaviour
                 {
                     // Normalise heights
                     map.Normalise(min, max, minLake, maxLake, minBunker, maxBunker);
-
                     map.Biomes = new Biome.Type[width * height];
                     map.Decoration = new Biome.Decoration[width * height];
 
                     // Now calculate the actual heights from the noise
                     for (int i = 0; i < map.Heights.Length; i++)
                     {
+                        map.Biomes[i] = Settings.MainBiome;
+
+                        // Set it to hole
+                        if (map.Heights[i] < 0.1)
+                        {
+                            map.Heights[i] = 0.1f;
+                            map.Biomes[i] = Settings.HoleBiome;
+                        }
+
                         if (Settings.UseCurve)
                         {
                             map.Heights[i] = threadSafe.Evaluate(map.Heights[i]);
@@ -183,29 +193,18 @@ public class TerrainGenerator : MonoBehaviour
                         // Lake has first priority
                         if (Settings.Lake.Do && map.LakeHeights[i] < 0.1f)
                         {
-                            map.Heights[i] -= (map.LakeHeights[i] * Settings.Lake.Multiplier);
-                            map.Biomes[i] = Settings.Lake.Biome;
+                            //map.Heights[i] -= (map.LakeHeights[i] * Settings.Lake.Multiplier);
+                            //map.Biomes[i] = Settings.Lake.Biome;
                         }
                         // Then bunker
                         else if (Settings.Bunker.Do && map.BunkerHeights[i] < 0.2f)
                         {
-                            map.Heights[i] -= (map.BunkerHeights[i] * Settings.Bunker.Multiplier);
-                            map.Biomes[i] = Settings.Bunker.Biome;
+                            //map.Heights[i] -= (map.BunkerHeights[i] * Settings.Bunker.Multiplier);
+                            //map.Biomes[i] = Settings.Bunker.Biome;
                         }
                         // Then other land
                         else
                         {
-                            // Should be 
-                            if (map.Heights[i] < 0.1f)
-                            {
-                                //map.Heights[i] = 0.1f;
-                                map.Biomes[i] = Settings.MainBiome;
-                            }
-                            else
-                            {
-                                map.Biomes[i] = Settings.MainBiome;
-                            }
-
                             // Do holes next
                             //List<FloodFillBiome> holes = new List<FloodFillBiome>();
 
@@ -216,8 +215,18 @@ public class TerrainGenerator : MonoBehaviour
                             // Move sampling into here
                         }
                     }
+
+                    // Now Calculate the mesh data for the chunk
+                    MeshGenerator.MeshData data = null;
+                    MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
+
+                    lock (threadLock)
+                    {
+                        meshData.Add(map.Chunk, data);
+                    }
                 }
-                );
+                )
+            { Name = "Pass 2 (" + map.Chunk.x + "," + map.Chunk.y + ")" }; ;
             lock (threads)
             {
                 threads.Add(t);
@@ -241,7 +250,7 @@ public class TerrainGenerator : MonoBehaviour
             Clear();
             yield break;
         }
-            
+
         last = DateTime.Now;
 
 
@@ -252,19 +261,19 @@ public class TerrainGenerator : MonoBehaviour
 
         List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
 
-
         foreach (TerrainMap map in maps.Values)
         {
-            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, TextureSettings);
-
-            MeshGenerator.MeshData meshData = null;
-            MeshGenerator.UpdateMeshData(ref meshData, map, localVertexPositions);
-
+            // Generate the mesh
+            meshData.TryGetValue(map.Chunk, out MeshGenerator.MeshData data);
             Mesh mesh = null;
-            meshData.UpdateMesh(ref mesh, MeshSettings);
+            data.UpdateMesh(ref mesh, MeshSettings);
+            yield return null;
 
-            // Create the new chunk
+            // Optimise it and generate the texture
+            data.Optimise(ref mesh);
+            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, TextureSettings);
             terrainChunks.Add(new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Biomes, width, height, colourMap, mesh, new List<WorldObjectData>()));
+            yield return null;
         }
 
         // Create the object and set the data
@@ -299,15 +308,15 @@ public class TerrainGenerator : MonoBehaviour
         map = new TerrainMap(chunk, width, height, chunkBounds);
 
         // Heights
-        map.Heights = Noise.GetSimplex(Settings.NoiseMain, seed, chunkBounds.min, in localVertexPositions, width, height, out map.HeightsMin, out map.HeightsMax);
+        map.Heights = Noise.GetNoise(Settings.NoiseMain, seed, chunkBounds.min, in localVertexPositions, width, height, out map.HeightsMin, out map.HeightsMax);
 
         // Bunkers
         int bunkerSeed = seed.ToString().GetHashCode();
-        map.BunkerHeights = Noise.GetPerlin(Settings.NoiseBunker, bunkerSeed, chunkBounds.min, in localVertexPositions, width, height, out map.BunkerHeightMin, out map.BunkerHeightMax);
+        map.BunkerHeights = Noise.GetNoise(Settings.NoiseBunker, bunkerSeed, chunkBounds.min, in localVertexPositions, width, height, out map.BunkerHeightMin, out map.BunkerHeightMax);
 
         // Lakes
         int lakeSeed = bunkerSeed.ToString().GetHashCode();
-        map.LakeHeights = Noise.GetPerlin(Settings.NoiseLake, lakeSeed, chunkBounds.min, in localVertexPositions, width, height, out map.LakeHeightMin, out map.LakeHeightMax);
+        map.LakeHeights = Noise.GetNoise(Settings.NoiseLake, lakeSeed, chunkBounds.min, in localVertexPositions, width, height, out map.LakeHeightMin, out map.LakeHeightMax);
 
         // Tree mask
         int treeSeed = lakeSeed.ToString().GetHashCode();

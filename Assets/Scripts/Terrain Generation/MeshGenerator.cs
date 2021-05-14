@@ -139,7 +139,10 @@ public static class MeshGenerator
             m.triangles = newTriangles;
             m.uv = newUVs;
             //m.colors = newColours;
+        }
 
+        public void Optimise(ref Mesh m)
+        {
             // Recalculate values
             m.RecalculateNormals();
             m.Optimize();
