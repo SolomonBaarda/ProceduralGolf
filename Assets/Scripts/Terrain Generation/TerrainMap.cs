@@ -21,7 +21,8 @@ public class TerrainMap
     public bool[] RockMask;
 
     public Biome.Type[] Biomes;
-    public Biome.Decoration[] Decoration;
+
+    public Dictionary<Biome.Decoration, List<Vector3>> Decoration = new Dictionary<Biome.Decoration, List<Vector3>>();
 
     public TerrainMap(Vector2Int chunk, int width, int height, Bounds bounds)
     {
@@ -49,15 +50,20 @@ public class TerrainMap
     public class Layer
     {
         public float[] Noise;
-        public float Min, Max;
+        public float Min = float.MaxValue, Max = float.MinValue;
         public Biome.Type Biome;
-
-        public Layer()
-        {
-            Min = float.MaxValue;
-            Max = float.MinValue;
-        }
     }
+
+
+    public class WorldObjectData
+    {
+        public Biome.Decoration Decoration;
+        public List<Vector3> WorldPositions;
+
+
+    }
+
+
 
 }
 

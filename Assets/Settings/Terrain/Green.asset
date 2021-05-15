@@ -37,7 +37,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  MainBiome: 1
+  MainBiome: 6
   HeightMultiplier: 20
   TerrainLayers:
   - Apply: 1
@@ -51,7 +51,7 @@ MonoBehaviour:
     Masks: []
   - Apply: 1
     Multiplier: 0.1
-    Biome: 5
+    Biome: 1
     NoiseThresholdMin: 0.7
     NoiseThresholdMax: 1
     CombinationMode: 1
@@ -69,6 +69,30 @@ MonoBehaviour:
     Masks:
     - LayerIndex: 1
       NoiseThresholdMin: 0.6
+      NoiseThresholdMax: 1
+  - Apply: 1
+    Multiplier: 0
+    Biome: 3
+    NoiseThresholdMin: 0.7
+    NoiseThresholdMax: 1
+    CombinationMode: 5
+    Settings: {fileID: 11400000, guid: 901e65ef209326d4598982228a4dbd6a, type: 2}
+    UseMask: 1
+    Masks:
+    - LayerIndex: 1
+      NoiseThresholdMin: 0.65
+      NoiseThresholdMax: 1
+  - Apply: 1
+    Multiplier: 0.25
+    Biome: 4
+    NoiseThresholdMin: 0.8
+    NoiseThresholdMax: 1
+    CombinationMode: 1
+    Settings: {fileID: 11400000, guid: a8d302693e9275142bea12d81d6b216f, type: 2}
+    UseMask: 1
+    Masks:
+    - LayerIndex: 1
+      NoiseThresholdMin: 0.65
       NoiseThresholdMax: 1
   Trees:
     DoObject: 1

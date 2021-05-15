@@ -171,7 +171,6 @@ public class TerrainGenerator : MonoBehaviour
                     // Normalise each of the noise layers
                     map.NormaliseLayers(minMax);
                     map.Biomes = new Biome.Type[width * height];
-                    map.Decoration = new Biome.Decoration[width * height];
                     map.Heights = new float[width * height];
 
                     // Now calculate the actual heights from the noise
