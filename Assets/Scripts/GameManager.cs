@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
     private Gamerule Gamerules;
     private static readonly Gamerule FromFile = new Gamerule(false, true, 0, 550, true, true);
     private static readonly Gamerule RealtimeEndless = new Gamerule(true, true, 3, 400, true, true);
-    private static readonly Gamerule FixedArea = new Gamerule(false, false, 3, 0, false, false);
+    private static readonly Gamerule FixedArea = new Gamerule(false, false, 5, 0, false, false);
 
     public delegate void LoadLevel(TerrainData data);
 
@@ -333,7 +333,6 @@ public class GameManager : MonoBehaviour
     public void GenerateAgain()
     {
         Clear();
-
         StartCoroutine(WaitUntilGameStart());
     }
 

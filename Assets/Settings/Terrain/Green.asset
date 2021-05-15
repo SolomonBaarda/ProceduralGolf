@@ -19,8 +19,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0
       value: 0
-      inSlope: 2
-      outSlope: 2
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -28,8 +28,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 0
-      outSlope: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -38,32 +38,38 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   MainBiome: 1
-  HeightMultiplier: 25
+  HeightMultiplier: 20
   TerrainLayers:
   - Apply: 1
     Multiplier: 1
     Biome: 0
-    NoiseThresholdMinMax: {x: 0, y: 1}
+    NoiseThresholdMin: 0
+    NoiseThresholdMax: 1
     CombinationMode: 0
     Settings: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3, type: 2}
+    UseMask: 0
+    Masks: []
   - Apply: 1
     Multiplier: 0.1
     Biome: 5
-    NoiseThresholdMinMax: {x: 0.7, y: 1}
+    NoiseThresholdMin: 0.7
+    NoiseThresholdMax: 1
     CombinationMode: 1
     Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
+    UseMask: 0
+    Masks: []
   - Apply: 1
-    Multiplier: 0.15
+    Multiplier: 0.25
     Biome: 2
-    NoiseThresholdMinMax: {x: 0.8, y: 1}
+    NoiseThresholdMin: 0.8
+    NoiseThresholdMax: 1
     CombinationMode: 1
     Settings: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0, type: 2}
-  - Apply: 0
-    Multiplier: 0.1
-    Biome: 3
-    NoiseThresholdMinMax: {x: 0.75, y: 1}
-    CombinationMode: 1
-    Settings: {fileID: 11400000, guid: 901e65ef209326d4598982228a4dbd6a, type: 2}
+    UseMask: 1
+    Masks:
+    - LayerIndex: 1
+      NoiseThresholdMin: 0.6
+      NoiseThresholdMax: 1
   Trees:
     DoObject: 1
     SamplePointRadius: 1

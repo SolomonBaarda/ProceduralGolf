@@ -70,7 +70,7 @@ public class TerrainGenerator : MonoBehaviour
         DateTime last = before;
 
         Settings.ValidateValues();
-        if(Settings.TerrainLayers.Count < 1)
+        if (Settings.TerrainLayers.Count < 1)
         {
             throw new Exception("Terrain settings must contain at least one layer");
         }
@@ -184,22 +184,56 @@ public class TerrainGenerator : MonoBehaviour
                         {
                             TerrainSettings.Layer s = Settings.TerrainLayers[i];
                             TerrainMap.Layer m = map.Layers[i];
-                            if (s.Apply && m.Noise[index] >= s.NoiseThresholdMinMax.x && m.Noise[index] <= s.NoiseThresholdMinMax.y)
+                            if (s.Apply && m.Noise[index] >= s.NoiseThresholdMin && m.Noise[index] <= s.NoiseThresholdMax)
                             {
-                                // None biome layer will not effect the final biome
-                                if(s.Biome != Biome.Type.None)
+                                // Check that the mask is valid if we are using it 
+                                bool maskvalid = true;
+                                if(s.UseMask)
                                 {
-                                    map.Biomes[index] = s.Biome;
+                                    for(int j = 0; j < s.Masks.Count; j++)
+                                    {
+                                        TerrainSettings.Layer mask = Settings.TerrainLayers[s.Masks[j].LayerIndex];
+                                        TerrainMap.Layer maskValues = map.Layers[s.Masks[j].LayerIndex];
+                                        // Mask is not valid here
+                                        if (!(maskValues.Noise[index] >= s.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= s.Masks[j].NoiseThresholdMax))
+                                        {
+                                            maskvalid = false;
+                                            break;
+                                        }
+                                    }
                                 }
-                                
-                                switch (s.CombinationMode)
+
+                                if (!s.UseMask || maskvalid)
                                 {
-                                    case TerrainSettings.Layer.Mode.Add:
-                                        map.Heights[index] += m.Noise[index] * s.Multiplier;
-                                        break;
-                                    case TerrainSettings.Layer.Mode.Subtract:
-                                        map.Heights[index] -= m.Noise[index] * s.Multiplier;
-                                        break;
+                                    // None biome layer will not effect the final biome
+                                    if (s.Biome != Biome.Type.None)
+                                    {
+                                        map.Biomes[index] = s.Biome;
+                                    }
+
+                                    float value = m.Noise[index] * s.Multiplier;
+
+                                    switch (s.CombinationMode)
+                                    {
+                                        case TerrainSettings.Layer.Mode.Add:
+                                            map.Heights[index] += value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Subtract:
+                                            map.Heights[index] -= value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Divide:
+                                            map.Heights[index] /= value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Multiply:
+                                            map.Heights[index] *= value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Modulus:
+                                            map.Heights[index] %= value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Set:
+                                            map.Heights[index] = value;
+                                            break;
+                                    }
                                 }
                             }
                         }

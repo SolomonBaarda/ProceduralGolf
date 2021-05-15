@@ -55,15 +55,24 @@ public class TerrainSettings : VariablePreset
         public bool Apply = true;
         public float Multiplier = 1;
         public Biome.Type Biome;
-        public Vector2 NoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
+        public float NoiseThresholdMin = 0;
+        public float NoiseThresholdMax = 1;
 
         public Mode CombinationMode;
-        public enum Mode { Add, Subtract };
+        public enum Mode { Add, Subtract, Divide, Multiply, Modulus, Set };
 
         public NoiseSettings Settings;
 
+        public bool UseMask = false;
+        [Header("List of layer indexes to use as mask")]
+        public List<Mask> Masks;
+    }
 
-
-
+    [Serializable]
+    public class Mask
+    {
+        public int LayerIndex;
+        public float NoiseThresholdMin = 0;
+        public float NoiseThresholdMax = 1;
     }
 }
