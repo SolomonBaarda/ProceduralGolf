@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Settings/Terrain")]
@@ -7,28 +8,19 @@ public class TerrainSettings : VariablePreset
     [Header("Settings")]
     public bool UseCurve = false;
     public AnimationCurve HeightDistribution;
-    public float HeightMultiplier = 16;
 
     [Space]
     public Biome.Type MainBiome;
+    public float HeightMultiplier = 1;
 
-    [Header("Holes")]
-    public Vector2 HoleNoiseThresholdMinMax = new Vector2(0.8f, 1.5f);
-    public Biome.Type HoleBiome;
-
-    [Header("Terrain cutouts")]
-    public Cutout Bunker;
-    public Cutout Lake;
+    [Header("Terrain Layers")]
+    public List<Layer> TerrainLayers = new List<Layer>();
 
     [Header("Procedural objects")]
     public ProceduralObject Trees;
     public ProceduralObject Rocks;
 
     [Header("Noise settings")]
-    public NoiseSettings NoiseMain;
-    public NoiseSettings NoiseHole;
-    public NoiseSettings NoiseBunker;
-    public NoiseSettings NoiseLake;
     public NoiseSettings NoiseTree;
     public NoiseSettings NoiseRock;
 
@@ -58,12 +50,20 @@ public class TerrainSettings : VariablePreset
 
 
     [Serializable]
-    public class Cutout
+    public class Layer
     {
-        public bool Do = true;
+        public bool Apply = true;
         public float Multiplier = 1;
+        public Biome.Type Biome;
         public Vector2 NoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
 
-        public Biome.Type Biome;
+        public Mode CombinationMode;
+        public enum Mode { Add, Subtract };
+
+        public NoiseSettings Settings;
+
+
+
+
     }
 }

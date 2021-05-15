@@ -327,7 +327,7 @@ MonoBehaviour:
   WorldObjectGenerator: {fileID: 698838603}
   HolesWorldObjectParent: {fileID: 1412093489}
   MeshSettings: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
-  Settings: {fileID: 11400000, guid: 74f26efd942b36d4aae99bf84f136e58, type: 2}
+  Settings: {fileID: 11400000, guid: 392c806505110884192175365aabbd81, type: 2}
   TextureSettings: {fileID: 11400000, guid: 8c69bc2d118b0ae49a217aefa19d034a, type: 2}
   Seed: 0
   DoRandomSeed: 0

@@ -5,7 +5,7 @@ public static class Noise
 {
     public static int RandomSeed => Environment.TickCount.ToString().GetHashCode();
 
-    public static float[] GetNoise(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, out float min, out float max)
+    public static float[] GetNoise(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, ref float min, ref float max)
     {
         s.ValidateValues();
         FastNoiseLite n = new FastNoiseLite(seed);
@@ -24,8 +24,6 @@ public static class Noise
 
         float[] noise = new float[samplePoints.Length];
 
-        min = n.GetNoise(0, 0);
-        max = min;
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -46,7 +44,7 @@ public static class Noise
         return noise;
     }
 
-    private static float[] GetNoiseMe(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, FastNoiseLite.NoiseType noiseType, out float min, out float max)
+    private static float[] GetNoiseOLD(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, FastNoiseLite.NoiseType noiseType, out float min, out float max)
     {
         s.ValidateValues();
         FastNoiseLite n = new FastNoiseLite(seed);

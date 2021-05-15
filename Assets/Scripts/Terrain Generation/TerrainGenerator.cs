@@ -69,6 +69,12 @@ public class TerrainGenerator : MonoBehaviour
         DateTime before = DateTime.Now;
         DateTime last = before;
 
+        Settings.ValidateValues();
+        if(Settings.TerrainLayers.Count < 1)
+        {
+            throw new Exception("Terrain settings must contain at least one layer");
+        }
+
         List<Thread> threads = new List<Thread>();
         bool aborted = false;
         void a()
@@ -89,9 +95,13 @@ public class TerrainGenerator : MonoBehaviour
 
         // FIRST PASS
         // Generate the initial chunks
-        float min = float.MaxValue, max = float.MinValue, minLake = float.MaxValue, maxLake = float.MinValue, minBunker = float.MaxValue, maxBunker = float.MinValue;
-        object threadLock = new object();
+        List<(float, float)> minMax = new List<(float, float)>();
+        for (int i = 0; i < Settings.TerrainLayers.Count; i++)
+        {
+            minMax.Add((float.MaxValue, float.MinValue));
+        }
 
+        object threadLock = new object();
         foreach (Vector2Int chunk in chunks)
         {
             // Get the chunk bounds
@@ -108,23 +118,18 @@ public class TerrainGenerator : MonoBehaviour
                     {
                         maps.Add(chunk, map);
 
-                        // Heights min max
-                        if (map.HeightsMin < min)
-                            min = map.HeightsMin;
-                        if (map.HeightsMax > max)
-                            max = map.HeightsMax;
-
-                        // Lake min max
-                        if (map.LakeHeightMin < minLake)
-                            minLake = map.LakeHeightMin;
-                        if (map.LakeHeightMax > maxLake)
-                            maxLake = map.LakeHeightMax;
-
-                        // Bunker min max
-                        if (map.BunkerHeightMin < minBunker)
-                            minBunker = map.BunkerHeightMin;
-                        if (map.BunkerHeightMax > maxBunker)
-                            maxBunker = map.BunkerHeightMax;
+                        // Update the min and max for each of the layers
+                        for (int i = 0; i < Settings.TerrainLayers.Count; i++)
+                        {
+                            if (map.Layers[i].Min < minMax[i].Item1)
+                            {
+                                minMax[i] = (map.Layers[i].Min, minMax[i].Item2);
+                            }
+                            if (map.Layers[i].Max > minMax[i].Item2)
+                            {
+                                minMax[i] = (minMax[i].Item1, map.Layers[i].Max);
+                            }
+                        }
                     }
                 }
                 )
@@ -155,74 +160,73 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // SECOND PASS
-        Dictionary<Vector2Int, MeshGenerator.MeshData> meshData = new Dictionary<Vector2Int, MeshGenerator.MeshData>();
+        float min = float.MaxValue, max = float.MinValue;
 
         threads.Clear();
         foreach (TerrainMap map in maps.Values)
         {
-            // Use height curve to calculate new height distribution
-            AnimationCurve threadSafe = new AnimationCurve(Settings.HeightDistribution.keys);
-
             Thread t = new Thread(
                 () =>
                 {
-                    // Normalise heights
-                    map.Normalise(min, max, minLake, maxLake, minBunker, maxBunker);
+                    // Normalise each of the noise layers
+                    map.NormaliseLayers(minMax);
                     map.Biomes = new Biome.Type[width * height];
                     map.Decoration = new Biome.Decoration[width * height];
+                    map.Heights = new float[width * height];
 
                     // Now calculate the actual heights from the noise
-                    for (int i = 0; i < map.Heights.Length; i++)
+                    for (int index = 0; index < map.Heights.Length; index++)
                     {
-                        map.Biomes[i] = Settings.MainBiome;
+                        map.Biomes[index] = Settings.MainBiome;
+                        map.Heights[index] = 0;
 
-                        // Set it to hole
-                        if (map.Heights[i] < 0.1)
+                        for (int i = 0; i < map.Layers.Count; i++)
                         {
-                            map.Heights[i] = 0.1f;
-                            map.Biomes[i] = Settings.HoleBiome;
+                            TerrainSettings.Layer s = Settings.TerrainLayers[i];
+                            TerrainMap.Layer m = map.Layers[i];
+                            if (s.Apply && m.Noise[index] >= s.NoiseThresholdMinMax.x && m.Noise[index] <= s.NoiseThresholdMinMax.y)
+                            {
+                                // None biome layer will not effect the final biome
+                                if(s.Biome != Biome.Type.None)
+                                {
+                                    map.Biomes[index] = s.Biome;
+                                }
+                                
+                                switch (s.CombinationMode)
+                                {
+                                    case TerrainSettings.Layer.Mode.Add:
+                                        map.Heights[index] += m.Noise[index] * s.Multiplier;
+                                        break;
+                                    case TerrainSettings.Layer.Mode.Subtract:
+                                        map.Heights[index] -= m.Noise[index] * s.Multiplier;
+                                        break;
+                                }
+                            }
                         }
 
-                        if (Settings.UseCurve)
+                        // Do holes next
+                        //List<FloodFillBiome> holes = new List<FloodFillBiome>();
+
+                        // Should do decoration here 
+                        // TODO
+                        // out List<WorldObjectData> worldObjects
+
+                        // Move sampling into here
+
+
+                        // Get final min max
+                        lock (threadLock)
                         {
-                            map.Heights[i] = threadSafe.Evaluate(map.Heights[i]);
+
+                            if (map.Heights[index] < min)
+                            {
+                                min = map.Heights[index];
+                            }
+                            if (map.Heights[index] > max)
+                            {
+                                max = map.Heights[index];
+                            }
                         }
-
-                        map.Heights[i] *= Settings.HeightMultiplier;
-
-                        // Lake has first priority
-                        if (Settings.Lake.Do && map.LakeHeights[i] < 0.1f)
-                        {
-                            //map.Heights[i] -= (map.LakeHeights[i] * Settings.Lake.Multiplier);
-                            //map.Biomes[i] = Settings.Lake.Biome;
-                        }
-                        // Then bunker
-                        else if (Settings.Bunker.Do && map.BunkerHeights[i] < 0.2f)
-                        {
-                            //map.Heights[i] -= (map.BunkerHeights[i] * Settings.Bunker.Multiplier);
-                            //map.Biomes[i] = Settings.Bunker.Biome;
-                        }
-                        // Then other land
-                        else
-                        {
-                            // Do holes next
-                            //List<FloodFillBiome> holes = new List<FloodFillBiome>();
-
-                            // Should do decoration here 
-                            // TODO
-                            // out List<WorldObjectData> worldObjects
-
-                            // Move sampling into here
-                        }
-                    }
-
-                    // Now Calculate the mesh data for the chunk
-                    MeshGenerator.MeshData data = null;
-                    MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
-
-                    lock (threadLock)
-                    {
-                        meshData.Add(map.Chunk, data);
                     }
                 }
                 )
@@ -250,11 +254,74 @@ public class TerrainGenerator : MonoBehaviour
             Clear();
             yield break;
         }
-
         last = DateTime.Now;
 
 
+
+
         // THIRD PASS
+        // Normalise final heights and construct mesh data
+
+
+        Dictionary<Vector2Int, MeshGenerator.MeshData> meshData = new Dictionary<Vector2Int, MeshGenerator.MeshData>();
+
+
+        threads.Clear();
+        foreach (TerrainMap map in maps.Values)
+        {
+            // Use height curve to calculate new height distribution
+            AnimationCurve threadSafe = new AnimationCurve(Settings.HeightDistribution.keys);
+
+            Thread t = new Thread(
+                () =>
+                {
+                    // Normalise each of the noise layers
+                    map.NormaliseHeights(min, max);
+
+                    // Now calculate the final height for the vertex
+                    for (int index = 0; index < map.Heights.Length; index++)
+                    {
+                        if (Settings.UseCurve)
+                        {
+                            map.Heights[index] = threadSafe.Evaluate(map.Heights[index]);
+                        }
+
+                        map.Heights[index] *= Settings.HeightMultiplier;
+                    }
+
+                    // Now Calculate the mesh data for the chunk
+                    MeshGenerator.MeshData data = null;
+                    MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
+
+                    lock (threadLock)
+                    {
+                        meshData.Add(map.Chunk, data);
+                    }
+                }
+                )
+            { Name = "Pass 3 (" + map.Chunk.x + "," + map.Chunk.y + ")" }; ;
+            lock (threads)
+            {
+                threads.Add(t);
+                t.Start();
+            }
+        }
+
+
+
+
+        Debug.Log("* Third pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+        if (aborted)
+        {
+            OnAbortThreads.RemoveListener(a);
+            IsGenerating = false;
+            Clear();
+            yield break;
+        }
+        last = DateTime.Now;
+
+
+        // FOURTH PASS
 
         // Construct textures and meshes
         // This needs to be done in the main thread
@@ -284,7 +351,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // FINISHED GENERATING
-        Debug.Log("* Third pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+        Debug.Log("* Fourth pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
         {
             OnAbortThreads.RemoveListener(a);
@@ -305,21 +372,23 @@ public class TerrainGenerator : MonoBehaviour
 
     private void GenerateTerrainMapRawData(Vector2Int chunk, int seed, Bounds chunkBounds, int width, int height, in Vector3[] localVertexPositions, out TerrainMap map)
     {
-        map = new TerrainMap(chunk, width, height, chunkBounds);
+        map = new TerrainMap(chunk, width, height, chunkBounds) { Layers = new List<TerrainMap.Layer>() };
 
-        // Heights
-        map.Heights = Noise.GetNoise(Settings.NoiseMain, seed, chunkBounds.min, in localVertexPositions, width, height, out map.HeightsMin, out map.HeightsMax);
+        // Get all the noise layers
+        int prevSeed = seed;
+        for (int i = 0; i < Settings.TerrainLayers.Count; i++)
+        {
+            TerrainSettings.Layer settingsLayer = Settings.TerrainLayers[i];
+            TerrainMap.Layer terrainLayer = new TerrainMap.Layer();
 
-        // Bunkers
-        int bunkerSeed = seed.ToString().GetHashCode();
-        map.BunkerHeights = Noise.GetNoise(Settings.NoiseBunker, bunkerSeed, chunkBounds.min, in localVertexPositions, width, height, out map.BunkerHeightMin, out map.BunkerHeightMax);
+            terrainLayer.Noise = Noise.GetNoise(settingsLayer.Settings, prevSeed, chunkBounds.min, in localVertexPositions, width, height, ref terrainLayer.Min, ref terrainLayer.Max);
+            prevSeed = prevSeed.ToString().GetHashCode();
 
-        // Lakes
-        int lakeSeed = bunkerSeed.ToString().GetHashCode();
-        map.LakeHeights = Noise.GetNoise(Settings.NoiseLake, lakeSeed, chunkBounds.min, in localVertexPositions, width, height, out map.LakeHeightMin, out map.LakeHeightMax);
+            map.Layers.Add(terrainLayer);
+        }
 
         // Tree mask
-        int treeSeed = lakeSeed.ToString().GetHashCode();
+        int treeSeed = prevSeed.ToString().GetHashCode();
         map.TreeMask = Noise.GetPerlinMask(Settings.NoiseTree, treeSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Trees.NoiseThresholdMinMax, out float _, out float _);
 
         // Rock mask

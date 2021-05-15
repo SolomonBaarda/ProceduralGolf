@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class TerrainMap
 {
@@ -7,14 +7,16 @@ public class TerrainMap
     public int Width, Height;
     public Bounds Bounds;
 
+    /// <summary>
+    /// The final height values for this terrain map
+    /// </summary>
     public float[] Heights;
-    public float HeightsMin, HeightsMax;
 
-    // Raw values
-    public float[] BunkerHeights;
-    public float BunkerHeightMin, BunkerHeightMax;
-    public float[] LakeHeights;
-    public float LakeHeightMin, LakeHeightMax;
+    /// <summary>
+    /// List of height layers to combine 
+    /// </summary>
+    public List<Layer> Layers;
+
     public bool[] TreeMask;
     public bool[] RockMask;
 
@@ -29,11 +31,32 @@ public class TerrainMap
         Bounds = bounds;
     }
 
-    public void Normalise(float heightMin, float heightMax, float lakeMin, float lakeMax, float bunkerMin, float bunkerMax)
+    public void NormaliseHeights(float min, float max)
     {
-        Noise.NormaliseNoise(ref Heights, heightMin, heightMax);
-        Noise.NormaliseNoise(ref LakeHeights, lakeMin, lakeMax); 
-        Noise.NormaliseNoise(ref BunkerHeights, bunkerMin, bunkerMax);
+        //Debug.Log("final layer with min: " + min + " max: " + max);
+        Noise.NormaliseNoise(ref Heights, min, max);
+    }
+
+    public void NormaliseLayers(List<(float, float)> minMax)
+    {
+        for (int i = 0; i < minMax.Count; i++)
+        {
+            //Debug.Log("layer " + i+" with min: " + minMax[i].Item1 +" max: " + minMax[i].Item2);
+            Noise.NormaliseNoise(ref Layers[i].Noise, minMax[i].Item1, minMax[i].Item2);
+        }
+    }
+
+    public class Layer
+    {
+        public float[] Noise;
+        public float Min, Max;
+        public Biome.Type Biome;
+
+        public Layer()
+        {
+            Min = float.MaxValue;
+            Max = float.MinValue;
+        }
     }
 
 }
