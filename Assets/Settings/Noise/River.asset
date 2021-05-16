@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8e3c32715cc46b14f8da824198e36a66, type: 3}
-  m_Name: Green
+  m_Name: River
   m_EditorClassIdentifier: 
-  Frequency: 0.0003
+  Frequency: 0.0001
   NoiseType: 0
   Offset: {x: 0, y: 0}
-  FractalType: 2
+  FractalType: 3
   Octaves: 2
-  Lacunarity: 1
+  Lacunarity: 2
   Gain: 1
-  WeightedStrength: 2
+  WeightedStrength: 1
   DistanceFunction: 1
   ReturnType: 1
   Jitter: 1

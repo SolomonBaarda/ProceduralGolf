@@ -489,14 +489,12 @@ public class TerrainGenerator : MonoBehaviour
         // Loop through each position
         foreach (Vector2 pos in localPositions)
         {
-            int index = r.Next(0, Settings.ProceduralObjects.Count);
-            TerrainSettings.ProceduralObject attempt = Settings.ProceduralObjects[index];
+            TerrainSettings.ProceduralObject attempt = Settings.ProceduralObjects[r.Next(0, Settings.ProceduralObjects.Count)];
 
-            if (attempt.Do)
+            if (attempt.Do && r.NextDouble() <= attempt.Chance)
             {
                 Vector3 localPosition = new Vector3(pos.x, 0, pos.y);
                 Biome.Type biome = Utils.GetClosestTo(localPosition, Vector3.zero, map.Bounds.size, in map.Biomes, map.Width, map.Height, out int x, out int y);
-                //Biome.Type biome = Utils.GetClosestTo(localPosition, map.Bounds.min, map.Bounds.max, Utils.UnFlatten(map.Biomes, map.Width, map.Height), out int x, out int y);
 
                 // The biome for this position is valid
                 if (attempt.RequiredBiomes.Contains(biome))
@@ -507,6 +505,7 @@ public class TerrainGenerator : MonoBehaviour
                     {
                         for (int j = 0; j < attempt.Masks.Count; j++)
                         {
+                            int index = y * map.Width + x;
                             TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
                             // Mask is not valid here
                             if (!(maskValues.Noise[index] >= attempt.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= attempt.Masks[j].NoiseThresholdMax))

@@ -70,9 +70,10 @@ public class TerrainSettings : VariablePreset
     public class ProceduralObject
     {
         public bool Do = true;
-        [Min(0.1f)]
         public List<Biome.Type> RequiredBiomes;
         public List<GameObject> Prefabs;
+        [Range(0,1)]
+        public float Chance = 1;
 
         public bool UseMask = false;
         [Header("List of layer indexes to use as mask")]
