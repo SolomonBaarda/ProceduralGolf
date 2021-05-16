@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 public class TerrainChunkManager : MonoBehaviour
@@ -27,8 +26,6 @@ public class TerrainChunkManager : MonoBehaviour
     {
         ChunkGrid.cellSize = new Vector3(ChunkSizeWorldUnits, ChunkSizeWorldUnits);
         ChunkGrid.cellSwizzle = GridLayout.CellSwizzle.XZY;
-        // Move the Grid so that chunk 0,0 is centered on the origin
-        ChunkGrid.transform.position = -new Vector3(ChunkGrid.cellSize.x / 2, 0, ChunkGrid.cellSize.y / 2);
     }
 
 
@@ -46,9 +43,7 @@ public class TerrainChunkManager : MonoBehaviour
 
             // Create the chunk
             chunk = new GameObject().AddComponent<TerrainChunk>();
-
             chunk.Initialise(position, bounds, data, material, physics, ChunkParent, terrainLayer);
-
             TerrainChunks.Add(position, chunk);
         }
         // Just need to update some values

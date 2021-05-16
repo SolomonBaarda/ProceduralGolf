@@ -16,15 +16,11 @@ public class TerrainSettings : VariablePreset
     [Header("Terrain Layers")]
     public List<Layer> TerrainLayers = new List<Layer>();
 
-    [Header("Procedural objects")]
-    public ProceduralObject Trees;
-    public ProceduralObject Rocks;
-
-    [Header("Noise settings")]
-    public NoiseSettings NoiseTree;
-    public NoiseSettings NoiseRock;
-
-
+    [Header("Procedural Objects")]
+    [Range(1, 10)]
+    public int PoissonSamplingIterations = 5;
+    public float PoissonSamplingRadius = 1;
+    public List<ProceduralObject> ProceduralObjects;
 
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
@@ -37,16 +33,6 @@ public class TerrainSettings : VariablePreset
     }
 
 
-
-    [Serializable]
-    public class ProceduralObject
-    {
-        public bool DoObject = true;
-        public float SamplePointRadius = 1f;
-        public Vector2 NoiseThresholdMinMax = new Vector2(0.75f, 1.5f);
-
-        public Biome.Type DesiredBiome;
-    }
 
 
     [Serializable]
@@ -74,5 +60,22 @@ public class TerrainSettings : VariablePreset
         public int LayerIndex;
         public float NoiseThresholdMin = 0;
         public float NoiseThresholdMax = 1;
+    }
+
+    //public float Radius = 20;
+
+    
+
+    [Serializable]
+    public class ProceduralObject
+    {
+        public bool Do = true;
+        [Min(0.1f)]
+        public List<Biome.Type> RequiredBiomes;
+        public List<GameObject> Prefabs;
+
+        public bool UseMask = false;
+        [Header("List of layer indexes to use as mask")]
+        public List<Mask> Masks;
     }
 }

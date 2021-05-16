@@ -94,15 +94,18 @@ MonoBehaviour:
     - LayerIndex: 1
       NoiseThresholdMin: 0.65
       NoiseThresholdMax: 1
-  Trees:
-    DoObject: 1
-    SamplePointRadius: 1
-    NoiseThresholdMinMax: {x: 0.6, y: 1.5}
-    DesiredBiome: 6
-  Rocks:
-    DoObject: 1
-    SamplePointRadius: 1
-    NoiseThresholdMinMax: {x: 0.75, y: 1.5}
-    DesiredBiome: 6
-  NoiseTree: {fileID: 11400000, guid: ce96eb26623280241a00adfb17ab6aec, type: 2}
-  NoiseRock: {fileID: 11400000, guid: 2b17e637a7a9f5e40bf322d19a7dea5d, type: 2}
+  PoissonSamplingIterations: 5
+  PoissonSamplingRadius: 15
+  ProceduralObjects:
+  - Do: 1
+    RequiredBiomes: 06000000
+    Prefabs:
+    - {fileID: 117604, guid: 9469bb1d3aa88ca40aa4079e96a27f8e, type: 3}
+    - {fileID: 185286, guid: 8ed1fa325ca228645ad26dd6eff14768, type: 3}
+    - {fileID: 152404, guid: 5037d6ea184d2f640bf78dcf9894a269, type: 3}
+    - {fileID: 127550, guid: 87a6cef862ce2cb4a88c5ca5d5af5d2b, type: 3}
+    UseMask: 0
+    Masks:
+    - LayerIndex: 1
+      NoiseThresholdMin: 0
+      NoiseThresholdMax: 0.5

@@ -2,7 +2,12 @@
 
 public static class MeshGenerator
 {
-
+    public static void OptimiseMesh(ref Mesh m)
+    {
+        // Recalculate values
+        m.RecalculateNormals();
+        m.Optimize();
+    }
 
     public static void UpdateMeshData(ref MeshData data, TerrainMap terrainMap, Vector3[] baseVertices)
     {
@@ -141,12 +146,7 @@ public static class MeshGenerator
             //m.colors = newColours;
         }
 
-        public void Optimise(ref Mesh m)
-        {
-            // Recalculate values
-            m.RecalculateNormals();
-            m.Optimize();
-        }
+
 
     }
 

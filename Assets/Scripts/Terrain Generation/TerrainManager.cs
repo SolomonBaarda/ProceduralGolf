@@ -51,8 +51,6 @@ public class TerrainManager : MonoBehaviour
 
 
 
-
-
     private void LateUpdate()
     {
         if (HideChunks && Player != null && ViewDistance > 0)
@@ -68,73 +66,20 @@ public class TerrainManager : MonoBehaviour
 
 
 
-
-
-    private void CheckObjectBeforeInstantiating(TerrainChunkData data, Transform parent)
-    {
-        // We can just instantiate them all
-        if (CurrentLoadedTerrain != null)
-        {
-            TerrainChunkData current = CurrentLoadedTerrain.Chunks.Find(x => x.X == data.X && x.Y == data.Y);
-
-            if (current != null)
-            {
-                foreach (WorldObjectData d in data.WorldObjects)
-                {
-                    WorldObjectData exists = current.WorldObjects.Find(x => x.Prefab.Equals(d.Prefab));
-
-                    foreach (Vector3 pos in d.WorldPositions)
-                    {
-                        // Only instantiate the prefab if either none of them have been
-                        // OR if just that position has not been added
-                        if (exists == null || !exists.WorldPositions.Contains(pos))
-                        {
-                            InstantiateOne(d.Prefab, pos, parent);
-                        }
-                    }
-                }
-                return;
-            }
-        }
-
-        // If we get here, then we can just instantiate them all
-        InstantiateAll(data, parent);
-    }
-
-
-    private void InstantiateAll(TerrainChunkData data, Transform parent)
-    {
-        // Loop through each data
-        foreach (WorldObjectData d in data.WorldObjects)
-        {
-            // And each pos
-            foreach (Vector3 pos in d.WorldPositions)
-            {
-                InstantiateOne(d.Prefab, pos, parent);
-            }
-        }
-    }
-
-    private void InstantiateOne(GameObject g, Vector3 pos, Transform parent)
-    {
-        Instantiate(g, pos, Quaternion.identity, parent);
-    }
-
-
-
     /// <summary>
     /// Load all the chunks.
     /// </summary>
     /// <param name="data"></param>
-    public void LoadTerrain(TerrainData data, DateTime before)
+    public void LoadTerrain(TerrainData data)
     {
-        StartCoroutine(LoadTerrainAsync(data, before));
+        StartCoroutine(LoadTerrainAsync(data));
     }
 
 
 
-    private IEnumerator LoadTerrainAsync(TerrainData data, DateTime before)
+    private IEnumerator LoadTerrainAsync(TerrainData data)
     {
+        DateTime before = DateTime.Now;
         Clear();
         IsLoading = true;
 
@@ -144,13 +89,18 @@ public class TerrainManager : MonoBehaviour
             // Instantiate the terrain
             TerrainChunk c = TerrainChunkManager.TryAddChunk(chunk, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
             // And instantiate all objects
-            CheckObjectBeforeInstantiating(chunk, c.transform);
 
+            foreach (WorldObjectData worldObjectData in chunk.WorldObjects)
+            {
+                foreach (Vector3 worldPosition in worldObjectData.WorldPositions)
+                {
+                    Instantiate(worldObjectData.Prefab, worldPosition, Quaternion.identity, c.transform);
+                }
+            }
 
-            // Spead it out to one chunk per frame
+            // Wait for next frame
             yield return null;
         }
-
 
 
         // Assign the terrain at the end
@@ -169,53 +119,10 @@ public class TerrainManager : MonoBehaviour
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public void AddChunks(IEnumerable<TerrainChunkData> chunks)
-    {
-        foreach (TerrainChunkData d in chunks)
-        {
-            TerrainChunkManager.TryAddChunk(d, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public static Vector3 CalculateSpawnPoint(float sphereRadius, Vector3 pointOnMesh)
     {
         return pointOnMesh + (UP * sphereRadius);
     }
-
-
-
-
-
-
-
 
 
 

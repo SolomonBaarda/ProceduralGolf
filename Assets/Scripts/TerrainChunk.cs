@@ -30,7 +30,8 @@ public class TerrainChunk : MonoBehaviour
         // Set the GameObject
         gameObject.name = "Terrain Chunk " + Position.ToString();
         gameObject.layer = terrainLayer;
-        gameObject.transform.position = Bounds.center;
+        // Terrain chunk must be offset by -chunksize/2 as mesh values need to be offset by a positive value
+        gameObject.transform.position = bounds.min;
         gameObject.transform.parent = parent;
 
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
@@ -45,7 +46,8 @@ public class TerrainChunk : MonoBehaviour
         // Set an instance of the material
         meshRenderer.material = material;
         // And apply the textures to it
-        Vector2 textureTiling = new Vector2(Biomes.GetLength(0) - 1, Biomes.GetLength(1) - 1);
+        
+        Vector2 textureTiling = new Vector2(data.Width - 1, data.Height - 1);
         TextureSettings.ApplyToMaterial(meshRenderer.material, BiomeColourMap, textureTiling);
     }
 

@@ -11,16 +11,14 @@ public class TerrainMap
     /// The final height values for this terrain map
     /// </summary>
     public float[] Heights;
+    public Biome.Type[] Biomes;
 
     /// <summary>
     /// List of height layers to combine 
     /// </summary>
     public List<Layer> Layers;
 
-    public bool[] TreeMask;
-    public bool[] RockMask;
-
-    public Biome.Type[] Biomes;
+    public List<WorldObjectData> WorldObjects;
 
     public Dictionary<Biome.Decoration, List<Vector3>> Decoration = new Dictionary<Biome.Decoration, List<Vector3>>();
 
@@ -57,10 +55,9 @@ public class TerrainMap
 
     public class WorldObjectData
     {
-        public Biome.Decoration Decoration;
-        public List<Vector3> WorldPositions;
-
-
+        public GameObject Prefab;
+        public Vector3 LocalPosition;
+        public int ClosestIndexX, ClosestIndexY;
     }
 
 

@@ -8,9 +8,6 @@ using UnityEngine.Events;
 public class TerrainGenerator : MonoBehaviour
 {
     public TerrainChunkManager TerrainChunkManager;
-    public WorldObjectGenerator WorldObjectGenerator;
-
-    public Transform HolesWorldObjectParent;
 
     public bool IsGenerating { get; private set; } = false;
     public bool InitialTerrainGenerated { get; private set; } = false;
@@ -73,6 +70,20 @@ public class TerrainGenerator : MonoBehaviour
         if (Settings.TerrainLayers.Count < 1)
         {
             throw new Exception("Terrain settings must contain at least one layer");
+        }
+
+        bool atLeastOneObject = false;
+        for (int i = 0; i < Settings.ProceduralObjects.Count; i++)
+        {
+            if (Settings.ProceduralObjects[i].Do)
+            {
+                atLeastOneObject = true;
+                break;
+            }
+        }
+        if (!atLeastOneObject)
+        {
+            Debug.LogError("No procedural objects have been added");
         }
 
         List<Thread> threads = new List<Thread>();
@@ -173,7 +184,7 @@ public class TerrainGenerator : MonoBehaviour
                     map.Biomes = new Biome.Type[width * height];
                     map.Heights = new float[width * height];
 
-                    // Now calculate the actual heights from the noise
+                    // Now calculate the actual heights from the noise and the biomes
                     for (int index = 0; index < map.Heights.Length; index++)
                     {
                         map.Biomes[index] = Settings.MainBiome;
@@ -187,9 +198,9 @@ public class TerrainGenerator : MonoBehaviour
                             {
                                 // Check that the mask is valid if we are using it 
                                 bool maskvalid = true;
-                                if(s.UseMask)
+                                if (s.UseMask)
                                 {
-                                    for(int j = 0; j < s.Masks.Count; j++)
+                                    for (int j = 0; j < s.Masks.Count; j++)
                                     {
                                         TerrainSettings.Layer mask = Settings.TerrainLayers[s.Masks[j].LayerIndex];
                                         TerrainMap.Layer maskValues = map.Layers[s.Masks[j].LayerIndex];
@@ -236,21 +247,9 @@ public class TerrainGenerator : MonoBehaviour
                                 }
                             }
                         }
-
-                        // Do holes next
-                        //List<FloodFillBiome> holes = new List<FloodFillBiome>();
-
-                        // Should do decoration here 
-                        // TODO
-                        // out List<WorldObjectData> worldObjects
-
-                        // Move sampling into here
-
-
                         // Get final min max
                         lock (threadLock)
                         {
-
                             if (map.Heights[index] < min)
                             {
                                 min = map.Heights[index];
@@ -260,6 +259,16 @@ public class TerrainGenerator : MonoBehaviour
                                 max = map.Heights[index];
                             }
                         }
+                    }
+
+                    // Do flood fill stuff here
+                    // Small biome cleanup as well
+
+                    // Now that biomes have been assigned, we can calculate the procedural object positions
+                    map.WorldObjects = new List<TerrainMap.WorldObjectData>();
+                    if (atLeastOneObject)
+                    {
+                        GenerateTerrainMapProceduralObjects(map, Settings.PoissonSamplingRadius, Settings.PoissonSamplingIterations);
                     }
                 }
                 )
@@ -295,7 +304,6 @@ public class TerrainGenerator : MonoBehaviour
         // THIRD PASS
         // Normalise final heights and construct mesh data
 
-
         Dictionary<Vector2Int, MeshGenerator.MeshData> meshData = new Dictionary<Vector2Int, MeshGenerator.MeshData>();
 
 
@@ -326,9 +334,26 @@ public class TerrainGenerator : MonoBehaviour
                     MeshGenerator.MeshData data = null;
                     MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
 
+                    List<TerrainMap> neighbours = new List<TerrainMap>();
+                    // Calculate the chunk neighbours
+                    /*
+                    if (maps.TryGetValue(map.Chunk + new Vector2Int(-1, 0), out TerrainMap m))
+                        neighbours.Add(m);
+                    if (maps.TryGetValue(map.Chunk + new Vector2Int(1, 0), out m))
+                        neighbours.Add(m);
+                    if (maps.TryGetValue(map.Chunk + new Vector2Int(0, -1), out m))
+                        neighbours.Add(m);
+                    if (maps.TryGetValue(map.Chunk + new Vector2Int(0, 1), out m))
+                        neighbours.Add(m);
+                    */
+
                     lock (threadLock)
                     {
+                        // Add the mesh data 
                         meshData.Add(map.Chunk, data);
+
+                        // Also fix the procedural object positions while this thread has control
+                        //FixProceduralObjectsOnChunkBorders(map, neighbours);
                     }
                 }
                 )
@@ -340,6 +365,12 @@ public class TerrainGenerator : MonoBehaviour
             }
         }
 
+        // Wait for threads to complete
+        while (threads.Count > 0)
+        {
+            threads.RemoveAll((x) => !x.IsAlive);
+            yield return null;
+        }
 
 
 
@@ -369,10 +400,36 @@ public class TerrainGenerator : MonoBehaviour
             data.UpdateMesh(ref mesh, MeshSettings);
             yield return null;
 
+            // Update the world object data
+            Dictionary<GameObject, List<Vector3>> worldObjectDictionary = new Dictionary<GameObject, List<Vector3>>();
+            foreach (TerrainMap.WorldObjectData w in map.WorldObjects)
+            {
+                if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<Vector3> positions))
+                {
+                    positions = new List<Vector3>();
+                }
+
+                Vector3 world = map.Bounds.min + w.LocalPosition;
+                world.y += data.Vertices[w.ClosestIndexY * map.Width + w.ClosestIndexX].y;
+
+                // Add the new position
+                positions.Add(world);
+                worldObjectDictionary[w.Prefab] = positions;
+            }
+            List<WorldObjectData> worldObjects = new List<WorldObjectData>();
+            foreach (KeyValuePair<GameObject, List<Vector3>> pair in worldObjectDictionary)
+            {
+                worldObjects.Add(new WorldObjectData()
+                {
+                    Prefab = pair.Key,
+                    WorldPositions = pair.Value,
+                });
+            }
+
             // Optimise it and generate the texture
-            data.Optimise(ref mesh);
+            MeshGenerator.OptimiseMesh(ref mesh);
             Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, TextureSettings);
-            terrainChunks.Add(new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Biomes, width, height, colourMap, mesh, new List<WorldObjectData>()));
+            terrainChunks.Add(new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Biomes, width, height, colourMap, mesh, worldObjects));
             yield return null;
         }
 
@@ -419,19 +476,74 @@ public class TerrainGenerator : MonoBehaviour
 
             map.Layers.Add(terrainLayer);
         }
-
-        // Tree mask
-        int treeSeed = prevSeed.ToString().GetHashCode();
-        map.TreeMask = Noise.GetPerlinMask(Settings.NoiseTree, treeSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Trees.NoiseThresholdMinMax, out float _, out float _);
-
-        // Rock mask
-        int rockSeed = treeSeed.ToString().GetHashCode();
-        map.RockMask = Noise.GetPerlinMask(Settings.NoiseRock, rockSeed, chunkBounds.min, in localVertexPositions, width, height, Settings.Rocks.NoiseThresholdMinMax, out float _, out float _);
     }
 
+    private void GenerateTerrainMapProceduralObjects(TerrainMap map, float minRadius, int iterations)
+    {
+        int seed = map.Chunk.ToString().GetHashCode();
+        System.Random r = new System.Random(seed);
 
+        // Get the local positions
+        List<Vector2> localPositions = PoissonDiscSampling.GenerateLocalPoints(minRadius, new Vector2(map.Bounds.size.x, map.Bounds.size.z), seed, iterations);
 
+        // Loop through each position
+        foreach (Vector2 pos in localPositions)
+        {
+            int index = r.Next(0, Settings.ProceduralObjects.Count);
+            TerrainSettings.ProceduralObject attempt = Settings.ProceduralObjects[index];
 
+            if (attempt.Do)
+            {
+                Vector3 localPosition = new Vector3(pos.x, 0, pos.y);
+                Biome.Type biome = Utils.GetClosestTo(localPosition, Vector3.zero, map.Bounds.size, in map.Biomes, map.Width, map.Height, out int x, out int y);
+                //Biome.Type biome = Utils.GetClosestTo(localPosition, map.Bounds.min, map.Bounds.max, Utils.UnFlatten(map.Biomes, map.Width, map.Height), out int x, out int y);
+
+                // The biome for this position is valid
+                if (attempt.RequiredBiomes.Contains(biome))
+                {
+                    // Check that the mask is valid if we are using it
+                    bool maskvalid = true;
+                    if (attempt.UseMask)
+                    {
+                        for (int j = 0; j < attempt.Masks.Count; j++)
+                        {
+                            TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
+                            // Mask is not valid here
+                            if (!(maskValues.Noise[index] >= attempt.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= attempt.Masks[j].NoiseThresholdMax))
+                            {
+                                maskvalid = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!attempt.UseMask || maskvalid)
+                    {
+                        // If we get here then this object must be valid at the position
+                        map.WorldObjects.Add(new TerrainMap.WorldObjectData()
+                        {
+                            LocalPosition = localPosition,
+                            Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
+                            ClosestIndexX = x,
+                            ClosestIndexY = y,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    private void FixProceduralObjectsOnChunkBorders(TerrainMap chunk, List<TerrainMap> neighbours)
+    {
+        foreach (TerrainMap.WorldObjectData worldObject in chunk.WorldObjects)
+        {
+            foreach (TerrainMap neighbour in neighbours)
+            {
+                // Remove all that are too close
+                neighbour.WorldObjects.RemoveAll(x => (x.LocalPosition - worldObject.LocalPosition).sqrMagnitude < Settings.PoissonSamplingRadius * Settings.PoissonSamplingRadius);
+            }
+        }
+    }
 
 
 
@@ -485,6 +597,18 @@ public class TerrainGenerator : MonoBehaviour
 
         return localPositions;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
