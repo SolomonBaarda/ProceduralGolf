@@ -92,9 +92,9 @@ public class TerrainManager : MonoBehaviour
 
             foreach (WorldObjectData worldObjectData in chunk.WorldObjects)
             {
-                foreach (Vector3 worldPosition in worldObjectData.WorldPositions)
+                foreach ((Vector3,Vector3) worldPosition in worldObjectData.WorldPositions)
                 {
-                    Instantiate(worldObjectData.Prefab, worldPosition, Quaternion.identity, c.transform);
+                    Instantiate(worldObjectData.Prefab, worldPosition.Item1, Quaternion.Euler(worldPosition.Item2), c.transform);
                 }
             }
 

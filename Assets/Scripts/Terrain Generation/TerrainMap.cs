@@ -57,6 +57,7 @@ public class TerrainMap
     {
         public GameObject Prefab;
         public Vector3 LocalPosition;
+        public Vector3 Rotation;
         public int ClosestIndexX, ClosestIndexY;
     }
 

@@ -7,5 +7,8 @@ using UnityEngine;
 public class WorldObjectData
 {
     public GameObject Prefab;
-    public List<Vector3> WorldPositions;
+    /// <summary>
+    /// Position and rotation
+    /// </summary>
+    public List<(Vector3, Vector3)> WorldPositions;
 }

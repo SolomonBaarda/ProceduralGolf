@@ -334,9 +334,9 @@ public class TerrainGenerator : MonoBehaviour
                     MeshGenerator.MeshData data = null;
                     MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
 
+                    /*
                     List<TerrainMap> neighbours = new List<TerrainMap>();
                     // Calculate the chunk neighbours
-                    /*
                     if (maps.TryGetValue(map.Chunk + new Vector2Int(-1, 0), out TerrainMap m))
                         neighbours.Add(m);
                     if (maps.TryGetValue(map.Chunk + new Vector2Int(1, 0), out m))
@@ -353,7 +353,8 @@ public class TerrainGenerator : MonoBehaviour
                         meshData.Add(map.Chunk, data);
 
                         // Also fix the procedural object positions while this thread has control
-                        //FixProceduralObjectsOnChunkBorders(map, neighbours);
+                        // Not worth our time doing this 
+                        //FixProceduralObjectsOnChunkBorders(map, neighbours, Settings.PoissonSamplingRadius);
                     }
                 }
                 )
@@ -401,23 +402,23 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
 
             // Update the world object data
-            Dictionary<GameObject, List<Vector3>> worldObjectDictionary = new Dictionary<GameObject, List<Vector3>>();
+            Dictionary<GameObject, List<(Vector3,Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
             foreach (TerrainMap.WorldObjectData w in map.WorldObjects)
             {
-                if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<Vector3> positions))
+                if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3,Vector3)> positions))
                 {
-                    positions = new List<Vector3>();
+                    positions = new List<(Vector3,Vector3)>();
                 }
 
                 Vector3 world = map.Bounds.min + w.LocalPosition;
                 world.y += data.Vertices[w.ClosestIndexY * map.Width + w.ClosestIndexX].y;
 
                 // Add the new position
-                positions.Add(world);
+                positions.Add((world,w.Rotation));
                 worldObjectDictionary[w.Prefab] = positions;
             }
             List<WorldObjectData> worldObjects = new List<WorldObjectData>();
-            foreach (KeyValuePair<GameObject, List<Vector3>> pair in worldObjectDictionary)
+            foreach (KeyValuePair<GameObject, List<(Vector3,Vector3)>> pair in worldObjectDictionary)
             {
                 worldObjects.Add(new WorldObjectData()
                 {
@@ -522,6 +523,7 @@ public class TerrainGenerator : MonoBehaviour
                         map.WorldObjects.Add(new TerrainMap.WorldObjectData()
                         {
                             LocalPosition = localPosition,
+                            Rotation = new Vector3(0, (float)r.NextDouble() * 360,  0),
                             Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
                             ClosestIndexX = x,
                             ClosestIndexY = y,
@@ -532,14 +534,16 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private void FixProceduralObjectsOnChunkBorders(TerrainMap chunk, List<TerrainMap> neighbours)
+    private void FixProceduralObjectsOnChunkBorders(TerrainMap chunk, List<TerrainMap> neighbours, float minRadius)
     {
         foreach (TerrainMap.WorldObjectData worldObject in chunk.WorldObjects)
         {
+            Vector3 world = worldObject.LocalPosition + chunk.Bounds.min;
+
             foreach (TerrainMap neighbour in neighbours)
             {
                 // Remove all that are too close
-                neighbour.WorldObjects.RemoveAll(x => (x.LocalPosition - worldObject.LocalPosition).sqrMagnitude < Settings.PoissonSamplingRadius * Settings.PoissonSamplingRadius);
+                neighbour.WorldObjects.RemoveAll(x => (world - x.LocalPosition + neighbour.Bounds.min).sqrMagnitude < minRadius * minRadius);
             }
         }
     }
