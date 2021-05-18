@@ -37,8 +37,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  MainBiome: 6
   HeightMultiplier: 20
+  MainBiome: 6
   TerrainLayers:
   - Apply: 1
     Multiplier: 1
@@ -92,7 +92,7 @@ MonoBehaviour:
       NoiseThresholdMin: 0.65
       NoiseThresholdMax: 1
   PoissonSamplingIterations: 5
-  PoissonSamplingRadius: 15
+  PoissonSamplingRadius: 12
   ProceduralObjects:
   - Do: 1
     RequiredBiomes: 06000000
@@ -119,3 +119,6 @@ MonoBehaviour:
     - LayerIndex: 1
       NoiseThresholdMin: 0.7
       NoiseThresholdMax: 1
+  Greens:
+  - Do: 1
+    Biome: 1

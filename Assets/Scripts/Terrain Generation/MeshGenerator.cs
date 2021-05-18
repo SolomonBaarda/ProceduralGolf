@@ -33,7 +33,6 @@ public static class MeshGenerator
     }
 
 
-
     public class MeshData
     {
         public int Width, Height;

@@ -12,6 +12,7 @@ public class TerrainMap
     /// </summary>
     public float[] Heights;
     public Biome.Type[] Biomes;
+    public bool[] CheckedFloodFill;
 
     /// <summary>
     /// List of height layers to combine 

@@ -102,6 +102,18 @@ public class TerrainManager : MonoBehaviour
             yield return null;
         }
 
+        // Hole stuff etc
+        System.Random r = new System.Random();
+        Color colour = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble(), 1);
+
+        foreach(FloodFillBiome green in data.Greens)
+        {
+            Debug.DrawRay(green.MinMin, Vector3.up, colour, 1000);
+            Debug.DrawRay(green.MinMax, Vector3.up, colour, 1000);
+            Debug.DrawRay(green.MaxMin, Vector3.up, colour, 1000);
+            Debug.DrawRay(green.MaxMax, Vector3.up, colour, 1000);
+        }
+
 
         // Assign the terrain at the end
         HasTerrain = true;

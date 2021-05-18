@@ -19,7 +19,6 @@ public class HoleData
     public bool BallWasPotted(int layerMask)
     {
         float radius = 0.2f;
-
         return Physics.CheckSphere(Centre, radius, layerMask);
     }
 

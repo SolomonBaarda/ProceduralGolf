@@ -1,29 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class FloodFillBiome
 {
     public Biome.Type Biome;
+    public Vector3 MinMin, MinMax, MaxMin, MaxMax;
 
-    public bool ShouldBeDestroyed = false;
-    public bool NeedsUpdating = false;
-
-    public class PointsForMap
-    {
-        public TerrainMap Map;
-        public List<(int, int)> Indexes;
-    }
-
-    public List<PointsForMap> Points = new List<PointsForMap>();
-
-    public FloodFillBiome(Biome.Type biome)
+    public FloodFillBiome(Biome.Type biome, Vector3 initialWorldPos)
     {
         Biome = biome;
+        MinMin = initialWorldPos;
+        MinMax = initialWorldPos;
+        MaxMin = initialWorldPos;
+        MaxMax = initialWorldPos;
     }
 
+    public void CheckPoint(Vector3 biome)
+    {
+        UpdateMin(biome.x, ref MinMin.x);
+        UpdateMin(biome.y, ref MinMin.y);
 
+        UpdateMin(biome.x, ref MinMax.x);
+        UpdateMax(biome.y, ref MinMax.y);
+
+        UpdateMax(biome.x, ref MaxMin.x);
+        UpdateMin(biome.y, ref MaxMin.y);
+
+        UpdateMax(biome.x, ref MaxMax.x);
+        UpdateMax(biome.y, ref MaxMax.y);
+    }
+
+    private void UpdateMin(float value, ref float min)
+    {
+        if (value < min)
+            min = value;
+    }
+    private void UpdateMax(float value, ref float max)
+    {
+        if (value > max)
+            max = value;
+    }
 
     /*
     public Vector3 CalculateCentre()
@@ -54,7 +70,7 @@ public class FloodFillBiome
             return default;
         }
     }
-    */
+    
 
 
 
@@ -78,7 +94,7 @@ public class FloodFillBiome
         return totalHeight / totalVertices;
     }
 
-
+    */
 
 
 

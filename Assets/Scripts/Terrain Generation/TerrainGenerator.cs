@@ -305,7 +305,7 @@ public class TerrainGenerator : MonoBehaviour
         // Normalise final heights and construct mesh data
 
         Dictionary<Vector2Int, MeshGenerator.MeshData> meshData = new Dictionary<Vector2Int, MeshGenerator.MeshData>();
-
+        List<FloodFillBiome> greens = new List<FloodFillBiome>();
 
         threads.Clear();
         foreach (TerrainMap map in maps.Values)
@@ -334,27 +334,14 @@ public class TerrainGenerator : MonoBehaviour
                     MeshGenerator.MeshData data = null;
                     MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
 
-                    /*
-                    List<TerrainMap> neighbours = new List<TerrainMap>();
-                    // Calculate the chunk neighbours
-                    if (maps.TryGetValue(map.Chunk + new Vector2Int(-1, 0), out TerrainMap m))
-                        neighbours.Add(m);
-                    if (maps.TryGetValue(map.Chunk + new Vector2Int(1, 0), out m))
-                        neighbours.Add(m);
-                    if (maps.TryGetValue(map.Chunk + new Vector2Int(0, -1), out m))
-                        neighbours.Add(m);
-                    if (maps.TryGetValue(map.Chunk + new Vector2Int(0, 1), out m))
-                        neighbours.Add(m);
-                    */
+                    map.CheckedFloodFill = new bool[map.Width * map.Height];
+                    //List<FloodFillBiome> newGreeens = CalculateGreens(map, data);
 
                     lock (threadLock)
                     {
                         // Add the mesh data 
                         meshData.Add(map.Chunk, data);
-
-                        // Also fix the procedural object positions while this thread has control
-                        // Not worth our time doing this 
-                        //FixProceduralObjectsOnChunkBorders(map, neighbours, Settings.PoissonSamplingRadius);
+                        //greens.AddRange(newGreeens);
                     }
                 }
                 )
@@ -373,7 +360,7 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
         }
 
-
+        Debug.Log("Total greens " + greens.Count);
 
         Debug.Log("* Third pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
@@ -402,23 +389,23 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
 
             // Update the world object data
-            Dictionary<GameObject, List<(Vector3,Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
+            Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
             foreach (TerrainMap.WorldObjectData w in map.WorldObjects)
             {
-                if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3,Vector3)> positions))
+                if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3, Vector3)> positions))
                 {
-                    positions = new List<(Vector3,Vector3)>();
+                    positions = new List<(Vector3, Vector3)>();
                 }
 
                 Vector3 world = map.Bounds.min + w.LocalPosition;
                 world.y += data.Vertices[w.ClosestIndexY * map.Width + w.ClosestIndexX].y;
 
                 // Add the new position
-                positions.Add((world,w.Rotation));
+                positions.Add((world, w.Rotation));
                 worldObjectDictionary[w.Prefab] = positions;
             }
             List<WorldObjectData> worldObjects = new List<WorldObjectData>();
-            foreach (KeyValuePair<GameObject, List<(Vector3,Vector3)>> pair in worldObjectDictionary)
+            foreach (KeyValuePair<GameObject, List<(Vector3, Vector3)>> pair in worldObjectDictionary)
             {
                 worldObjects.Add(new WorldObjectData()
                 {
@@ -436,7 +423,7 @@ public class TerrainGenerator : MonoBehaviour
 
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(Seed, terrainChunks, new List<HoleData>(), Settings.name);
+        terrain.SetData(Seed, terrainChunks, greens, new List<HoleData>(), Settings.name);
 
 
 
@@ -523,7 +510,7 @@ public class TerrainGenerator : MonoBehaviour
                         map.WorldObjects.Add(new TerrainMap.WorldObjectData()
                         {
                             LocalPosition = localPosition,
-                            Rotation = new Vector3(0, (float)r.NextDouble() * 360,  0),
+                            Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
                             Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
                             ClosestIndexX = x,
                             ClosestIndexY = y,
@@ -548,7 +535,78 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
+    private List<FloodFillBiome> CalculateGreens(TerrainMap map, MeshGenerator.MeshData meshData)
+    {
+        List<FloodFillBiome> greens = new List<FloodFillBiome>();
 
+        for (int y = 0; y < map.Height; y++)
+        {
+            for (int x = 0; x < map.Width; x++)
+            {
+                int index = y * map.Width + x;
+                if (!map.CheckedFloodFill[index])
+                {
+                    map.CheckedFloodFill[index] = true;
+
+                    foreach (TerrainSettings.Green green in Settings.Greens)
+                    {
+                        if (map.Biomes[index] == green.Biome)
+                        {
+                            FloodFillBiome flood = new FloodFillBiome(green.Biome, map.Bounds.min + meshData.Vertices[index]);
+                            map.CheckedFloodFill[index] = false;
+                            CheckFloodFillBiomeForPosition(map, meshData, flood, x, y);
+
+                            greens.Add(flood);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return greens;
+    }
+
+    private void CheckFloodFillBiomeForPosition(TerrainMap map, MeshGenerator.MeshData meshData, FloodFillBiome flood, int x, int y)
+    {
+        int index = y * map.Width + x;
+        if (!map.CheckedFloodFill[index])
+        {
+            map.CheckedFloodFill[index] = true;
+
+            foreach (TerrainSettings.Green green in Settings.Greens)
+            {
+                if (map.Biomes[index] == green.Biome)
+                {
+                    flood.CheckPoint(map.Bounds.min + meshData.Vertices[index]);
+
+                    // Check the nearby points as well
+                    if (!HasBeenCheckedFlood(map, x + 1, y))
+                        CheckFloodFillBiomeForPosition(map, meshData, flood, x + 1, y);
+                    if (!HasBeenCheckedFlood(map, x - 1, y))
+                        CheckFloodFillBiomeForPosition(map, meshData, flood, x - 1, y);
+                    if (!HasBeenCheckedFlood(map, x, y + 1))
+                        CheckFloodFillBiomeForPosition(map, meshData, flood, x, y + 1);
+                    if (!HasBeenCheckedFlood(map, x, y - 1))
+                        CheckFloodFillBiomeForPosition(map, meshData, flood, x, y - 1);
+
+                    //CheckFloodFillBiomeForPosition(map, meshData, flood, x + 1, y + 1);
+                    //CheckFloodFillBiomeForPosition(map, meshData, flood, x - 1, y - 1);
+                    //CheckFloodFillBiomeForPosition(map, meshData, flood, x + 1, y - 1);
+                    //CheckFloodFillBiomeForPosition(map, meshData, flood, x - 1, y + 1);
+                    return;
+                }
+            }
+
+
+        }
+    }
+
+    private bool HasBeenCheckedFlood(TerrainMap map, int x, int y)
+    {
+        int index = y * map.Width + x;
+        return map.CheckedFloodFill[index];
+    }
 
 
     public HashSet<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, int chunks)

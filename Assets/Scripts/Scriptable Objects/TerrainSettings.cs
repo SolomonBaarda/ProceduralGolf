@@ -5,13 +5,11 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Settings/Terrain")]
 public class TerrainSettings : VariablePreset
 {
-    [Header("Settings")]
+    [Header("Main Settings")]
     public bool UseCurve = false;
     public AnimationCurve HeightDistribution;
-
-    [Space]
-    public Biome.Type MainBiome;
     public float HeightMultiplier = 1;
+    public Biome.Type MainBiome;
 
     [Header("Terrain Layers")]
     public List<Layer> TerrainLayers = new List<Layer>();
@@ -21,6 +19,12 @@ public class TerrainSettings : VariablePreset
     public int PoissonSamplingIterations = 5;
     public float PoissonSamplingRadius = 1;
     public List<ProceduralObject> ProceduralObjects;
+
+    [Header("Greens")]
+    public List<Green> Greens;
+
+    //[Header("Holes")]
+    //public List<Hole> Holes;
 
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
@@ -62,10 +66,6 @@ public class TerrainSettings : VariablePreset
         public float NoiseThresholdMax = 1;
     }
 
-    //public float Radius = 20;
-
-    
-
     [Serializable]
     public class ProceduralObject
     {
@@ -78,5 +78,21 @@ public class TerrainSettings : VariablePreset
         public bool UseMask = false;
         [Header("List of layer indexes to use as mask")]
         public List<Mask> Masks;
+    }
+
+    [Serializable]
+    public class Green
+    {
+        public bool Do = true;
+        public Biome.Type Biome;
+    }
+
+    [Serializable]
+    public class Hole
+    {
+        public bool Do = true;
+        public Biome.Type BiomeToSetTo;
+        public Biome.Type FloodFillBiomeType;
+
     }
 }
