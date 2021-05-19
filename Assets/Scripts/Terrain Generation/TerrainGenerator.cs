@@ -335,13 +335,13 @@ public class TerrainGenerator : MonoBehaviour
                     MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
 
                     map.CheckedFloodFill = new bool[map.Width * map.Height];
-                    //List<Green> newGreeens = CalculateGreens(map, data);
+                    List<Green> newGreeens = CalculateGreens(map, data);
 
                     lock (threadLock)
                     {
                         // Add the mesh data 
                         meshData.Add(map.Chunk, data);
-                        //greens.AddRange(newGreeens);
+                        greens.AddRange(newGreeens);
                     }
                 }
                 )
@@ -427,8 +427,14 @@ public class TerrainGenerator : MonoBehaviour
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
         terrain.SetData(Seed, terrainChunks, greens, new List<HoleData>() { new HoleData(d.Vertices[0]), new HoleData(d.Vertices[width * height - 1]) }, Settings.name);
 
-
-
+        System.Random r = new System.Random();
+        foreach(Green g in greens)
+        {
+            Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
+           
+                Debug.DrawRay(g.CalculateCentre(out Vector3 _, out Vector3 _), Vector3.up * 100, c, 1000);
+            
+        }
 
         // FINISHED GENERATING
         Debug.Log("* Fourth pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
@@ -593,13 +599,12 @@ If the color of the node to the south of n is target-color, add that node to the
 12. Return.
 */
 
-    private Green FloodFill(TerrainMap map, MeshGenerator.MeshData meshData, int x, int y)
+    private Green FloodFill(TerrainMap map, MeshGenerator.MeshData data, int x, int y)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
 
         int index = y * map.Width + x;
-        Green green = new Green(map.Bounds.min + meshData.Vertices[index]);
-        map.CheckedFloodFill[index] = true;
+        Green green = new Green(map.Bounds.min + data.Vertices[index]);
         q.Enqueue((x, y));
 
         // Each element n of Q
@@ -607,14 +612,15 @@ If the color of the node to the south of n is target-color, add that node to the
         {
             (int, int) pos = q.Dequeue();
 
-            int west, east;
-            for (west = pos.Item1; west >= 0 && PositionIsGreenBiome(map, west, pos.Item2); west--)
+            UpdateGreenPositionHorizontal(map, data, green, q, pos.Item1, pos.Item2);
+
+            for (int west = pos.Item1 - 1; west >= 0 && PositionIsGreenBiome(map, west, pos.Item2); west--)
             {
-                UpdateGreenPositionHorizontal(map, meshData, green, q, west, pos.Item2);
+                UpdateGreenPositionHorizontal(map, data, green, q, west, pos.Item2);
             }
-            for (east = pos.Item1; east < map.Width && PositionIsGreenBiome(map, east, pos.Item2); east++)
+            for (int east = pos.Item1 + 1; east < map.Width && PositionIsGreenBiome(map, east, pos.Item2); east++)
             {
-                UpdateGreenPositionHorizontal(map, meshData, green, q, east, pos.Item2);
+                UpdateGreenPositionHorizontal(map, data, green, q, east, pos.Item2);
             }
         }
 
@@ -624,20 +630,23 @@ If the color of the node to the south of n is target-color, add that node to the
     private void UpdateGreenPositionHorizontal(TerrainMap map, MeshGenerator.MeshData data, Green green, Queue<(int, int)> q, int x, int y)
     {
         int index = y * map.Width + x;
-        map.CheckedFloodFill[index] = true;
-        green.CheckPoint(map.Bounds.min + data.Vertices[index]);
+        if (!map.CheckedFloodFill[index])
+        {
+            map.CheckedFloodFill[index] = true;
+            green.CheckPoint(map.Bounds.min + data.Vertices[index]);
 
-        // Check north
-        int newY = y + 1;
-        if (newY < map.Height && PositionIsGreenBiome(map, x, newY) && !q.Contains((x,newY)))
-        {
-            q.Enqueue((x, newY));
-        }
-        // And south
-        newY = y - 1;
-        if (newY >= 0 && PositionIsGreenBiome(map, x, newY) && !q.Contains((x, newY)))
-        {
-            q.Enqueue((x, newY));
+            // Check north
+            int newY = y + 1;
+            if (newY < map.Height && PositionIsGreenBiome(map, x, newY) && !q.Contains((x, newY)))
+            {
+                q.Enqueue((x, newY));
+            }
+            // And south
+            newY = y - 1;
+            if (newY >= 0 && PositionIsGreenBiome(map, x, newY) && !q.Contains((x, newY)))
+            {
+                q.Enqueue((x, newY));
+            }
         }
     }
 

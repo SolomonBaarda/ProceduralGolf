@@ -1,31 +1,21 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class Green
 {
-    public Vector3 MinMin, MinMax, MaxMin, MaxMax;
+    public HashSet<Vector3> Vertices = new HashSet<Vector3>();
+    private Vector3 initialPos;
 
     public Green(Vector3 initialWorldPos)
     {
-        MinMin = initialWorldPos;
-        MinMax = initialWorldPos;
-        MaxMin = initialWorldPos;
-        MaxMax = initialWorldPos;
+        initialPos = initialWorldPos;
     }
 
     public void CheckPoint(Vector3 biome)
     {
-        UpdateMin(biome.x, ref MinMin.x);
-        UpdateMin(biome.y, ref MinMin.y);
-
-        UpdateMin(biome.x, ref MinMax.x);
-        UpdateMax(biome.y, ref MinMax.y);
-
-        UpdateMax(biome.x, ref MaxMin.x);
-        UpdateMin(biome.y, ref MaxMin.y);
-
-        UpdateMax(biome.x, ref MaxMax.x);
-        UpdateMax(biome.y, ref MaxMax.y);
+        Vertices.Add(biome);
     }
+
 
     private void UpdateMin(float value, ref float min)
     {
@@ -38,40 +28,31 @@ public class Green
             max = value;
     }
 
-    /*
-    public Vector3 CalculateCentre()
+
+    public Vector3 CalculateCentre(out Vector3 min, out Vector3 max)
     {
-        
-        if (Vertices.Count > 0)
+        min = initialPos;
+        max = min;
+
+        foreach (Vector3 point in Vertices)
         {
-            TerrainMap.Point random = Vertices.FirstOrDefault();
-            Vector3 min = random.LocalVertexPosition + random.Offset, max = min;
+            if (point.x < min.x) { min.x = point.x; }
+            if (point.z < min.z) { min.z = point.z; }
 
-            foreach (TerrainMap.Point p in Vertices)
-            {
-                Vector3 v = p.LocalVertexPosition + p.Offset;
-
-                if (v.x < min.x) { min.x = v.x; }
-                if (v.z < min.z) { min.z = v.z; }
-
-                if (v.x > max.x) { max.x = v.x; }
-                if (v.z > max.z) { max.z = v.z; }
-            }
-
-            Vector3 centreOffset = (max + min) / 2;
-
-            return centreOffset;
+            if (point.x > max.x) { max.x = point.x; }
+            if (point.z > max.z) { max.z = point.z; }
         }
-        else
-        {
-            return default;
-        }
+
+        Vector3 centreOffset = (max + min) / 2;
+
+        return centreOffset;
+
     }
-    
 
 
 
 
+    /*
     private float CalculateAverageHeight()
     {
         int totalVertices = 0;
