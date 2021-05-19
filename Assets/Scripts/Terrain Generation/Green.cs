@@ -1,14 +1,11 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class FloodFillBiome
+public class Green
 {
-    public Biome.Type Biome;
     public Vector3 MinMin, MinMax, MaxMin, MaxMax;
 
-    public FloodFillBiome(Biome.Type biome, Vector3 initialWorldPos)
+    public Green(Vector3 initialWorldPos)
     {
-        Biome = biome;
         MinMin = initialWorldPos;
         MinMax = initialWorldPos;
         MaxMin = initialWorldPos;

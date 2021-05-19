@@ -22,7 +22,8 @@ public class GameManager : MonoBehaviour
     private Gamerule Gamerules;
     private static readonly Gamerule FromFile = new Gamerule(false, true, 0, 550, true, true);
     private static readonly Gamerule RealtimeEndless = new Gamerule(true, true, 3, 400, true, true);
-    private static readonly Gamerule FixedArea = new Gamerule(false, false, 3, 0, false, false);
+    private static readonly Gamerule Testing = new Gamerule(false, false, 3, 0, false, false);
+    private static readonly Gamerule FixedArea = new Gamerule(false, true, 3, 2000, true, true);
 
     public delegate void LoadLevel(TerrainData data);
 
@@ -97,7 +98,8 @@ public class GameManager : MonoBehaviour
         // Generate a fixed area to save to file
         else if (TerrainMode == TerrainGenerationMethod.FixedArea)
         {
-            Gamerules = FixedArea;
+            //Gamerules = FixedArea;
+            Gamerules = Testing;
 
             List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();
             yield return null;
@@ -140,10 +142,8 @@ public class GameManager : MonoBehaviour
         TerrainManager.Set(Gamerules.DoHideFarChunks, GolfBall.transform, Gamerules.ViewDistanceWorldUnits);
 
         // Disable the golf ball if we dont need it
-        if (!Gamerules.UseGolfBall)
-        {
-            GolfBall.gameObject.SetActive(false);
-        }
+        GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
+
 
         // Load the HUD if we need it
         if (Gamerules.UseHUD)
@@ -164,13 +164,12 @@ public class GameManager : MonoBehaviour
         CourseManager.UpdateGolfHoles(data.GolfHoles);
 
         // Ensure all of the holes have been correctly numbered
-        /*
         while (!CourseManager.HolesHaveBeenOrdered)
         {
             yield return null;
         }
         Debug.Log("Finished ordering holes");
-        */
+        
 
 
         if (Gamerules.UseGolfBall)

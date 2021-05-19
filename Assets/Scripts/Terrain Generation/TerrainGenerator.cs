@@ -305,7 +305,7 @@ public class TerrainGenerator : MonoBehaviour
         // Normalise final heights and construct mesh data
 
         Dictionary<Vector2Int, MeshGenerator.MeshData> meshData = new Dictionary<Vector2Int, MeshGenerator.MeshData>();
-        List<FloodFillBiome> greens = new List<FloodFillBiome>();
+        List<Green> greens = new List<Green>();
 
         threads.Clear();
         foreach (TerrainMap map in maps.Values)
@@ -335,7 +335,7 @@ public class TerrainGenerator : MonoBehaviour
                     MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
 
                     map.CheckedFloodFill = new bool[map.Width * map.Height];
-                    //List<FloodFillBiome> newGreeens = CalculateGreens(map, data);
+                    //List<Green> newGreeens = CalculateGreens(map, data);
 
                     lock (threadLock)
                     {
@@ -421,9 +421,11 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
         }
 
+        meshData.TryGetValue(Vector2Int.zero, out MeshGenerator.MeshData d);
+
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(Seed, terrainChunks, greens, new List<HoleData>(), Settings.name);
+        terrain.SetData(Seed, terrainChunks, greens, new List<HoleData>() { new HoleData(d.Vertices[0]), new HoleData(d.Vertices[width * height - 1]) }, Settings.name);
 
 
 
@@ -535,31 +537,21 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private List<FloodFillBiome> CalculateGreens(TerrainMap map, MeshGenerator.MeshData meshData)
+
+
+
+    private List<Green> CalculateGreens(TerrainMap map, MeshGenerator.MeshData meshData)
     {
-        List<FloodFillBiome> greens = new List<FloodFillBiome>();
+        List<Green> greens = new List<Green>();
 
         for (int y = 0; y < map.Height; y++)
         {
             for (int x = 0; x < map.Width; x++)
             {
                 int index = y * map.Width + x;
-                if (!map.CheckedFloodFill[index])
+                if (!map.CheckedFloodFill[index] && PositionIsGreenBiome(map, index))
                 {
-                    map.CheckedFloodFill[index] = true;
-
-                    foreach (TerrainSettings.Green green in Settings.Greens)
-                    {
-                        if (map.Biomes[index] == green.Biome)
-                        {
-                            FloodFillBiome flood = new FloodFillBiome(green.Biome, map.Bounds.min + meshData.Vertices[index]);
-                            map.CheckedFloodFill[index] = false;
-                            CheckFloodFillBiomeForPosition(map, meshData, flood, x, y);
-
-                            greens.Add(flood);
-                            break;
-                        }
-                    }
+                    greens.Add(FloodFill(map, meshData, x, y));
                 }
             }
         }
@@ -567,45 +559,86 @@ public class TerrainGenerator : MonoBehaviour
         return greens;
     }
 
-    private void CheckFloodFillBiomeForPosition(TerrainMap map, MeshGenerator.MeshData meshData, FloodFillBiome flood, int x, int y)
+    private bool PositionIsGreenBiome(TerrainMap map, int x, int y)
     {
-        int index = y * map.Width + x;
-        if (!map.CheckedFloodFill[index])
-        {
-            map.CheckedFloodFill[index] = true;
-
-            foreach (TerrainSettings.Green green in Settings.Greens)
-            {
-                if (map.Biomes[index] == green.Biome)
-                {
-                    flood.CheckPoint(map.Bounds.min + meshData.Vertices[index]);
-
-                    // Check the nearby points as well
-                    if (!HasBeenCheckedFlood(map, x + 1, y))
-                        CheckFloodFillBiomeForPosition(map, meshData, flood, x + 1, y);
-                    if (!HasBeenCheckedFlood(map, x - 1, y))
-                        CheckFloodFillBiomeForPosition(map, meshData, flood, x - 1, y);
-                    if (!HasBeenCheckedFlood(map, x, y + 1))
-                        CheckFloodFillBiomeForPosition(map, meshData, flood, x, y + 1);
-                    if (!HasBeenCheckedFlood(map, x, y - 1))
-                        CheckFloodFillBiomeForPosition(map, meshData, flood, x, y - 1);
-
-                    //CheckFloodFillBiomeForPosition(map, meshData, flood, x + 1, y + 1);
-                    //CheckFloodFillBiomeForPosition(map, meshData, flood, x - 1, y - 1);
-                    //CheckFloodFillBiomeForPosition(map, meshData, flood, x + 1, y - 1);
-                    //CheckFloodFillBiomeForPosition(map, meshData, flood, x - 1, y + 1);
-                    return;
-                }
-            }
-
-
-        }
+        return PositionIsGreenBiome(map, y * map.Width + x);
     }
 
-    private bool HasBeenCheckedFlood(TerrainMap map, int x, int y)
+    private bool PositionIsGreenBiome(TerrainMap map, int index)
+    {
+        foreach (TerrainSettings.Green green in Settings.Greens)
+        {
+            if (green.Do && map.Biomes[index] == green.Biome)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+* Flood-fill (node, target-color, replacement-color):
+1. Set Q to the empty queue.
+2. If the color of node is not equal to target-color, return.
+3. Add node to the end of Q.
+4. For each element n of Q:
+5.  Set w and e equal to n.
+6.  Move w to the west until the color of the node to the west of w no longer matches target-color.
+7.  Move e to the east until the color of the node to the east of e no longer matches target-color.
+8.  Set the color of nodes between w and e to replacement-color.
+9.  For each node n between w and e:
+10.   If the color of the node to the north of n is target-color, add that node to the end of Q.
+If the color of the node to the south of n is target-color, add that node to the end of Q.
+11. Continue looping until Q is exhausted.
+12. Return.
+*/
+
+    private Green FloodFill(TerrainMap map, MeshGenerator.MeshData meshData, int x, int y)
+    {
+        Queue<(int, int)> q = new Queue<(int, int)>();
+
+        int index = y * map.Width + x;
+        Green green = new Green(map.Bounds.min + meshData.Vertices[index]);
+        map.CheckedFloodFill[index] = true;
+        q.Enqueue((x, y));
+
+        // Each element n of Q
+        while(q.Count > 0)
+        {
+            (int, int) pos = q.Dequeue();
+
+            int west, east;
+            for (west = pos.Item1; west >= 0 && PositionIsGreenBiome(map, west, pos.Item2); west--)
+            {
+                UpdateGreenPositionHorizontal(map, meshData, green, q, west, pos.Item2);
+            }
+            for (east = pos.Item1; east < map.Width && PositionIsGreenBiome(map, east, pos.Item2); east++)
+            {
+                UpdateGreenPositionHorizontal(map, meshData, green, q, east, pos.Item2);
+            }
+        }
+
+        return green;
+    }
+
+    private void UpdateGreenPositionHorizontal(TerrainMap map, MeshGenerator.MeshData data, Green green, Queue<(int, int)> q, int x, int y)
     {
         int index = y * map.Width + x;
-        return map.CheckedFloodFill[index];
+        map.CheckedFloodFill[index] = true;
+        green.CheckPoint(map.Bounds.min + data.Vertices[index]);
+
+        // Check north
+        int newY = y + 1;
+        if (newY < map.Height && PositionIsGreenBiome(map, x, newY) && !q.Contains((x,newY)))
+        {
+            q.Enqueue((x, newY));
+        }
+        // And south
+        newY = y - 1;
+        if (newY >= 0 && PositionIsGreenBiome(map, x, newY) && !q.Contains((x, newY)))
+        {
+            q.Enqueue((x, newY));
+        }
     }
 
 

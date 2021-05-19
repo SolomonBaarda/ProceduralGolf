@@ -106,7 +106,7 @@ public class TerrainManager : MonoBehaviour
         System.Random r = new System.Random();
         Color colour = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble(), 1);
 
-        foreach(FloodFillBiome green in data.Greens)
+        foreach(Green green in data.Greens)
         {
             Debug.DrawRay(green.MinMin, Vector3.up, colour, 1000);
             Debug.DrawRay(green.MinMax, Vector3.up, colour, 1000);
