@@ -16,19 +16,6 @@ public class Green
         Vertices.Add(biome);
     }
 
-
-    private void UpdateMin(float value, ref float min)
-    {
-        if (value < min)
-            min = value;
-    }
-    private void UpdateMax(float value, ref float max)
-    {
-        if (value > max)
-            max = value;
-    }
-
-
     public Vector3 CalculateCentre(out Vector3 min, out Vector3 max)
     {
         min = initialPos;
@@ -46,7 +33,11 @@ public class Green
         Vector3 centreOffset = (max + min) / 2;
 
         return centreOffset;
+    }
 
+    public Vector3 CalculateStart()
+    {
+        return CalculateCentre(out Vector3 _, out Vector3 _);
     }
 
 

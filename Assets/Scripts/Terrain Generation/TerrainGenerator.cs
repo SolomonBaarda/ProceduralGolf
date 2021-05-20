@@ -183,6 +183,7 @@ public class TerrainGenerator : MonoBehaviour
                     map.NormaliseLayers(minMax);
                     map.Biomes = new Biome.Type[width * height];
                     map.Heights = new float[width * height];
+                    map.CheckedFloodFill = new bool[map.Width * map.Height];
 
                     // Now calculate the actual heights from the noise and the biomes
                     for (int index = 0; index < map.Heights.Length; index++)
@@ -334,14 +335,29 @@ public class TerrainGenerator : MonoBehaviour
                     MeshGenerator.MeshData data = null;
                     MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
 
-                    map.CheckedFloodFill = new bool[map.Width * map.Height];
-                    List<Green> newGreeens = CalculateGreens(map, data);
+                   
+
+
+                    // Calculate the greens 
+                    List<Green> newGreens = new List<Green>();
+
+                    for (int y = 0; y < map.Height; y++)
+                    {
+                        for (int x = 0; x < map.Width; x++)
+                        {
+                            int index = y * map.Width + x;
+                            if (!map.CheckedFloodFill[index] && PositionIsGreenBiome(map, index))
+                            {
+                                newGreens.Add(FloodFill(map, maps, data, x, y));
+                            }
+                        }
+                    }
 
                     lock (threadLock)
                     {
                         // Add the mesh data 
                         meshData.Add(map.Chunk, data);
-                        greens.AddRange(newGreeens);
+                        greens.AddRange(newGreens);
                     }
                 }
                 )
@@ -421,20 +437,26 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
         }
 
-        meshData.TryGetValue(Vector2Int.zero, out MeshGenerator.MeshData d);
+
+        List<HoleData> holeData = new List<HoleData>();
+
+        System.Random r = new System.Random();
+        // Calculate the holes
+        foreach (Green g in greens)
+        {
+            Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
+            HoleData h = new HoleData(g.CalculateStart());
+            holeData.Add(h);
+            Debug.DrawRay(h.Centre, Vector3.up * 100, c, 1000);
+        }
+
+
+
 
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(Seed, terrainChunks, greens, new List<HoleData>() { new HoleData(d.Vertices[0]), new HoleData(d.Vertices[width * height - 1]) }, Settings.name);
+        terrain.SetData(Seed, terrainChunks, greens, holeData, Settings.name);
 
-        System.Random r = new System.Random();
-        foreach(Green g in greens)
-        {
-            Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-           
-                Debug.DrawRay(g.CalculateCentre(out Vector3 _, out Vector3 _), Vector3.up * 100, c, 1000);
-            
-        }
 
         // FINISHED GENERATING
         Debug.Log("* Fourth pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
@@ -545,26 +567,6 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-
-    private List<Green> CalculateGreens(TerrainMap map, MeshGenerator.MeshData meshData)
-    {
-        List<Green> greens = new List<Green>();
-
-        for (int y = 0; y < map.Height; y++)
-        {
-            for (int x = 0; x < map.Width; x++)
-            {
-                int index = y * map.Width + x;
-                if (!map.CheckedFloodFill[index] && PositionIsGreenBiome(map, index))
-                {
-                    greens.Add(FloodFill(map, meshData, x, y));
-                }
-            }
-        }
-
-        return greens;
-    }
-
     private bool PositionIsGreenBiome(TerrainMap map, int x, int y)
     {
         return PositionIsGreenBiome(map, y * map.Width + x);
@@ -599,7 +601,7 @@ If the color of the node to the south of n is target-color, add that node to the
 12. Return.
 */
 
-    private Green FloodFill(TerrainMap map, MeshGenerator.MeshData data, int x, int y)
+    private Green FloodFill(TerrainMap map, Dictionary<Vector2Int, TerrainMap> maps, MeshGenerator.MeshData data, int x, int y)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
 
