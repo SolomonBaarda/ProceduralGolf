@@ -168,7 +168,7 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
-        Debug.Log("Finished ordering holes");
+        //Debug.Log("Finished ordering holes");
         
 
 

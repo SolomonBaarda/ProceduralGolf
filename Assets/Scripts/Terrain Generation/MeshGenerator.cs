@@ -86,7 +86,7 @@ public static class MeshGenerator
 
 
 
-        public void UpdateMesh(ref Mesh m, in MeshSettings settings)
+        public void GenerateMesh(ref Mesh m, in MeshSettings settings)
         {
             int i = settings.SimplificationIncrement;
             int newWidth = (Width - 1) / i + 1, newHeight = (Height - 1) / i + 1;

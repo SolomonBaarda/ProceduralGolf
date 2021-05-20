@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.Events;
@@ -161,7 +162,7 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
         }
 
-        Debug.Log("* First pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+        //Debug.Log("* First pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
         {
             OnAbortThreads.RemoveListener(a);
@@ -325,7 +326,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
 
-        Debug.Log("* Second pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+        //Debug.Log("* Second pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
         {
             OnAbortThreads.RemoveListener(a);
@@ -413,9 +414,7 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
         }
 
-        Debug.Log("Total greens " + greens.Count);
-
-        Debug.Log("* Third pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+        //Debug.Log("* Third pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
         {
             OnAbortThreads.RemoveListener(a);
@@ -428,6 +427,32 @@ public class TerrainGenerator : MonoBehaviour
 
         // FOURTH PASS
 
+        Debug.Log("Total greens before: " + greens.Count);
+
+        // Merge greens from seperate chunks
+        foreach (Green original in greens)
+        {
+            if (!original.ToBeDeleted && original.HasVerticesAtEdge)
+            {
+                foreach (Green toMerge in greens)
+                {
+                    if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && toMerge.HasVerticesAtEdge && original.Vertices.Overlaps(toMerge.Vertices))
+                    {
+                        toMerge.ToBeDeleted = true;
+
+                        // Add the vertices
+                        original.Vertices.UnionWith(toMerge.Vertices);
+                        //toMerge.Vertices.Clear();
+                        yield return null;
+                    }
+                }
+            }
+        }
+
+        greens.RemoveAll(x => x.ToBeDeleted || x.Vertices.Count == 0);
+
+        Debug.Log("Total greens after: " + greens.Count);
+
         // Construct textures and meshes
         // This needs to be done in the main thread
 
@@ -438,7 +463,7 @@ public class TerrainGenerator : MonoBehaviour
             // Generate the mesh
             meshData.TryGetValue(map.Chunk, out MeshGenerator.MeshData data);
             Mesh mesh = null;
-            data.UpdateMesh(ref mesh, MeshSettings);
+            data.GenerateMesh(ref mesh, MeshSettings);
             yield return null;
 
             // Update the world object data
@@ -485,7 +510,7 @@ public class TerrainGenerator : MonoBehaviour
             Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
             foreach (Vector3 point in g.Vertices)
             {
-                Debug.DrawLine(point, point + Vector3.up * 10, c, 1000);
+                Debug.DrawRay(point, Vector3.up * 10, c, 1000);
             }
         }
 
@@ -496,7 +521,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // FINISHED GENERATING
-        Debug.Log("* Fourth pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+        //Debug.Log("* Fourth pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
         if (aborted)
         {
             OnAbortThreads.RemoveListener(a);
@@ -602,43 +627,6 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-
-    /*
-    private bool PositionIsGreenBiome(TerrainMap map, int x, int y)
-    {
-        return PositionIsGreenBiome(map, y * map.Width + x);
-    }
-
-    private bool PositionIsGreenBiome(TerrainMap map, int index)
-    {
-        foreach (TerrainSettings.Green green in Settings.Greens)
-        {
-            //if (green.Do && map.Biomes[index] == green.Biome)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-    */
-
-    /*
-* Flood-fill (node, target-color, replacement-color):
-1. Set Q to the empty queue.
-2. If the color of node is not equal to target-color, return.
-3. Add node to the end of Q.
-4. For each element n of Q:
-5.  Set w and e equal to n.
-6.  Move w to the west until the color of the node to the west of w no longer matches target-color.
-7.  Move e to the east until the color of the node to the east of e no longer matches target-color.
-8.  Set the color of nodes between w and e to replacement-color.
-9.  For each node n between w and e:
-10.   If the color of the node to the north of n is target-color, add that node to the end of Q.
-If the color of the node to the south of n is target-color, add that node to the end of Q.
-11. Continue looping until Q is exhausted.
-12. Return.
-*/
-
     private Green FloodFill(TerrainMap map, ref bool[] checkedFloodFill, MeshGenerator.MeshData data, int x, int y)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
@@ -652,13 +640,11 @@ If the color of the node to the south of n is target-color, add that node to the
         {
             (int, int) pos = q.Dequeue();
 
-            UpdateGreenPositionHorizontal(map, ref checkedFloodFill, data, green, q, pos.Item1, pos.Item2);
-
-            for (int west = pos.Item1 - 1; west >= 0 && map.Greens[pos.Item2 * map.Width + west]; west--)
+            for (int west = pos.Item1; west >= 0 && map.Greens[pos.Item2 * map.Width + west]; west--)
             {
                 UpdateGreenPositionHorizontal(map, ref checkedFloodFill, data, green, q, west, pos.Item2);
             }
-            for (int east = pos.Item1 + 1; east < map.Width && map.Greens[pos.Item2 * map.Width + east]; east++)
+            for (int east = pos.Item1; east < map.Width && map.Greens[pos.Item2 * map.Width + east]; east++)
             {
                 UpdateGreenPositionHorizontal(map, ref checkedFloodFill, data, green, q, east, pos.Item2);
             }
@@ -673,7 +659,13 @@ If the color of the node to the south of n is target-color, add that node to the
         if (!checkedFloodFill[index])
         {
             checkedFloodFill[index] = true;
-            green.CheckPoint(map.Bounds.min + data.Vertices[index]);
+            green.Vertices.Add(map.Bounds.min + data.Vertices[index]);
+
+            // Vertex is on the edge of the map
+            if (x == 0 || y == 0 || x == map.Width - 1 || y == map.Height - 1)
+            {
+                green.HasVerticesAtEdge = true;
+            }
 
             // Check north
             int newY = y + 1;
@@ -724,7 +716,7 @@ If the color of the node to the south of n is target-color, add that node to the
 
 
 
-    public Vector3[] CalculateLocalVertexPointsForChunk(Vector3 size, int numSamplePoints)
+    private Vector3[] CalculateLocalVertexPointsForChunk(Vector3 size, int numSamplePoints)
     {
         Vector3[] localPositions = new Vector3[numSamplePoints * numSamplePoints];
         Vector3 one = size / (numSamplePoints - 1);
@@ -740,11 +732,6 @@ If the color of the node to the south of n is target-color, add that node to the
 
         return localPositions;
     }
-
-
-
-
-
 
 
 

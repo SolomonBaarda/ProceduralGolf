@@ -5,15 +5,26 @@ public class Green
 {
     public HashSet<Vector3> Vertices = new HashSet<Vector3>();
     private Vector3 initialPos;
+    public bool HasVerticesAtEdge = false;
+
+    public bool ToBeDeleted = false;
+
+    private class VertexComparer : IEqualityComparer<Vector3>
+    {
+        public bool Equals(Vector3 a, Vector3 b)
+        {
+            return a.x == b.x && a.y == b.y && a.z == b.z;
+        }
+
+        public int GetHashCode(Vector3 v)
+        {
+            return v.GetHashCode();
+        }
+    }
 
     public Green(Vector3 initialWorldPos)
     {
         initialPos = initialWorldPos;
-    }
-
-    public void CheckPoint(Vector3 biome)
-    {
-        Vertices.Add(biome);
     }
 
     public Vector3 CalculateCentre(out Vector3 min, out Vector3 max)
