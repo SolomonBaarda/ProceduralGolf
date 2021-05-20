@@ -34,6 +34,8 @@ public class TerrainGenerator : MonoBehaviour
     {
         InitialTerrainGenerated = false;
         OnAbortThreads.Invoke();
+
+        //Debug.ClearDeveloperConsole();
     }
 
     private void OnDestroy()
@@ -181,16 +183,15 @@ public class TerrainGenerator : MonoBehaviour
                 {
                     // Normalise each of the noise layers
                     map.NormaliseLayers(minMax);
-                    map.Biomes = new Biome.Type[width * height];
-                    map.Heights = new float[width * height];
-                    map.CheckedFloodFill = new bool[map.Width * map.Height];
 
                     // Now calculate the actual heights from the noise and the biomes
                     for (int index = 0; index < map.Heights.Length; index++)
                     {
+                        // Set the default biome 
                         map.Biomes[index] = Settings.MainBiome;
-                        map.Heights[index] = 0;
 
+                        // Set the height and update biomes
+                        map.Heights[index] = 0;
                         for (int i = 0; i < map.Layers.Count; i++)
                         {
                             TerrainSettings.Layer s = Settings.TerrainLayers[i];
@@ -248,6 +249,41 @@ public class TerrainGenerator : MonoBehaviour
                                 }
                             }
                         }
+
+                        // Set the green
+                        map.Greens[index] = false;
+                        foreach (TerrainSettings.Green g in Settings.Greens)
+                        {
+                            if (g.Do && g.RequiredBiomes.Contains(map.Biomes[index]))
+                            {
+                                // Check that the mask is valid if we are using it 
+                                bool maskvalid = true;
+                                if (g.UseMask)
+                                {
+                                    for (int j = 0; j < g.Masks.Count; j++)
+                                    {
+                                        TerrainMap.Layer maskValues = map.Layers[g.Masks[j].LayerIndex];
+
+                                        // Mask is not valid here
+                                        if (!(maskValues.Noise[index] >= g.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= g.Masks[j].NoiseThresholdMax))
+                                        {
+                                            maskvalid = false;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // Either no mask and will be valid biome, or mask must be valid
+                                map.Greens[index] = !g.UseMask || (g.UseMask && maskvalid);
+
+                                if (!map.Greens[index])
+                                {
+                                    break;
+                                }
+                            }
+                        }
+
+
                         // Get final min max
                         lock (threadLock)
                         {
@@ -335,20 +371,21 @@ public class TerrainGenerator : MonoBehaviour
                     MeshGenerator.MeshData data = null;
                     MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
 
-                   
+
 
 
                     // Calculate the greens 
                     List<Green> newGreens = new List<Green>();
+                    bool[] checkedFloodFill = new bool[map.Width * map.Height];
 
                     for (int y = 0; y < map.Height; y++)
                     {
                         for (int x = 0; x < map.Width; x++)
                         {
                             int index = y * map.Width + x;
-                            if (!map.CheckedFloodFill[index] && PositionIsGreenBiome(map, index))
+                            if (!checkedFloodFill[index] && map.Greens[index])
                             {
-                                newGreens.Add(FloodFill(map, maps, data, x, y));
+                                newGreens.Add(FloodFill(map, ref checkedFloodFill, data, x, y));
                             }
                         }
                     }
@@ -437,20 +474,20 @@ public class TerrainGenerator : MonoBehaviour
             yield return null;
         }
 
+        System.Random r = new System.Random(0);
 
-        List<HoleData> holeData = new List<HoleData>();
-
-        System.Random r = new System.Random();
         // Calculate the holes
+        List<HoleData> holeData = new List<HoleData>();
         foreach (Green g in greens)
         {
+            holeData.Add(new HoleData(g.CalculateStart()));
+
             Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-            HoleData h = new HoleData(g.CalculateStart());
-            holeData.Add(h);
-            Debug.DrawRay(h.Centre, Vector3.up * 100, c, 1000);
+            foreach (Vector3 point in g.Vertices)
+            {
+                Debug.DrawLine(point, point + Vector3.up * 10, c, 1000);
+            }
         }
-
-
 
 
         // Create the object and set the data
@@ -480,7 +517,7 @@ public class TerrainGenerator : MonoBehaviour
 
     private void GenerateTerrainMapRawData(Vector2Int chunk, int seed, Bounds chunkBounds, int width, int height, in Vector3[] localVertexPositions, out TerrainMap map)
     {
-        map = new TerrainMap(chunk, width, height, chunkBounds) { Layers = new List<TerrainMap.Layer>() };
+        map = new TerrainMap(chunk, width, height, chunkBounds);
 
         // Get all the noise layers
         int prevSeed = seed;
@@ -566,7 +603,7 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-
+    /*
     private bool PositionIsGreenBiome(TerrainMap map, int x, int y)
     {
         return PositionIsGreenBiome(map, y * map.Width + x);
@@ -576,13 +613,14 @@ public class TerrainGenerator : MonoBehaviour
     {
         foreach (TerrainSettings.Green green in Settings.Greens)
         {
-            if (green.Do && map.Biomes[index] == green.Biome)
+            //if (green.Do && map.Biomes[index] == green.Biome)
             {
                 return true;
             }
         }
         return false;
     }
+    */
 
     /*
 * Flood-fill (node, target-color, replacement-color):
@@ -601,7 +639,7 @@ If the color of the node to the south of n is target-color, add that node to the
 12. Return.
 */
 
-    private Green FloodFill(TerrainMap map, Dictionary<Vector2Int, TerrainMap> maps, MeshGenerator.MeshData data, int x, int y)
+    private Green FloodFill(TerrainMap map, ref bool[] checkedFloodFill, MeshGenerator.MeshData data, int x, int y)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
 
@@ -610,42 +648,42 @@ If the color of the node to the south of n is target-color, add that node to the
         q.Enqueue((x, y));
 
         // Each element n of Q
-        while(q.Count > 0)
+        while (q.Count > 0)
         {
             (int, int) pos = q.Dequeue();
 
-            UpdateGreenPositionHorizontal(map, data, green, q, pos.Item1, pos.Item2);
+            UpdateGreenPositionHorizontal(map, ref checkedFloodFill, data, green, q, pos.Item1, pos.Item2);
 
-            for (int west = pos.Item1 - 1; west >= 0 && PositionIsGreenBiome(map, west, pos.Item2); west--)
+            for (int west = pos.Item1 - 1; west >= 0 && map.Greens[pos.Item2 * map.Width + west]; west--)
             {
-                UpdateGreenPositionHorizontal(map, data, green, q, west, pos.Item2);
+                UpdateGreenPositionHorizontal(map, ref checkedFloodFill, data, green, q, west, pos.Item2);
             }
-            for (int east = pos.Item1 + 1; east < map.Width && PositionIsGreenBiome(map, east, pos.Item2); east++)
+            for (int east = pos.Item1 + 1; east < map.Width && map.Greens[pos.Item2 * map.Width + east]; east++)
             {
-                UpdateGreenPositionHorizontal(map, data, green, q, east, pos.Item2);
+                UpdateGreenPositionHorizontal(map, ref checkedFloodFill, data, green, q, east, pos.Item2);
             }
         }
 
         return green;
     }
 
-    private void UpdateGreenPositionHorizontal(TerrainMap map, MeshGenerator.MeshData data, Green green, Queue<(int, int)> q, int x, int y)
+    private void UpdateGreenPositionHorizontal(TerrainMap map, ref bool[] checkedFloodFill, MeshGenerator.MeshData data, Green green, Queue<(int, int)> q, int x, int y)
     {
         int index = y * map.Width + x;
-        if (!map.CheckedFloodFill[index])
+        if (!checkedFloodFill[index])
         {
-            map.CheckedFloodFill[index] = true;
+            checkedFloodFill[index] = true;
             green.CheckPoint(map.Bounds.min + data.Vertices[index]);
 
             // Check north
             int newY = y + 1;
-            if (newY < map.Height && PositionIsGreenBiome(map, x, newY) && !q.Contains((x, newY)))
+            if (newY < map.Height && map.Greens[newY * map.Width + x] && !q.Contains((x, newY)))
             {
                 q.Enqueue((x, newY));
             }
             // And south
             newY = y - 1;
-            if (newY >= 0 && PositionIsGreenBiome(map, x, newY) && !q.Contains((x, newY)))
+            if (newY >= 0 && map.Greens[newY * map.Width + x] && !q.Contains((x, newY)))
             {
                 q.Enqueue((x, newY));
             }

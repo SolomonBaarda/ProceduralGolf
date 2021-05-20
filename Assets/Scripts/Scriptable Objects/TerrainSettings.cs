@@ -84,7 +84,11 @@ public class TerrainSettings : VariablePreset
     public class Green
     {
         public bool Do = true;
-        public Biome.Type Biome;
+        public List<Biome.Type> RequiredBiomes;
+
+        public bool UseMask = false;
+        [Header("List of layer indexes to use as mask")]
+        public List<Mask> Masks;
     }
 
     [Serializable]

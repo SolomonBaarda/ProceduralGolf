@@ -12,16 +12,17 @@ public class TerrainMap
     /// </summary>
     public float[] Heights;
     public Biome.Type[] Biomes;
-    public bool[] CheckedFloodFill;
+    public bool[] Greens;
 
     /// <summary>
     /// List of height layers to combine 
     /// </summary>
-    public List<Layer> Layers;
+    public List<Layer> Layers = new List<Layer>();
+    /// <summary>
+    /// List of world objects in the chunk
+    /// </summary>
+    public List<WorldObjectData> WorldObjects = new List<WorldObjectData>();
 
-    public List<WorldObjectData> WorldObjects;
-
-    public Dictionary<Biome.Decoration, List<Vector3>> Decoration = new Dictionary<Biome.Decoration, List<Vector3>>();
 
     public TerrainMap(Vector2Int chunk, int width, int height, Bounds bounds)
     {
@@ -29,6 +30,11 @@ public class TerrainMap
         Width = width;
         Height = height;
         Bounds = bounds;
+
+        int size = width * height;
+        Heights = new float[size];
+        Biomes = new Biome.Type[size];
+        Greens = new bool[size];
     }
 
     public void NormaliseHeights(float min, float max)
