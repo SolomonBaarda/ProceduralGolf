@@ -3,22 +3,33 @@ using UnityEngine;
 
 public class Green
 {
-    public HashSet<Vector3> Vertices = new HashSet<Vector3>();
+    public HashSet<Vector3> Vertices = new HashSet<Vector3>(new VertexComparer());
     private Vector3 initialPos;
-    public bool HasVerticesAtEdge = false;
-
     public bool ToBeDeleted = false;
+
+    public class Points
+    {
+        public TerrainMap Map;
+        public HashSet<(int, int)> Indexes = new HashSet<(int, int)>();
+    }
 
     private class VertexComparer : IEqualityComparer<Vector3>
     {
         public bool Equals(Vector3 a, Vector3 b)
         {
-            return a.x == b.x && a.y == b.y && a.z == b.z;
+            //const float threshold = 0.01f;
+            return Mathf.Approximately(a.x, b.x) && Mathf.Approximately(a.y, b.y) && Mathf.Approximately(a.z, b.z);
+            //return FastApproximate(a.x, b.x, threshold) && FastApproximate(a.y, b.y, threshold) && FastApproximate(a.z, b.z, threshold);
         }
 
         public int GetHashCode(Vector3 v)
         {
             return v.GetHashCode();
+        }
+
+        private static bool FastApproximate(float a, float b, float threshold)
+        {
+            return ((a - b) < 0 ? ((a - b) * -1) : (a - b)) <= threshold;
         }
     }
 
@@ -50,7 +61,6 @@ public class Green
     {
         return CalculateCentre(out Vector3 _, out Vector3 _);
     }
-
 
 
 

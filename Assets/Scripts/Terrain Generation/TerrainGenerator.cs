@@ -31,6 +31,19 @@ public class TerrainGenerator : MonoBehaviour
     private delegate void Pass();
 
 
+    private List<Green> allGreens;
+    public int Index = 0;
+
+
+    private void OnValidate()
+    {
+        if(allGreens != null)
+        {
+            Index = Mathf.Clamp(Index, 0, allGreens.Count);
+            Debug.Log(allGreens[Index].Vertices.Count);
+        }
+    }
+
     public void Clear()
     {
         InitialTerrainGenerated = false;
@@ -432,16 +445,19 @@ public class TerrainGenerator : MonoBehaviour
         // Merge greens from seperate chunks
         foreach (Green original in greens)
         {
-            if (!original.ToBeDeleted && original.HasVerticesAtEdge)
+            if (!original.ToBeDeleted)
             {
                 foreach (Green toMerge in greens)
                 {
-                    if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && toMerge.HasVerticesAtEdge && original.Vertices.Overlaps(toMerge.Vertices))
+                    if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && original.Vertices.Overlaps(toMerge.Vertices))
                     {
                         toMerge.ToBeDeleted = true;
 
                         // Add the vertices
                         original.Vertices.UnionWith(toMerge.Vertices);
+                        //original.Vertices.IntersectWith(toMerge.Vertices);
+                        //toMerge.Vertices.Clear()
+
                         //toMerge.Vertices.Clear();
                         yield return null;
                     }
@@ -450,6 +466,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         greens.RemoveAll(x => x.ToBeDeleted || x.Vertices.Count == 0);
+        allGreens = greens;
 
         Debug.Log("Total greens after: " + greens.Count);
 
@@ -659,13 +676,8 @@ public class TerrainGenerator : MonoBehaviour
         if (!checkedFloodFill[index])
         {
             checkedFloodFill[index] = true;
-            green.Vertices.Add(map.Bounds.min + data.Vertices[index]);
-
-            // Vertex is on the edge of the map
-            if (x == 0 || y == 0 || x == map.Width - 1 || y == map.Height - 1)
-            {
-                green.HasVerticesAtEdge = true;
-            }
+            Vector3 pos = map.Bounds.min + data.Vertices[index];
+            green.Vertices.Add(pos);
 
             // Check north
             int newY = y + 1;
@@ -734,7 +746,21 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
+    private void OnDrawGizmosSelected()
+    {
 
+
+        if (allGreens != null)
+        {
+
+            foreach (Vector3 point in allGreens[Index].Vertices)
+            {
+                Gizmos.DrawRay(point, Vector3.up * 10);
+            }
+
+        }
+
+    }
 
 
 
