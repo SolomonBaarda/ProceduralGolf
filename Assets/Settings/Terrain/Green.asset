@@ -38,7 +38,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   HeightMultiplier: 20
-  MainBiome: 6
+  MainBiome: 1
   TerrainLayers:
   - Apply: 1
     Multiplier: 1
@@ -51,7 +51,7 @@ MonoBehaviour:
     Masks: []
   - Apply: 1
     Multiplier: 0.1
-    Biome: 1
+    Biome: 2
     NoiseThresholdMin: 0.7
     NoiseThresholdMax: 1
     CombinationMode: 1
@@ -60,7 +60,7 @@ MonoBehaviour:
     Masks: []
   - Apply: 1
     Multiplier: 0.25
-    Biome: 2
+    Biome: 4
     NoiseThresholdMin: 0.75
     NoiseThresholdMax: 1
     CombinationMode: 1
@@ -72,30 +72,18 @@ MonoBehaviour:
       NoiseThresholdMax: 1
   - Apply: 1
     Multiplier: 0
-    Biome: 3
+    Biome: 5
     NoiseThresholdMin: 0
     NoiseThresholdMax: 0.05
     CombinationMode: 5
     Settings: {fileID: 11400000, guid: b2258d188ca865c43ad49f7b2b3bf462, type: 2}
     UseMask: 0
     Masks: []
-  - Apply: 0
-    Multiplier: 0.25
-    Biome: 4
-    NoiseThresholdMin: 0.8
-    NoiseThresholdMax: 1
-    CombinationMode: 1
-    Settings: {fileID: 11400000, guid: a8d302693e9275142bea12d81d6b216f, type: 2}
-    UseMask: 1
-    Masks:
-    - LayerIndex: 1
-      NoiseThresholdMin: 0.65
-      NoiseThresholdMax: 1
   PoissonSamplingIterations: 5
   PoissonSamplingRadius: 12
   ProceduralObjects:
   - Do: 1
-    RequiredBiomes: 06000000
+    RequiredBiomes: 01000000
     Prefabs:
     - {fileID: 117604, guid: 9469bb1d3aa88ca40aa4079e96a27f8e, type: 3}
     - {fileID: 185286, guid: 8ed1fa325ca228645ad26dd6eff14768, type: 3}
@@ -107,21 +95,9 @@ MonoBehaviour:
     - LayerIndex: 1
       NoiseThresholdMin: 0.5
       NoiseThresholdMax: 0.7
-  - Do: 0
-    RequiredBiomes: 0100000006000000
-    Prefabs:
-    - {fileID: 174596, guid: 41dcf1459594f434a8a9bae6ae03eab0, type: 3}
-    - {fileID: 181472, guid: e9661e4c2bfea8344a07064944abe034, type: 3}
-    - {fileID: 163546, guid: 329d0b0187f24cd4da9f775d83708bd6, type: 3}
-    Chance: 1
-    UseMask: 1
-    Masks:
-    - LayerIndex: 1
-      NoiseThresholdMin: 0.7
-      NoiseThresholdMax: 1
   Greens:
   - Do: 1
-    RequiredBiomes: 01000000020000000300000006000000
+    RequiredBiomes: 01000000020000000400000005000000
     UseMask: 1
     Masks:
     - LayerIndex: 1

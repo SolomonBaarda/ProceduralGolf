@@ -24,13 +24,15 @@ public static class Biome
     public enum Type
     {
         None,
-        Grass,
+        LongGrass,
+        MediumGrass,
+        ShortGrass,
         Sand,
         Water,
         Ice,
-        GrassShort,
-        GrassLong,
         Snow,
+        Regolith,
+
     }
 
 

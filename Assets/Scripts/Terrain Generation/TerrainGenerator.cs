@@ -527,7 +527,7 @@ public class TerrainGenerator : MonoBehaviour
             Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
             foreach (Vector3 point in g.Vertices)
             {
-                Debug.DrawRay(point, Vector3.up * 10, c, 1000);
+                //Debug.DrawRay(point, Vector3.up * 10, c, 1000);
             }
         }
 

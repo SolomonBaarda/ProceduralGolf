@@ -177,17 +177,17 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         {
             switch (CurrentBiome)
             {
-                case Biome.Type.Grass:
+                case Biome.Type.ShortGrass:
+                    CurrentPreset = Preset_GrassShort;
+                    break;
+                case Biome.Type.MediumGrass:
                     CurrentPreset = Preset_Grass;
+                    break;
+                case Biome.Type.LongGrass:
+                    CurrentPreset = Preset_GrassLong;
                     break;
                 case Biome.Type.Sand:
                     CurrentPreset = Preset_Sand;
-                    break;
-                case Biome.Type.GrassShort:
-                    CurrentPreset = Preset_GrassShort;
-                    break;
-                case Biome.Type.GrassLong:
-                    CurrentPreset = Preset_GrassLong;
                     break;
                 case Biome.Type.Water:
                     CurrentPreset = Preset_Water;
