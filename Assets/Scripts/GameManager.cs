@@ -96,10 +96,21 @@ public class GameManager : MonoBehaviour
             LoadGame(d);
         }
         // Generate a fixed area to save to file
-        else if (TerrainMode == TerrainGenerationMethod.FixedArea)
+        else if (TerrainMode == TerrainGenerationMethod.Testing)
         {
             //Gamerules = FixedArea;
             Gamerules = Testing;
+
+            List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();
+            yield return null;
+
+            TerrainGenerator.Generate(l, LoadGame);
+        }
+        // Generate a fixed area to save to file
+        else if (TerrainMode == TerrainGenerationMethod.FixedArea)
+        {
+            //Gamerules = FixedArea;
+            Gamerules = FixedArea;
 
             List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();
             yield return null;
@@ -217,91 +228,92 @@ public class GameManager : MonoBehaviour
                 HUD.MainHUD.SetActive(true);
 
                 HUD.ShootingMenu.SetActive(isShooting);
-            }
-
-
-            // Update the camera angles
-            switch (GolfBall.State)
-            {
-                // Shooting mode
-                case GolfBall.PlayState.Shooting:
-
-                    int heldButtonMultiplier = 24;
-                    int touchMultiplier = 10;
-
-                    // Calculate the deltas for each 
-                    Vector2 rotationAndAngleDelta = HUD.MainSlider.DeltaPosition * Time.deltaTime * touchMultiplier;
-                    Vector2 powerDelta = HUD.PowerSlider.DeltaPosition * Time.deltaTime * touchMultiplier;
-
-                    // Make sure power has priority over rotation and angle
-                    if (powerDelta.x != 0 || powerDelta.y != 0)
-                    {
-                        rotationAndAngleDelta = Vector2.zero;
-                    }
-
-                    float rotationDelta = rotationAndAngleDelta.x;
-                    float angleDelta = rotationAndAngleDelta.y;
-
-                    // Rotation
-                    // Move less
-                    if (HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
-                    {
-                        rotationDelta = -heldButtonMultiplier * Time.deltaTime;
-                    }
-                    // Move more
-                    else if (!HUD.RotationLess.IsPressed && HUD.RotationMore.IsPressed)
-                    {
-                        rotationDelta = heldButtonMultiplier * Time.deltaTime;
-                    }
-
-                    // Angle
-                    // Move less
-                    if (HUD.AngleLess.IsPressed && !HUD.AngleMore.IsPressed)
-                    {
-                        angleDelta = -heldButtonMultiplier * Time.deltaTime;
-                    }
-                    // Move more
-                    else if (!HUD.AngleLess.IsPressed && HUD.AngleMore.IsPressed)
-                    {
-                        angleDelta = heldButtonMultiplier * Time.deltaTime;
-                    }
-
-
-                    // Set the new values
-                    GolfBall.SetValues(GolfBall.Rotation + rotationDelta, GolfBall.Angle + angleDelta, GolfBall.Power + powerDelta.y / 50f);
-
-
-                    // Just use the one camera view for now
-
-                    // Update the shot preview
-                    GolfBall.SetShotPowerPreview(true, true, true);
-                    GolfBall.SetShotNormalPreview();
-                    GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
-
-                    // Update the camera 
-                    BallFollower.CurrentView = Follower.View.ShootingBehind;
 
 
 
-                    // Update the HUD to display the correct values
-                    HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
+                // Update the camera angles
+                switch (GolfBall.State)
+                {
+                    // Shooting mode
+                    case GolfBall.PlayState.Shooting:
 
-                    // Set the power slider colour
-                    Color p = HUD.PowerSlider.Gradient.Evaluate(GolfBall.Power);
-                    p.a = HUD.PowerSliderBackgroundAlpha;
-                    HUD.PowerSlider.Background.color = p;
+                        int heldButtonMultiplier = 24;
+                        int touchMultiplier = 10;
 
-                    break;
+                        // Calculate the deltas for each 
+                        Vector2 rotationAndAngleDelta = HUD.MainSlider.DeltaPosition * Time.deltaTime * touchMultiplier;
+                        Vector2 powerDelta = HUD.PowerSlider.DeltaPosition * Time.deltaTime * touchMultiplier;
 
-                // Flying mode
-                case GolfBall.PlayState.Flying:
-                    BallFollower.CurrentView = Follower.View.Above;
-                    break;
+                        // Make sure power has priority over rotation and angle
+                        if (powerDelta.x != 0 || powerDelta.y != 0)
+                        {
+                            rotationAndAngleDelta = Vector2.zero;
+                        }
 
-                // Rolling mode
-                case GolfBall.PlayState.Rolling:
-                    BallFollower.CurrentView = Follower.View.Behind;
-                    break;
+                        float rotationDelta = rotationAndAngleDelta.x;
+                        float angleDelta = rotationAndAngleDelta.y;
+
+                        // Rotation
+                        // Move less
+                        if (HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
+                        {
+                            rotationDelta = -heldButtonMultiplier * Time.deltaTime;
+                        }
+                        // Move more
+                        else if (!HUD.RotationLess.IsPressed && HUD.RotationMore.IsPressed)
+                        {
+                            rotationDelta = heldButtonMultiplier * Time.deltaTime;
+                        }
+
+                        // Angle
+                        // Move less
+                        if (HUD.AngleLess.IsPressed && !HUD.AngleMore.IsPressed)
+                        {
+                            angleDelta = -heldButtonMultiplier * Time.deltaTime;
+                        }
+                        // Move more
+                        else if (!HUD.AngleLess.IsPressed && HUD.AngleMore.IsPressed)
+                        {
+                            angleDelta = heldButtonMultiplier * Time.deltaTime;
+                        }
+
+
+                        // Set the new values
+                        GolfBall.SetValues(GolfBall.Rotation + rotationDelta, GolfBall.Angle + angleDelta, GolfBall.Power + powerDelta.y / 50f);
+
+
+                        // Just use the one camera view for now
+
+                        // Update the shot preview
+                        GolfBall.SetShotPowerPreview(true, true, true);
+                        GolfBall.SetShotNormalPreview();
+                        GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
+
+                        // Update the camera 
+                        BallFollower.CurrentView = Follower.View.ShootingBehind;
+
+
+
+                        // Update the HUD to display the correct values
+                        HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
+
+                        // Set the power slider colour
+                        Color p = HUD.PowerSlider.Gradient.Evaluate(GolfBall.Power);
+                        p.a = HUD.PowerSliderBackgroundAlpha;
+                        HUD.PowerSlider.Background.color = p;
+
+                        break;
+
+                    // Flying mode
+                    case GolfBall.PlayState.Flying:
+                        BallFollower.CurrentView = Follower.View.Above;
+                        break;
+
+                    // Rolling mode
+                    case GolfBall.PlayState.Rolling:
+                        BallFollower.CurrentView = Follower.View.Behind;
+                        break;
+                }
             }
         }
     }
@@ -459,5 +471,6 @@ public class GameManager : MonoBehaviour
     {
         LoadFromFile,
         FixedArea,
+        Testing
     }
 }
