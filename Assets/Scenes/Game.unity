@@ -752,7 +752,6 @@ MonoBehaviour:
   TextureSettings: {fileID: 11400000, guid: 8c69bc2d118b0ae49a217aefa19d034a, type: 2}
   Seed: 0
   DoRandomSeed: 0
-  Index: 0
 --- !u!1 &1069462429095147907
 GameObject:
   m_ObjectHideFlags: 0

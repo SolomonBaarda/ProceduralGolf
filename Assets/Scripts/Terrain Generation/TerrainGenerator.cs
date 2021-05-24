@@ -446,14 +446,14 @@ public class TerrainGenerator : MonoBehaviour
 
                                     // Add the vertices
                                     original.Vertices.UnionWith(toMerge.Vertices);
-                                    //original.Vertices.IntersectWith(toMerge.Vertices);
-                                    //toMerge.Vertices.Clear()
+                                    //toMerge.Vertices.Clear();
                                 }
                             }
                         }
                     }
 
                     greens.RemoveAll(x => x.ToBeDeleted || x.Vertices.Count == 0);
+
                     Debug.Log("Total greens after: " + greens.Count);
                 }
                 )
@@ -466,7 +466,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
 
-        
+
 
         // Construct textures and meshes
         // This needs to be done in the main thread
@@ -531,7 +531,7 @@ public class TerrainGenerator : MonoBehaviour
             Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
             foreach (Vector3 point in g.Vertices)
             {
-                //Debug.DrawRay(point, Vector3.up * 10, c, 1000);
+                Debug.DrawRay(point, Vector3.up * 10, c, 1000);
             }
         }
 

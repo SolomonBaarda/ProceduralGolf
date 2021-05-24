@@ -7,31 +7,26 @@ public class Green
     private Vector3 initialPos;
     public bool ToBeDeleted = false;
 
-    public class Points
-    {
-        public TerrainMap Map;
-        public HashSet<(int, int)> Indexes = new HashSet<(int, int)>();
-    }
-
+    /// <summary>
+    /// Custom comparer used for comparing Vector3 vertices. This takes into consideration float innacuracies 
+    /// </summary>
     private class VertexComparer : IEqualityComparer<Vector3>
     {
         public bool Equals(Vector3 a, Vector3 b)
         {
-            //const float threshold = 0.01f;
             return Mathf.Approximately(a.x, b.x) && Mathf.Approximately(a.y, b.y) && Mathf.Approximately(a.z, b.z);
-            //return FastApproximate(a.x, b.x, threshold) && FastApproximate(a.y, b.y, threshold) && FastApproximate(a.z, b.z, threshold);
         }
 
         public int GetHashCode(Vector3 v)
         {
-            return v.GetHashCode();
-        }
-
-        private static bool FastApproximate(float a, float b, float threshold)
-        {
-            return ((a - b) < 0 ? ((a - b) * -1) : (a - b)) <= threshold;
+            int hashCode = 1474027755;
+            hashCode = hashCode * -1521134295 + Mathf.Round(v.x).GetHashCode();
+            hashCode = hashCode * -1521134295 + Mathf.Round(v.y).GetHashCode();
+            hashCode = hashCode * -1521134295 + Mathf.Round(v.z).GetHashCode();
+            return hashCode;
         }
     }
+
 
     public Green(Vector3 initialWorldPos)
     {
