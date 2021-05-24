@@ -31,18 +31,6 @@ public class TerrainGenerator : MonoBehaviour
     private delegate void Pass();
 
 
-    private List<Green> allGreens;
-    public int Index = 0;
-
-
-    private void OnValidate()
-    {
-        if(allGreens != null)
-        {
-            Index = Mathf.Clamp(Index, 0, allGreens.Count);
-            Debug.Log(allGreens[Index].Vertices.Count);
-        }
-    }
 
     public void Clear()
     {
@@ -385,8 +373,7 @@ public class TerrainGenerator : MonoBehaviour
                     MeshGenerator.MeshData data = null;
                     MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
 
-
-
+                    data.GenerateMeshLODData(MeshSettings);
 
                     // Calculate the greens 
                     List<Green> newGreens = new List<Green>();
@@ -440,35 +427,46 @@ public class TerrainGenerator : MonoBehaviour
 
         // FOURTH PASS
 
-        Debug.Log("Total greens before: " + greens.Count);
-
-        // Merge greens from seperate chunks
-        foreach (Green original in greens)
         {
-            if (!original.ToBeDeleted)
-            {
-                foreach (Green toMerge in greens)
+            Thread t = new Thread(
+                () =>
                 {
-                    if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && original.Vertices.Overlaps(toMerge.Vertices))
+                    Debug.Log("Total greens before: " + greens.Count);
+
+                    // Merge greens from seperate chunks
+                    foreach (Green original in greens)
                     {
-                        toMerge.ToBeDeleted = true;
+                        if (!original.ToBeDeleted)
+                        {
+                            foreach (Green toMerge in greens)
+                            {
+                                if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && original.Vertices.Overlaps(toMerge.Vertices))
+                                {
+                                    toMerge.ToBeDeleted = true;
 
-                        // Add the vertices
-                        original.Vertices.UnionWith(toMerge.Vertices);
-                        //original.Vertices.IntersectWith(toMerge.Vertices);
-                        //toMerge.Vertices.Clear()
-
-                        //toMerge.Vertices.Clear();
-                        yield return null;
+                                    // Add the vertices
+                                    original.Vertices.UnionWith(toMerge.Vertices);
+                                    //original.Vertices.IntersectWith(toMerge.Vertices);
+                                    //toMerge.Vertices.Clear()
+                                }
+                            }
+                        }
                     }
+
+                    greens.RemoveAll(x => x.ToBeDeleted || x.Vertices.Count == 0);
+                    Debug.Log("Total greens after: " + greens.Count);
                 }
+                )
+            { Name = "Pass 4: merge greens" }; ;
+            lock (threads)
+            {
+                threads.Add(t);
+                t.Start();
             }
         }
 
-        greens.RemoveAll(x => x.ToBeDeleted || x.Vertices.Count == 0);
-        allGreens = greens;
 
-        Debug.Log("Total greens after: " + greens.Count);
+        
 
         // Construct textures and meshes
         // This needs to be done in the main thread
@@ -480,8 +478,7 @@ public class TerrainGenerator : MonoBehaviour
             // Generate the mesh
             meshData.TryGetValue(map.Chunk, out MeshGenerator.MeshData data);
             Mesh mesh = null;
-            data.GenerateMesh(ref mesh, MeshSettings);
-            yield return null;
+            data.ApplyLODTOMesh(ref mesh);
 
             // Update the world object data
             Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
@@ -513,6 +510,13 @@ public class TerrainGenerator : MonoBehaviour
             MeshGenerator.OptimiseMesh(ref mesh);
             Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, TextureSettings);
             terrainChunks.Add(new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Biomes, width, height, colourMap, mesh, worldObjects));
+            yield return null;
+        }
+
+        // Wait for threads to complete
+        while (threads.Count > 0)
+        {
+            threads.RemoveAll((x) => !x.IsAlive);
             yield return null;
         }
 
@@ -745,22 +749,6 @@ public class TerrainGenerator : MonoBehaviour
         return localPositions;
     }
 
-
-    private void OnDrawGizmosSelected()
-    {
-
-
-        if (allGreens != null)
-        {
-
-            foreach (Vector3 point in allGreens[Index].Vertices)
-            {
-                Gizmos.DrawRay(point, Vector3.up * 10);
-            }
-
-        }
-
-    }
 
 
 

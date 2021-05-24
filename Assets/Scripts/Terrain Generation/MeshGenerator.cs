@@ -40,6 +40,7 @@ public static class MeshGenerator
         public Vector2[] UVs;
         //public Color[] Colours;
 
+        public LOD LODData;
 
         public MeshData(int width, int height)
         {
@@ -86,7 +87,7 @@ public static class MeshGenerator
 
 
 
-        public void GenerateMesh(ref Mesh m, in MeshSettings settings)
+        public void GenerateMeshLODData(in MeshSettings settings)
         {
             int i = settings.SimplificationIncrement;
             int newWidth = (Width - 1) / i + 1, newHeight = (Height - 1) / i + 1;
@@ -133,20 +134,52 @@ public static class MeshGenerator
             }
 
             // Create the new mesh if we need to
+            if (LODData == null)
+            {
+                LODData = new LOD();
+            }
+
+            LODData.Width = newWidth;
+            LODData.Height = newHeight;
+            LODData.LevelOfDetail = settings.LevelOfDetail;
+
+            // Overwrite the current values to prevent extra memory being allocated then removed
+            LODData.Vertices = newVertices;
+            LODData.Triangles = newTriangles;
+            LODData.UVs = newUVs;
+        }
+
+
+        public void ApplyLODTOMesh(ref Mesh m)
+        {
+            // Create the new mesh if we need to
             if (m == null)
             {
                 m = new Mesh();
             }
 
+            if (LODData == null)
+            {
+                throw new System.Exception("LOD data is null");
+            }
+
             // Overwrite the current mesh values to prevent extra memory being allocated then removed
-            m.vertices = newVertices;
-            m.triangles = newTriangles;
-            m.uv = newUVs;
-            //m.colors = newColours;
+            m.vertices = LODData.Vertices;
+            m.triangles = LODData.Triangles;
+            m.uv = LODData.UVs;
         }
 
 
 
+        public class LOD
+        {
+            public int LevelOfDetail;
+
+            public int Width, Height;
+            public Vector3[] Vertices;
+            public Vector2[] UVs;
+            public int[] Triangles;
+        }
     }
 
 
