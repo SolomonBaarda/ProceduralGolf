@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcb3b7c0eed42c2499ff4c25b3192511, type: 3}
   m_Name: Visual
   m_EditorClassIdentifier: 
-  LevelOfDetail: 3
+  LevelOfDetail: 0

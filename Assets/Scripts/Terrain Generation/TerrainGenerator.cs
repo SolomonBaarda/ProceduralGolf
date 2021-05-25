@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Profiling;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -508,7 +509,7 @@ public class TerrainGenerator : MonoBehaviour
 
             // Optimise it and generate the texture
             MeshGenerator.OptimiseMesh(ref mesh);
-            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(map, TextureSettings);
+            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(TextureGenerator.GenerateTextureDataForTerrainMap(map, TextureSettings));
             terrainChunks.Add(new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Biomes, width, height, colourMap, mesh, worldObjects));
             yield return null;
         }
