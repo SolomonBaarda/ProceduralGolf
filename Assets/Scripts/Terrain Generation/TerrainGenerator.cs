@@ -72,6 +72,9 @@ public class TerrainGenerator : MonoBehaviour
         DateTime last = before;
 
         Settings.ValidateValues();
+        TextureSettings.ValidateValues();
+        MeshSettings.ValidateValues();
+        TextureSettings.AddColoursToDictionary();
         if (Settings.TerrainLayers.Count < 1)
         {
             throw new Exception("Terrain settings must contain at least one layer");
@@ -105,7 +108,7 @@ public class TerrainGenerator : MonoBehaviour
 
         OnAbortThreads.AddListener(a);
 
-        Dictionary<Vector2Int, TerrainMap> maps = new Dictionary<Vector2Int, TerrainMap>();
+        Dictionary<Vector2Int, ChunkData> data = new Dictionary<Vector2Int, ChunkData>();
         int width = Settings.SamplePointFrequency, height = Settings.SamplePointFrequency;
         Vector3[] localVertexPositions = CalculateLocalVertexPointsForChunk(new Vector3(TerrainChunkManager.ChunkGrid.cellSize.x, 0, TerrainChunkManager.ChunkGrid.cellSize.y), Settings.SamplePointFrequency);
 
@@ -132,7 +135,7 @@ public class TerrainGenerator : MonoBehaviour
                     // Gain access to the critical region once we have calculated the data
                     lock (threadLock)
                     {
-                        maps.Add(chunk, map);
+                        data.Add(chunk, new ChunkData() { TerrainMap = map });
 
                         // Update the min and max for each of the layers
                         for (int i = 0; i < Settings.TerrainLayers.Count; i++)
@@ -179,11 +182,13 @@ public class TerrainGenerator : MonoBehaviour
         float min = float.MaxValue, max = float.MinValue;
 
         threads.Clear();
-        foreach (TerrainMap map in maps.Values)
+        foreach (ChunkData d in data.Values)
         {
             Thread t = new Thread(
                 () =>
                 {
+                    TerrainMap map = d.TerrainMap;
+
                     // Normalise each of the noise layers
                     map.NormaliseLayers(minMax);
 
@@ -312,7 +317,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
                 }
                 )
-            { Name = "Pass 2 (" + map.Chunk.x + "," + map.Chunk.y + ")" }; ;
+            { Name = "Pass 2 (" + d.TerrainMap.Chunk.x + "," + d.TerrainMap.Chunk.y + ")" }; ;
             lock (threads)
             {
                 threads.Add(t);
@@ -344,11 +349,10 @@ public class TerrainGenerator : MonoBehaviour
         // THIRD PASS
         // Normalise final heights and construct mesh data
 
-        Dictionary<Vector2Int, MeshGenerator.MeshData> meshData = new Dictionary<Vector2Int, MeshGenerator.MeshData>();
         List<Green> greens = new List<Green>();
 
         threads.Clear();
-        foreach (TerrainMap map in maps.Values)
+        foreach (ChunkData d in data.Values)
         {
             // Use height curve to calculate new height distribution
             AnimationCurve threadSafe = new AnimationCurve(Settings.HeightDistribution.keys);
@@ -356,6 +360,8 @@ public class TerrainGenerator : MonoBehaviour
             Thread t = new Thread(
                 () =>
                 {
+                    TerrainMap map = d.TerrainMap;
+
                     // Normalise each of the noise layers
                     map.NormaliseHeights(min, max);
 
@@ -371,10 +377,10 @@ public class TerrainGenerator : MonoBehaviour
                     }
 
                     // Now Calculate the mesh data for the chunk
-                    MeshGenerator.MeshData data = null;
-                    MeshGenerator.UpdateMeshData(ref data, map, localVertexPositions);
+                    MeshGenerator.MeshData meshData = null;
+                    MeshGenerator.UpdateMeshData(ref meshData, map, localVertexPositions);
 
-                    data.GenerateMeshLODData(MeshSettings);
+                    meshData.GenerateMeshLODData(MeshSettings);
 
                     // Calculate the greens 
                     List<Green> newGreens = new List<Green>();
@@ -387,7 +393,7 @@ public class TerrainGenerator : MonoBehaviour
                             int index = y * map.Width + x;
                             if (!checkedFloodFill[index] && map.Greens[index])
                             {
-                                newGreens.Add(FloodFill(map, ref checkedFloodFill, data, x, y));
+                                newGreens.Add(FloodFill(map, ref checkedFloodFill, meshData, x, y));
                             }
                         }
                     }
@@ -395,12 +401,12 @@ public class TerrainGenerator : MonoBehaviour
                     lock (threadLock)
                     {
                         // Add the mesh data 
-                        meshData.Add(map.Chunk, data);
+                        data[map.Chunk].MeshData = meshData;
                         greens.AddRange(newGreens);
                     }
                 }
                 )
-            { Name = "Pass 3 (" + map.Chunk.x + "," + map.Chunk.y + ")" }; ;
+            { Name = "Pass 3 (" + d.TerrainMap.Chunk.x + "," + d.TerrainMap.Chunk.y + ")" }; ;
             lock (threads)
             {
                 threads.Add(t);
@@ -474,24 +480,23 @@ public class TerrainGenerator : MonoBehaviour
 
         List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
 
-        foreach (TerrainMap map in maps.Values)
+        foreach (ChunkData d in data.Values)
         {
             // Generate the mesh
-            meshData.TryGetValue(map.Chunk, out MeshGenerator.MeshData data);
             Mesh mesh = null;
-            data.ApplyLODTOMesh(ref mesh);
+            d.MeshData.ApplyLODTOMesh(ref mesh);
 
             // Update the world object data
             Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
-            foreach (TerrainMap.WorldObjectData w in map.WorldObjects)
+            foreach (TerrainMap.WorldObjectData w in d.TerrainMap.WorldObjects)
             {
                 if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3, Vector3)> positions))
                 {
                     positions = new List<(Vector3, Vector3)>();
                 }
 
-                Vector3 world = map.Bounds.min + w.LocalPosition;
-                world.y += data.Vertices[w.ClosestIndexY * map.Width + w.ClosestIndexX].y;
+                Vector3 world = d.TerrainMap.Bounds.min + w.LocalPosition;
+                world.y += d.MeshData.Vertices[w.ClosestIndexY * d.TerrainMap.Width + w.ClosestIndexX].y;
 
                 // Add the new position
                 positions.Add((world, w.Rotation));
@@ -509,8 +514,8 @@ public class TerrainGenerator : MonoBehaviour
 
             // Optimise it and generate the texture
             MeshGenerator.OptimiseMesh(ref mesh);
-            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(TextureGenerator.GenerateTextureDataForTerrainMap(map, TextureSettings));
-            terrainChunks.Add(new TerrainChunkData(map.Chunk.x, map.Chunk.y, map.Bounds.center, map.Biomes, width, height, colourMap, mesh, worldObjects));
+            Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(TextureGenerator.GenerateTextureDataForTerrainMap(d.TerrainMap, TextureSettings));
+            terrainChunks.Add(new TerrainChunkData(d.TerrainMap.Chunk.x, d.TerrainMap.Chunk.y, d.TerrainMap.Bounds.center, d.TerrainMap.Biomes, width, height, colourMap, mesh, worldObjects));
             yield return null;
         }
 
@@ -757,7 +762,12 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-
+    private class ChunkData
+    {
+        public TerrainMap TerrainMap;
+        public MeshGenerator.MeshData MeshData;
+        public TextureGenerator.TextureData TextureData;
+    }
 
 
 }

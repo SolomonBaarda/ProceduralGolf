@@ -6,6 +6,7 @@ using UnityEngine;
 public class TextureSettings : VariablePreset
 {
     public List<BiomeColour> Colours = new List<BiomeColour>();
+    private Dictionary<Biome.Type, Color32> colours = new Dictionary<Biome.Type, Color32>();
 
 
 
@@ -28,25 +29,31 @@ public class TextureSettings : VariablePreset
     {
     }
 
+    public void AddColoursToDictionary()
+    {
+        colours.Clear();
+        foreach (BiomeColour c in Colours)
+        {
+            colours.Add(c.Biome, c.Colour);
+        }
+    }
 
-    public Color GetColour(Biome.Type biome)
+    public Color32 GetColour(Biome.Type biome)
     {
         // Find the colour
-        Color c = Colours.Find((x) => x.Biome == biome).Colour;
-
-        if (c == null)
+        if (colours.TryGetValue(biome, out Color32 c))
         {
-            c = Color.white;
+            return c;
         }
 
-        return c;
+        return Color.white;
     }
 
 
     [System.Serializable]
-    public struct BiomeColour
+    public class BiomeColour
     {
         public Biome.Type Biome;
-        public Color Colour;
+        public Color32 Colour;
     }
 }

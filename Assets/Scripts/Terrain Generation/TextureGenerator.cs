@@ -17,8 +17,6 @@ public static class TextureGenerator
 
     private static Color32[] GenerateColourMap(in TerrainMap map, in TextureSettings settings, out int width, out int height)
     {
-        settings.ValidateValues();
-
         width = map.Width * 2 - 2;
         height = map.Height * 2 - 2;
 

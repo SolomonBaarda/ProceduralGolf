@@ -14,18 +14,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Colours:
   - Biome: 3
-    Colour: {r: 0.09102014, g: 0.4056604, b: 0.082280174, a: 1}
+    Colour:
+      serializedVersion: 2
+      rgba: 4279533591
   - Biome: 2
-    Colour: {r: 0.05999388, g: 0.33962262, b: 0.049341388, a: 1}
+    Colour:
+      serializedVersion: 2
+      rgba: 4279526927
   - Biome: 1
-    Colour: {r: 0.04857836, g: 0.2735849, b: 0.04232821, a: 1}
+    Colour:
+      serializedVersion: 2
+      rgba: 4278865165
   - Biome: 4
-    Colour: {r: 0.63529414, g: 0.67058825, b: 0.28627452, a: 1}
+    Colour:
+      serializedVersion: 2
+      rgba: 4283279014
   - Biome: 5
-    Colour: {r: 0.1857623, g: 0.15827695, b: 0.7169812, a: 1}
+    Colour:
+      serializedVersion: 2
+      rgba: 4289937459
   - Biome: 6
-    Colour: {r: 0.69118905, g: 0.8852078, b: 0.9716981, a: 1}
+    Colour:
+      serializedVersion: 2
+      rgba: 4292461962
   - Biome: 7
-    Colour: {r: 0.91886795, g: 0.95419645, b: 1, a: 1}
+    Colour:
+      serializedVersion: 2
+      rgba: 4293382081
   - Biome: 8
-    Colour: {r: 0.91886795, g: 0.95419645, b: 1, a: 1}
+    Colour:
+      serializedVersion: 2
+      rgba: 4287203721
