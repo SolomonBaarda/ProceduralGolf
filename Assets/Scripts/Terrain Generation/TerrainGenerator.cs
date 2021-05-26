@@ -306,8 +306,9 @@ public class TerrainGenerator : MonoBehaviour
                     // Now Calculate the mesh data for the chunk
                     MeshGenerator.MeshData meshData = null;
                     MeshGenerator.UpdateMeshData(ref meshData, map, localVertexPositions);
-
                     meshData.GenerateMeshLODData(MeshSettings);
+
+                    TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForTerrainMap(d.TerrainMap, TextureSettings);
 
                     // Calculate the greens 
                     List<Green> newGreens = new List<Green>();
@@ -329,6 +330,7 @@ public class TerrainGenerator : MonoBehaviour
                     {
                         // Add the mesh data 
                         data[map.Chunk].MeshData = meshData;
+                        data[map.Chunk].TextureData = textureData;
                         greens.AddRange(newGreens);
                     }
                 }));
@@ -419,11 +421,10 @@ public class TerrainGenerator : MonoBehaviour
                 // Generate the mesh
                 Mesh mesh = null;
                 d.MeshData.ApplyLODTOMesh(ref mesh);
-
-                // Optimise it and generate the texture
+                // Optimise it
                 MeshGenerator.OptimiseMesh(ref mesh);
-
-                Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(TextureGenerator.GenerateTextureDataForTerrainMap(d.TerrainMap, TextureSettings));
+                // Generate the texture
+                Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(d.TextureData);
                 terrainChunks.Add(new TerrainChunkData(d.TerrainMap.Chunk.x, d.TerrainMap.Chunk.y, d.TerrainMap.Bounds.center, d.TerrainMap.Biomes, width, height, colourMap, mesh, d.WorldObjects));
 
                 yield return null;
@@ -433,10 +434,10 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-            System.Random r = new System.Random(0);
-
             // Calculate the holes
+            // TODO: move to thread
             List<HoleData> holeData = new List<HoleData>();
+            System.Random r = new System.Random(0);
             foreach (Green g in greens)
             {
                 holeData.Add(new HoleData(g.CalculateStart()));
@@ -447,6 +448,8 @@ public class TerrainGenerator : MonoBehaviour
                     //Debug.DrawRay(point, Vector3.up * 10, c, 1000);
                 }
             }
+
+
 
 
             // Create the object and set the data

@@ -62,7 +62,6 @@ public class GameManager : MonoBehaviour
             HUD.OnRestartPressed -= ResetGame;
             HUD.OnQuitPressed -= Application.Quit;
         }
-
     }
 
 
