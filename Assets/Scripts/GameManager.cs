@@ -350,7 +350,6 @@ public class GameManager : MonoBehaviour
 
     public void Clear()
     {
-        TerrainGenerator.Clear();
         TerrainManager.Clear();
         CourseManager.Clear();
 
