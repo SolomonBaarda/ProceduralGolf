@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class Green
 {
-    public HashSet<Vector3> Vertices = new HashSet<Vector3>(new VertexComparer());
+    public List<Point> Points = new List<Point>();
+    public List<Point> PointsOnEdge = new List<Point>();
     public bool ToBeDeleted = false;
 
     /// <summary>
@@ -29,8 +30,9 @@ public class Green
 
     public Vector3 CalculateStart()
     {
-        List<Vector3> list = new List<Vector3>(Vertices);
-        return list[new System.Random().Next(0, list.Count)];
+        //List<Vector3> list = new List<Vector3>(Vertices);
+        //return list[new System.Random().Next(0, list.Count)];
+        return Vector3.zero;
     }
 
 
@@ -58,6 +60,75 @@ public class Green
     */
 
 
+    public class Point
+    {
+        public TerrainMap Map;
+        public int indexX, indexY;
 
+        public static bool IsValidNeighbour(Point a, Point b)
+        {
+            bool validX, validY;
+
+            // Left
+            if (a.Map.Chunk.x - 1 == b.Map.Chunk.x)
+            {
+                if (a.indexX == 0 || b.indexX == a.Map.Width - 1)
+                {
+                    validX = true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            // Right
+            else if (a.Map.Chunk.x + 1 == b.Map.Chunk.x)
+            {
+                if (a.indexX == a.Map.Width - 1 || b.indexX == 0)
+                {
+                    validX = true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            // Up
+            if (a.Map.Chunk.y - 1 == b.Map.Chunk.y)
+            {
+                if (a.indexY == 0 || b.indexY == a.Map.Height - 1)
+                {
+                    validY = true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            // Down
+            else if (a.Map.Chunk.y + 1 == b.Map.Chunk.y)
+            {
+                if (a.indexY == a.Map.Height - 1 || b.indexY == 0)
+                {
+                    validY = true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return validX || validY;
+        }
+    }
 
 }

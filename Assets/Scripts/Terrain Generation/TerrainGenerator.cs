@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 
@@ -348,23 +349,36 @@ public class TerrainGenerator : MonoBehaviour
                 // Merge greens from seperate chunks
                 foreach (Green original in greens)
                 {
-                    if (!original.ToBeDeleted)
+                    if (!original.ToBeDeleted && original.PointsOnEdge.Count > 0)
                     {
                         foreach (Green toMerge in greens)
                         {
-                            if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && original.Vertices.Overlaps(toMerge.Vertices))
+                            // a.Any(a => b.Contains(a))
+                            if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && ContainsAnySharedPoints(original, toMerge))
                             {
                                 toMerge.ToBeDeleted = true;
 
                                 // Add the vertices
-                                original.Vertices.UnionWith(toMerge.Vertices);
+                                original.Points.AddRange(toMerge.Points);
                                 //toMerge.Vertices.Clear();
+                            }
+
+                            bool ContainsAnySharedPoints(Green a, Green b)
+                            {
+                                foreach(Green.Point p in a.PointsOnEdge)
+                                {
+                                    if(b.PointsOnEdge.Any(x => Green.Point.IsValidNeighbour(p, x)))
+                                    {
+                                        return true;
+                                    }
+                                }
+                                return false;
                             }
                         }
                     }
                 }
 
-                greens.RemoveAll(x => x.ToBeDeleted || x.Vertices.Count == 0);
+                greens.RemoveAll(x => x.ToBeDeleted || x.Points.Count == 0);
 
                 Debug.Log($"* Greens: {greensBefore} reduced to {greens.Count}");
             }));
@@ -439,9 +453,11 @@ public class TerrainGenerator : MonoBehaviour
                 holeData.Add(new HoleData(g.CalculateStart()));
 
                 Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-                foreach (Vector3 point in g.Vertices)
+                foreach (Green.Point point in g.Points)
                 {
-                    //Debug.DrawRay(point, Vector3.up * 10, c, 1000);
+                    ChunkData d = data[point.Map.Chunk];
+                    
+                    Debug.DrawRay(d.TerrainMap.Bounds.min + d.MeshData.Vertices[point.indexY * d.MeshData.Width + point.indexX], Vector3.up * 10, c, 1000);
                 }
             }
 
@@ -607,8 +623,14 @@ public class TerrainGenerator : MonoBehaviour
         if (!checkedFloodFill[index])
         {
             checkedFloodFill[index] = true;
-            Vector3 pos = map.Bounds.min + data.Vertices[index];
-            green.Vertices.Add(pos);
+            //Vector3 pos = map.Bounds.min + data.Vertices[index];
+            //green.Vertices.Add(pos);
+            Green.Point p = new Green.Point() { Map = map, indexX = x, indexY = y };
+            green.Points.Add(p);
+            if(x == 0 || y == 0 || x == map.Width - 1 || y == map.Height - 1)
+            {
+                green.PointsOnEdge.Add(p);
+            }
 
             // Check north
             int newY = y + 1;
