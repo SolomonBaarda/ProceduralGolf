@@ -13,7 +13,7 @@ public class GameManagerEditor : Editor
     {
         DrawDefaultInspector();
 
-        if (G.TerrainMode == GameManager.TerrainGenerationMethod.FixedArea)
+        if (G.TerrainMode == GameManager.TerrainGenerationMethod.Testing)
         {
             if (GUILayout.Button("Generate again"))
             {
@@ -28,10 +28,12 @@ public class GameManagerEditor : Editor
         }
         */
 
+        /*
         if (GUILayout.Button("Update world save references"))
         {
             UpdateAllWorldSaveReferences();
         }
+        */
     }
 
 

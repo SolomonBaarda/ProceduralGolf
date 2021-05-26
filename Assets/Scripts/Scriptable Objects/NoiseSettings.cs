@@ -28,8 +28,8 @@ public class NoiseSettings : VariablePreset
 
     public override void ValidateValues()
     {
-        Frequency = Mathf.Max(Frequency, 0.0001f);
+        Frequency = Mathf.Max(Frequency, 0.000001f);
         Octaves = Mathf.Max(Octaves, 1);
-        Lacunarity = Mathf.Max(Lacunarity, 1);
+        Lacunarity = Mathf.Max(Lacunarity, 0);
     }
 }

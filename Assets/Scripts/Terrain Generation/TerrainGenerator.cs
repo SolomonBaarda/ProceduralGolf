@@ -15,16 +15,12 @@ public class TerrainGenerator : MonoBehaviour
     public MeshSettings MeshSettings;
     [Space]
     public TerrainSettings Settings;
-
     [Space]
     public TextureSettings TextureSettings;
 
     [Space]
     public int Seed = 0;
     public bool DoRandomSeed = false;
-
-    private delegate void Pass();
-
 
 
     public void Generate(List<Vector2Int> chunks, GameManager.LoadLevel callback)
@@ -679,9 +675,6 @@ public class TerrainGenerator : MonoBehaviour
 
         return localPositions;
     }
-
-
-
 
 
 
