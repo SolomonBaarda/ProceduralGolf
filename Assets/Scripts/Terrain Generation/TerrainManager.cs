@@ -86,9 +86,14 @@ public class TerrainManager : MonoBehaviour
         // Load terrain
         foreach (TerrainChunkData chunk in data.Chunks)
         {
+            DateTime a = DateTime.Now;
+
             // Instantiate the terrain
             TerrainChunk c = TerrainChunkManager.TryAddChunk(chunk, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
             // And instantiate all objects
+
+            //Debug.Log($"Time for chunk: {(DateTime.Now - a).TotalSeconds.ToString("0.00")}");
+            //a = DateTime.Now;
 
             foreach (WorldObjectData worldObjectData in chunk.WorldObjects)
             {
@@ -97,6 +102,8 @@ public class TerrainManager : MonoBehaviour
                     Instantiate(worldObjectData.Prefab, worldPosition.Item1, Quaternion.Euler(worldPosition.Item2), c.transform);
                 }
             }
+
+            //Debug.Log($"Time objects: {(DateTime.Now - a).TotalSeconds.ToString("0.00")}");
 
             // Wait for next frame
             yield return null;

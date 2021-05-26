@@ -360,6 +360,7 @@ public class TerrainGenerator : MonoBehaviour
 
                                 // Add the vertices
                                 original.Points.AddRange(toMerge.Points);
+                                original.PointsOnEdge.AddRange(toMerge.PointsOnEdge);
                                 //toMerge.Vertices.Clear();
                             }
 
@@ -367,7 +368,7 @@ public class TerrainGenerator : MonoBehaviour
                             {
                                 foreach(Green.Point p in a.PointsOnEdge)
                                 {
-                                    if(b.PointsOnEdge.Any(x => Green.Point.IsValidNeighbour(p, x)))
+                                    if(b.PointsOnEdge.Any(x => TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, x.Map.Chunk, x.indexX, x.indexY, p.Map.Width, p.Map.Height)))
                                     {
                                         return true;
                                     }
