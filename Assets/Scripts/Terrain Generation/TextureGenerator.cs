@@ -3,23 +3,9 @@ using UnityEngine;
 
 public static class TextureGenerator
 {
-    public static TextureData GenerateTextureDataForTerrainMap(in TerrainMap terrainMap, in TextureSettings settings)
+    public static TextureData GenerateTextureDataForTerrainMap(in TerrainMap map, in TextureSettings settings)
     {
-        Color32[] colours = GenerateColourMap(terrainMap, settings, out int width, out int height);
-        TextureData d = new TextureData(width, height, colours, settings);
-
-        // Reverse the colour map - rotates 180 degrees 
-        // For some reason the texture needs this
-        Array.Reverse(d.ColourMap);
-
-        return d;
-    }
-
-    private static Color32[] GenerateColourMap(in TerrainMap map, in TextureSettings settings, out int width, out int height)
-    {
-        width = map.Width * 2 - 2;
-        height = map.Height * 2 - 2;
-
+        int width = map.Width * 2 - 2, height = map.Height * 2 - 2;
         Color32[] colours = new Color32[width * height];
 
         for (int y = 0; y < map.Height; y++)
@@ -37,13 +23,15 @@ public static class TextureGenerator
                 {
                     if (x >= 0 && x < width && y >= 0 && y < height)
                     {
-                        colours[y * width + x] = c;
+                        // Add the colours in reverse order 
+                        // This rotates the texture 180 degrees so it matches with the terrain
+                        colours[colours.Length - (y * width + x) - 1] = c;
                     }
                 }
             }
         }
 
-        return colours;
+        return new TextureData(width, height, colours, settings);
     }
 
     public static Texture2D GenerateBiomeColourMap(in TextureData data)

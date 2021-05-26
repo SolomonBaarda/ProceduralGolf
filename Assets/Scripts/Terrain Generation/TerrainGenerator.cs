@@ -123,6 +123,7 @@ public class TerrainGenerator : MonoBehaviour
             }
 
             yield return WaitForThreadsToComplete(threads);
+            Debug.Log($"* First pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
             last = DateTime.Now;
         }
 
@@ -267,7 +268,7 @@ public class TerrainGenerator : MonoBehaviour
             }
 
             yield return WaitForThreadsToComplete(threads);
-            //Debug.Log("* Second pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+            Debug.Log($"* Second pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
             last = DateTime.Now;
         }
 
@@ -334,7 +335,7 @@ public class TerrainGenerator : MonoBehaviour
             }
 
             yield return WaitForThreadsToComplete(threads);
-            //Debug.Log("* Third pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+            Debug.Log($"* Third pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
             last = DateTime.Now;
         }
 
@@ -367,14 +368,50 @@ public class TerrainGenerator : MonoBehaviour
 
                 greens.RemoveAll(x => x.ToBeDeleted || x.Vertices.Count == 0);
 
-                Debug.Log($"* {greensBefore} greens reduced to {greens.Count}");
+                Debug.Log($"* Greens: {greensBefore} reduced to {greens.Count}");
             }));
 
+            // Update the world objects not in the main thread
+            StartThread(threads, $"Pass 4: update world objects", new Thread(() =>
+            {
+                foreach (ChunkData d in data.Values)
+                {
+                    // Update the world object data
+                    Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
+                    foreach (TerrainMap.WorldObjectData w in d.TerrainMap.WorldObjects)
+                    {
+                        if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3, Vector3)> positions))
+                        {
+                            positions = new List<(Vector3, Vector3)>();
+                        }
+
+                        Vector3 world = d.TerrainMap.Bounds.min + w.LocalPosition;
+                        world.y += d.MeshData.Vertices[w.ClosestIndexY * d.TerrainMap.Width + w.ClosestIndexX].y;
+
+                        // Add the new position
+                        positions.Add((world, w.Rotation));
+                        worldObjectDictionary[w.Prefab] = positions;
+                    }
+                    List<WorldObjectData> worldObjects = new List<WorldObjectData>();
+                    foreach (KeyValuePair<GameObject, List<(Vector3, Vector3)>> pair in worldObjectDictionary)
+                    {
+                        worldObjects.Add(new WorldObjectData()
+                        {
+                            Prefab = pair.Key,
+                            WorldPositions = pair.Value,
+                        });
+                    }
+
+                    lock (threadLock)
+                    {
+                        data[d.TerrainMap.Chunk].WorldObjects = worldObjects;
+                    }
+                }
+            }));
 
 
             // Construct textures and meshes
             // This needs to be done in the main thread
-
             List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
 
             foreach (ChunkData d in data.Values)
@@ -383,36 +420,12 @@ public class TerrainGenerator : MonoBehaviour
                 Mesh mesh = null;
                 d.MeshData.ApplyLODTOMesh(ref mesh);
 
-                // Update the world object data
-                Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
-                foreach (TerrainMap.WorldObjectData w in d.TerrainMap.WorldObjects)
-                {
-                    if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3, Vector3)> positions))
-                    {
-                        positions = new List<(Vector3, Vector3)>();
-                    }
-
-                    Vector3 world = d.TerrainMap.Bounds.min + w.LocalPosition;
-                    world.y += d.MeshData.Vertices[w.ClosestIndexY * d.TerrainMap.Width + w.ClosestIndexX].y;
-
-                    // Add the new position
-                    positions.Add((world, w.Rotation));
-                    worldObjectDictionary[w.Prefab] = positions;
-                }
-                List<WorldObjectData> worldObjects = new List<WorldObjectData>();
-                foreach (KeyValuePair<GameObject, List<(Vector3, Vector3)>> pair in worldObjectDictionary)
-                {
-                    worldObjects.Add(new WorldObjectData()
-                    {
-                        Prefab = pair.Key,
-                        WorldPositions = pair.Value,
-                    });
-                }
-
                 // Optimise it and generate the texture
                 MeshGenerator.OptimiseMesh(ref mesh);
+
                 Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(TextureGenerator.GenerateTextureDataForTerrainMap(d.TerrainMap, TextureSettings));
-                terrainChunks.Add(new TerrainChunkData(d.TerrainMap.Chunk.x, d.TerrainMap.Chunk.y, d.TerrainMap.Bounds.center, d.TerrainMap.Biomes, width, height, colourMap, mesh, worldObjects));
+                terrainChunks.Add(new TerrainChunkData(d.TerrainMap.Chunk.x, d.TerrainMap.Chunk.y, d.TerrainMap.Bounds.center, d.TerrainMap.Biomes, width, height, colourMap, mesh, d.WorldObjects));
+
                 yield return null;
             }
 
@@ -442,10 +455,10 @@ public class TerrainGenerator : MonoBehaviour
 
 
             // FINISHED GENERATING
-            //Debug.Log("* Fourth pass in " + (DateTime.Now - last).TotalSeconds.ToString("0.0") + " seconds.");
+            Debug.Log($"* Fourth pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
             last = DateTime.Now;
 
-            Debug.Log("* Generated terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds.");
+            Debug.Log($"* Generated terrain in { (DateTime.Now - before).TotalSeconds.ToString("0.0") } seconds.");
 
             IsGenerating = false;
 
@@ -676,6 +689,7 @@ public class TerrainGenerator : MonoBehaviour
         public TerrainMap TerrainMap;
         public MeshGenerator.MeshData MeshData;
         public TextureGenerator.TextureData TextureData;
+        public List<WorldObjectData> WorldObjects;
     }
 
 
