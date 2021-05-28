@@ -752,6 +752,9 @@ MonoBehaviour:
   TextureSettings: {fileID: 11400000, guid: 9e788a4a2ac8e7d49ab7dbea7ef4e3e1, type: 2}
   Seed: 0
   DoRandomSeed: 0
+  OnGenerationStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1069462429095147907
 GameObject:
   m_ObjectHideFlags: 0

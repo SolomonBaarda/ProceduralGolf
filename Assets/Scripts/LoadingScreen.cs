@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using TMPro;
 
 public class LoadingScreen : MonoBehaviour
 {
@@ -7,6 +8,8 @@ public class LoadingScreen : MonoBehaviour
     public static LoadingScreen Instance;
 
     public Transform Parent;
+
+    public TMP_Text Info; 
 
 
     void Awake()

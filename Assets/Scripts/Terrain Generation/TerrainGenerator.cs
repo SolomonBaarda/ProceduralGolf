@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -22,6 +23,8 @@ public class TerrainGenerator : MonoBehaviour
     [Space]
     public int Seed = 0;
     public bool DoRandomSeed = false;
+
+    public UnityEvent<string> OnGenerationStateChanged = new UnityEvent<string>();
 
 
     public void Generate(List<Vector2Int> chunks, GameManager.LoadLevel callback)
@@ -79,6 +82,7 @@ public class TerrainGenerator : MonoBehaviour
         Dictionary<Vector2Int, ChunkData> data = new Dictionary<Vector2Int, ChunkData>();
 
         // FIRST PASS
+        OnGenerationStateChanged.Invoke("First pass: generating random noise");
         // Generate the initial chunks
         List<(float, float)> terrainLayerHeightsMinMax = new List<(float, float)>();
 
@@ -128,6 +132,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // SECOND PASS
+        OnGenerationStateChanged.Invoke("Second pass: calculating terrain values");
         float minHeight = float.MaxValue, maxHeight = float.MinValue;
         {
             foreach (ChunkData d in data.Values)
@@ -272,6 +277,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // THIRD PASS
+        OnGenerationStateChanged.Invoke("Third pass: generating mesh and texture data");
         // Normalise final heights and construct mesh data
 
         List<Green> greens = new List<Green>();
@@ -318,7 +324,7 @@ public class TerrainGenerator : MonoBehaviour
                             int index = y * map.Width + x;
                             if (!checkedFloodFill[index] && map.Greens[index])
                             {
-                                newGreens.Add(FloodFill(map, ref checkedFloodFill, meshData, x, y));
+                                newGreens.Add(FloodFill(map, ref checkedFloodFill, x, y));
                             }
                         }
                     }
@@ -340,10 +346,13 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // FOURTH PASS
+        OnGenerationStateChanged.Invoke("Fourth pass: constructing meshes");
         {
             // Merge the greens not in the main thread
             StartThread(threads, "Pass 4: merge greens", new Thread(() =>
             {
+                DateTime a = DateTime.Now;
+
                 int greensBefore = greens.Count;
 
                 // Merge greens from seperate chunks
@@ -353,8 +362,7 @@ public class TerrainGenerator : MonoBehaviour
                     {
                         foreach (Green toMerge in greens)
                         {
-                            // a.Any(a => b.Contains(a))
-                            if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && ContainsAnySharedPoints(original, toMerge))
+                            if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && toMerge.PointsOnEdge.Count > 0 && ContainsAnySharedPoints(original, toMerge))
                             {
                                 toMerge.ToBeDeleted = true;
 
@@ -364,13 +372,16 @@ public class TerrainGenerator : MonoBehaviour
                                 //toMerge.Vertices.Clear();
                             }
 
-                            bool ContainsAnySharedPoints(Green a, Green b)
+                            static bool ContainsAnySharedPoints(Green a, Green b)
                             {
-                                foreach(Green.Point p in a.PointsOnEdge)
+                                foreach (Green.Point p in a.PointsOnEdge)
                                 {
-                                    if(b.PointsOnEdge.Any(x => TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, x.Map.Chunk, x.indexX, x.indexY, p.Map.Width, p.Map.Height)))
+                                    foreach(Green.Point other in b.PointsOnEdge)
                                     {
-                                        return true;
+                                        if(TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, other.Map.Chunk, other.indexX, other.indexY, p.Map.Width, p.Map.Height))
+                                        {
+                                            return true;
+                                        }
                                     }
                                 }
                                 return false;
@@ -381,7 +392,7 @@ public class TerrainGenerator : MonoBehaviour
 
                 greens.RemoveAll(x => x.ToBeDeleted || x.Points.Count == 0);
 
-                Debug.Log($"* Greens: {greensBefore} reduced to {greens.Count}");
+                Debug.Log($"* Greens: {greensBefore} reduced to {greens.Count} in {(DateTime.Now-a).TotalSeconds.ToString("0.0")} seconds");
             }));
 
             // Update the world objects not in the main thread
@@ -422,7 +433,6 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }));
 
-
             // Construct textures and meshes
             // This needs to be done in the main thread
             List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
@@ -444,7 +454,6 @@ public class TerrainGenerator : MonoBehaviour
             yield return WaitForThreadsToComplete(threads);
 
 
-
             // Calculate the holes
             // TODO: move to thread
             List<HoleData> holeData = new List<HoleData>();
@@ -457,7 +466,7 @@ public class TerrainGenerator : MonoBehaviour
                 foreach (Green.Point point in g.Points)
                 {
                     ChunkData d = data[point.Map.Chunk];
-                    
+
                     Debug.DrawRay(d.TerrainMap.Bounds.min + d.MeshData.Vertices[point.indexY * d.MeshData.Width + point.indexX], Vector3.up * 10, c, 1000);
                 }
             }
@@ -474,7 +483,9 @@ public class TerrainGenerator : MonoBehaviour
             Debug.Log($"* Fourth pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
             last = DateTime.Now;
 
-            Debug.Log($"* Generated terrain in { (DateTime.Now - before).TotalSeconds.ToString("0.0") } seconds.");
+            double totalTime = (DateTime.Now - before).TotalSeconds;
+            Debug.Log($"* Generated terrain in { totalTime.ToString("0.0") } seconds.");
+            OnGenerationStateChanged.Invoke($"Finished generating terrain. Completed in {totalTime.ToString("0.0")} seconds");
 
             IsGenerating = false;
 
@@ -592,11 +603,10 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private Green FloodFill(TerrainMap map, ref bool[] checkedFloodFill, MeshGenerator.MeshData data, int x, int y)
+    private Green FloodFill(TerrainMap map, ref bool[] checkedFloodFill, int x, int y)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
 
-        int index = y * map.Width + x;
         Green green = new Green();
         q.Enqueue((x, y));
 
@@ -607,18 +617,18 @@ public class TerrainGenerator : MonoBehaviour
 
             for (int west = pos.Item1; west >= 0 && map.Greens[pos.Item2 * map.Width + west]; west--)
             {
-                UpdateGreenPositionHorizontal(map, ref checkedFloodFill, data, green, q, west, pos.Item2);
+                UpdateGreenPositionHorizontal(map, ref checkedFloodFill, green, q, west, pos.Item2);
             }
             for (int east = pos.Item1; east < map.Width && map.Greens[pos.Item2 * map.Width + east]; east++)
             {
-                UpdateGreenPositionHorizontal(map, ref checkedFloodFill, data, green, q, east, pos.Item2);
+                UpdateGreenPositionHorizontal(map, ref checkedFloodFill, green, q, east, pos.Item2);
             }
         }
 
         return green;
     }
 
-    private void UpdateGreenPositionHorizontal(TerrainMap map, ref bool[] checkedFloodFill, MeshGenerator.MeshData data, Green green, Queue<(int, int)> q, int x, int y)
+    private void UpdateGreenPositionHorizontal(TerrainMap map, ref bool[] checkedFloodFill, Green green, Queue<(int, int)> q, int x, int y)
     {
         int index = y * map.Width + x;
         if (!checkedFloodFill[index])
@@ -628,7 +638,7 @@ public class TerrainGenerator : MonoBehaviour
             //green.Vertices.Add(pos);
             Green.Point p = new Green.Point() { Map = map, indexX = x, indexY = y };
             green.Points.Add(p);
-            if(x == 0 || y == 0 || x == map.Width - 1 || y == map.Height - 1)
+            if (x == 0 || y == 0 || x == map.Width - 1 || y == map.Height - 1)
             {
                 green.PointsOnEdge.Add(p);
             }
@@ -653,7 +663,6 @@ public class TerrainGenerator : MonoBehaviour
     {
         // Calculate the centre chunk
         Vector2Int centre = TerrainChunkManager.WorldToChunk(position);
-
         HashSet<Vector2Int> nearbyChunks = new HashSet<Vector2Int>();
 
         // Generate in that area
