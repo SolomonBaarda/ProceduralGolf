@@ -101,5 +101,5 @@ MonoBehaviour:
     UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0.6
+      NoiseThresholdMin: 0.7
       NoiseThresholdMax: 1

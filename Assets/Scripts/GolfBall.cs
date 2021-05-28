@@ -400,7 +400,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-    public void HoleReached(HoleData hole, DateTime reached)
+    public void HoleReached(CourseData hole, DateTime reached)
     {
         // Add the hole 
         Progress.HolesReached.Push(new Stats.Pot(hole, reached, Progress.ShotsForThisHole));
@@ -434,12 +434,12 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         public class Pot
         {
-            public HoleData Hole;
+            public CourseData Hole;
             public DateTime TimeReached;
 
             public int ShotsTaken;
 
-            public Pot(in HoleData reached, in DateTime time, in int shots)
+            public Pot(in CourseData reached, in DateTime time, in int shots)
             {
                 Hole = reached;
                 TimeReached = time;

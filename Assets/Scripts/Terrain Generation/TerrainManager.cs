@@ -140,11 +140,12 @@ public class TerrainManager : MonoBehaviour
         {
             System.Random r = new System.Random(0);
             // Calculate the holes
-            foreach (HoleData h in CurrentLoadedTerrain.GolfHoles)
+            foreach (CourseData h in CurrentLoadedTerrain.GolfHoles)
             {
                 Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
                 Gizmos.color = c;
-                Gizmos.DrawLine(h.Centre, h.Centre + Vector3.up * 100);
+                Gizmos.DrawLine(h.Start, h.Start + Vector3.up * 100);
+                Gizmos.DrawLine(h.Hole, h.Hole + Vector3.up * 500);
             }
         }
 

@@ -27,6 +27,8 @@ public class TerrainGenerator : MonoBehaviour
     public UnityEvent<string> OnGenerationStateChanged = new UnityEvent<string>();
 
 
+    public const int GreenMinVertexCount = 100;
+
     public void Generate(List<Vector2Int> chunks, GameManager.LoadLevel callback)
     {
         if (IsGenerating)
@@ -376,9 +378,9 @@ public class TerrainGenerator : MonoBehaviour
                             {
                                 foreach (Green.Point p in a.PointsOnEdge)
                                 {
-                                    foreach(Green.Point other in b.PointsOnEdge)
+                                    foreach (Green.Point other in b.PointsOnEdge)
                                     {
-                                        if(TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, other.Map.Chunk, other.indexX, other.indexY, p.Map.Width, p.Map.Height))
+                                        if (TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, other.Map.Chunk, other.indexX, other.indexY, p.Map.Width, p.Map.Height))
                                         {
                                             return true;
                                         }
@@ -390,9 +392,9 @@ public class TerrainGenerator : MonoBehaviour
                     }
                 }
 
-                greens.RemoveAll(x => x.ToBeDeleted || x.Points.Count == 0);
+                greens.RemoveAll(x => x.ToBeDeleted || x.Points.Count < GreenMinVertexCount);
 
-                Debug.Log($"* Greens: {greensBefore} reduced to {greens.Count} in {(DateTime.Now-a).TotalSeconds.ToString("0.0")} seconds");
+                Debug.Log($"* Greens: {greensBefore} reduced to {greens.Count} in {(DateTime.Now - a).TotalSeconds.ToString("0.0")} seconds");
             }));
 
             // Update the world objects not in the main thread
@@ -456,19 +458,26 @@ public class TerrainGenerator : MonoBehaviour
 
             // Calculate the holes
             // TODO: move to thread
-            List<HoleData> holeData = new List<HoleData>();
+            List<CourseData> holeData = new List<CourseData>();
             System.Random r = new System.Random(0);
             foreach (Green g in greens)
             {
-                holeData.Add(new HoleData(g.CalculateStart()));
+                ChunkData d = data[g.Points[0].Map.Chunk];
+                Vector3 start = d.TerrainMap.Bounds.min + d.MeshData.Vertices[g.Points[0].indexY * d.MeshData.Width + g.Points[0].indexX], finish = start;
 
                 Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-                foreach (Green.Point point in g.Points)
+                foreach (Green.Point p in g.Points)
                 {
-                    ChunkData d = data[point.Map.Chunk];
 
-                    Debug.DrawRay(d.TerrainMap.Bounds.min + d.MeshData.Vertices[point.indexY * d.MeshData.Width + point.indexX], Vector3.up * 10, c, 1000);
+                    d = data[p.Map.Chunk];
+
+                    Vector3 pos = d.TerrainMap.Bounds.min + d.MeshData.Vertices[p.indexY * d.MeshData.Width + p.indexX];
+                    Debug.DrawRay(pos, Vector3.up * 10, c, 1000);
+
+
                 }
+
+                holeData.Add(new CourseData(start, finish));
             }
 
 

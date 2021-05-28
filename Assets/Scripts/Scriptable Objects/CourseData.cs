@@ -2,24 +2,25 @@
 using UnityEngine;
 
 [Serializable]
-public class HoleData
+public class CourseData
 {
-    public Vector3 Centre;
+    public Vector3 Start, Hole;
 
     public const int NotAssignedHoleNumber = -1;
     public int Number = NotAssignedHoleNumber;
 
 
-    public HoleData(Vector3 centre)
+    public CourseData(Vector3 start, Vector3 finish)
     {
-        Centre = centre;
+        Start = start;
+        Hole = finish;
     }
 
 
     public bool BallWasPotted(int layerMask)
     {
         const float radius = 0.2f;
-        return Physics.CheckSphere(Centre, radius, layerMask);
+        return Physics.CheckSphere(Hole, radius, layerMask);
     }
 
 

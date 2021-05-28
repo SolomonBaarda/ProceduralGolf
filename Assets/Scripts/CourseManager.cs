@@ -12,7 +12,7 @@ public class CourseManager : MonoBehaviour
     public bool HolesHaveBeenOrdered { get; private set; }
 
 
-    private Dictionary<int, HoleData> Holes = new Dictionary<int, HoleData>();
+    private Dictionary<int, CourseData> Holes = new Dictionary<int, CourseData>();
     public int NumberOfHoles => Holes.Count;
 
     public UnityAction OnHoleCompleted;
@@ -40,7 +40,7 @@ public class CourseManager : MonoBehaviour
     private void FixedUpdate()
     {
         // Get the next hole
-        if (CalculateNextHole(out HoleData target))
+        if (CalculateNextHole(out CourseData target))
         {
             // Ball was potted this frame
             if (target.BallWasPotted(GolfBall.Mask))
@@ -61,10 +61,10 @@ public class CourseManager : MonoBehaviour
             }
 
             // Set the position
-            NextHoleBeacon.transform.position = target.Centre;
+            NextHoleBeacon.transform.position = target.Hole;
 
             // Calculate the beacon width
-            float distanceSqr = (target.Centre - GolfBall.Position).sqrMagnitude;
+            float distanceSqr = (target.Hole - GolfBall.Position).sqrMagnitude;
             float maximumDistance = TerrainChunkManager.ChunkSizeWorldUnits * 2;
             float percent = Mathf.Clamp(distanceSqr / (maximumDistance * maximumDistance), 0f, 1f);
 
@@ -73,13 +73,13 @@ public class CourseManager : MonoBehaviour
 
 
             // Set the points
-            NextHoleBeacon.SetPoints(target.Centre, TerrainManager.UP);
+            NextHoleBeacon.SetPoints(target.Hole, TerrainManager.UP);
         }
 
     }
 
 
-    private bool CalculateNextHole(out HoleData nextHole)
+    private bool CalculateNextHole(out CourseData nextHole)
     {
         return Holes.TryGetValue(GolfBall.Progress.LastHoleReached + 1, out nextHole);
     }
@@ -87,29 +87,29 @@ public class CourseManager : MonoBehaviour
 
     public void TeleportBallToNextHole()
     {
-        if (CalculateNextHole(out HoleData next))
+        if (CalculateNextHole(out CourseData next))
         {
-            MoveGolfBallAndWaitForNextShot(next.Centre);
+            MoveGolfBallAndWaitForNextShot(next.Start);
             Debug.Log("Teleported ball to hole " + next.Number + ".");
         }
     }
 
 
-    public void UpdateGolfHoles(IEnumerable<HoleData> holes)
+    public void UpdateGolfHoles(IEnumerable<CourseData> holes)
     {
         // Get all of the holes on the course
-        HashSet<HoleData> allHolesHash = new HashSet<HoleData>(Holes.Values);
+        HashSet<CourseData> allHolesHash = new HashSet<CourseData>(Holes.Values);
         allHolesHash.UnionWith(holes);
 
         if (allHolesHash.Count > 0)
         {
-            List<HoleData> allHoles = allHolesHash.ToList();
+            List<CourseData> allHoles = allHolesHash.ToList();
 
             // If we need to assign the first hole
-            if (!GetHole(0, out HoleData _))
+            if (!GetHole(0, out CourseData _))
             {
                 // Set the centre hole to be the first hole
-                if (GetClosestTo(TerrainManager.ORIGIN, allHoles, out HoleData closest))
+                if (GetClosestTo(TerrainManager.ORIGIN, allHoles, out CourseData closest))
                 {
                     allHoles.Remove(closest);
 
@@ -130,7 +130,7 @@ public class CourseManager : MonoBehaviour
                 // Sort the holes by number and distance
                 allHoles.Sort((x, y) => CompareHoleDistanceTo(x, y, TerrainManager.ORIGIN));
 
-                HoleData h = allHoles[0];
+                CourseData h = allHoles[0];
                 allHoles.Remove(h);
 
                 h.Number = GetNextHoleNumber(Holes.Keys);
@@ -144,7 +144,7 @@ public class CourseManager : MonoBehaviour
 
 
 
-    public bool GetHole(int number, out HoleData hole)
+    public bool GetHole(int number, out CourseData hole)
     {
         return Holes.TryGetValue(number, out hole);
     }
@@ -157,15 +157,15 @@ public class CourseManager : MonoBehaviour
 
 
 
-    private int CompareHoleDistanceTo(HoleData a, HoleData b, Vector3 position)
+    private int CompareHoleDistanceTo(CourseData a, CourseData b, Vector3 position)
     {
-        return (position - a.Centre).sqrMagnitude.CompareTo((position - b.Centre).sqrMagnitude);
+        return (position - a.Hole).sqrMagnitude.CompareTo((position - b.Hole).sqrMagnitude);
     }
 
 
     public void Restart()
     {
-        if (GetHole(0, out HoleData start))
+        if (GetHole(0, out CourseData start))
         {
             GolfBall.Progress.Clear();
 
@@ -191,12 +191,12 @@ public class CourseManager : MonoBehaviour
     }
 
 
-    public void RespawnGolfBall(HoleData hole)
+    public void RespawnGolfBall(CourseData hole)
     {
         GolfBall.HoleReached(hole, DateTime.Now);
 
         // And move the ball there
-        MoveGolfBallAndWaitForNextShot(TerrainManager.CalculateSpawnPoint(GolfBall.Radius, hole.Centre));
+        MoveGolfBallAndWaitForNextShot(TerrainManager.CalculateSpawnPoint(GolfBall.Radius, hole.Start));
     }
 
 
@@ -215,7 +215,7 @@ public class CourseManager : MonoBehaviour
 
 
 
-    private bool GetClosestTo(Vector3 pos, IEnumerable<HoleData> collection, out HoleData closest)
+    private bool GetClosestTo(Vector3 pos, IEnumerable<CourseData> collection, out CourseData closest)
     {
         closest = null;
 
@@ -224,10 +224,10 @@ public class CourseManager : MonoBehaviour
         {
             closest = collection.FirstOrDefault();
 
-            foreach (HoleData h in collection)
+            foreach (CourseData h in collection)
             {
                 float posMag = pos.sqrMagnitude;
-                if (h.Centre.sqrMagnitude - posMag < closest.Centre.sqrMagnitude - posMag)
+                if (h.Start.sqrMagnitude - posMag < closest.Start.sqrMagnitude - posMag)
                 {
                     closest = h;
                 }
