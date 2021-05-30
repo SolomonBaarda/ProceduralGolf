@@ -376,17 +376,15 @@ public class TerrainGenerator : MonoBehaviour
 
                             static bool ContainsAnySharedPoints(Green a, Green b)
                             {
-                                foreach (Green.Point p in a.PointsOnEdge)
+                                int total = 0;
+
+                                foreach (Green.Point p in b.PointsOnEdge)
                                 {
-                                    foreach (Green.Point other in b.PointsOnEdge)
-                                    {
-                                        if (TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, other.Map.Chunk, other.indexX, other.indexY, p.Map.Width, p.Map.Height))
-                                        {
-                                            return true;
-                                        }
-                                    }
+                                    total += a.PointsOnEdge.RemoveAll(other => TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, other.Map.Chunk, other.indexX, other.indexY, p.Map.Width, p.Map.Height));
                                 }
-                                return false;
+
+                                //Debug.Log("Total removed " + total);
+                                return total > 0;
                             }
                         }
                     }
@@ -459,27 +457,26 @@ public class TerrainGenerator : MonoBehaviour
             // Calculate the holes
             // TODO: move to thread
             List<CourseData> holeData = new List<CourseData>();
-            System.Random r = new System.Random(0);
-            foreach (Green g in greens)
             {
-                ChunkData d = data[g.Points[0].Map.Chunk];
-                Vector3 start = d.TerrainMap.Bounds.min + d.MeshData.Vertices[g.Points[0].indexY * d.MeshData.Width + g.Points[0].indexX], finish = start;
-
-                Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-                foreach (Green.Point p in g.Points)
+                System.Random r = new System.Random(0);
+                foreach (Green g in greens)
                 {
+                    ChunkData d = data[g.Points[0].Map.Chunk];
+                    Vector3 start = d.TerrainMap.Bounds.min + d.MeshData.Vertices[g.Points[0].indexY * d.MeshData.Width + g.Points[0].indexX], finish = start;
 
-                    d = data[p.Map.Chunk];
+                    Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
+                    foreach (Green.Point p in g.Points)
+                    {
 
-                    Vector3 pos = d.TerrainMap.Bounds.min + d.MeshData.Vertices[p.indexY * d.MeshData.Width + p.indexX];
-                    Debug.DrawRay(pos, Vector3.up * 10, c, 1000);
+                        d = data[p.Map.Chunk];
 
+                        Vector3 pos = d.TerrainMap.Bounds.min + d.MeshData.Vertices[p.indexY * d.MeshData.Width + p.indexX];
+                        Debug.DrawRay(pos, Vector3.up * 10, c, 1000);
+                    }
 
+                    holeData.Add(new CourseData(start, finish));
                 }
-
-                holeData.Add(new CourseData(start, finish));
             }
-
 
 
 
