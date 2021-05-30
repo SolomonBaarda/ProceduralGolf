@@ -23,20 +23,22 @@ public class TerrainSettings : VariablePreset
     [Header("Greens")]
     public List<Green> Greens;
 
-    //[Header("Holes")]
-    //public List<Hole> Holes;
+    [Header("Holes")]
+    public float MinDistanceBetweenHoles = 100;
+    public List<Hole> Holes;
 
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
     /// </summary>
     public readonly int SamplePointFrequency = 241;
 
+    public readonly int GreenMinVertexCount = 100;
+
+
 
     public override void ValidateValues()
     {
     }
-
-
 
 
     [Serializable]
@@ -52,7 +54,7 @@ public class TerrainSettings : VariablePreset
         public enum Mode { Add, Subtract, Divide, Multiply, Modulus, Set };
 
         public NoiseSettings Settings;
-
+        [Space]
         public bool UseMask = false;
         [Header("List of layer indexes to use as mask")]
         public List<Mask> Masks;
@@ -72,9 +74,9 @@ public class TerrainSettings : VariablePreset
         public bool Do = true;
         public List<Biome.Type> RequiredBiomes;
         public List<GameObject> Prefabs;
-        [Range(0,1)]
+        [Range(0, 1)]
         public float Chance = 1;
-
+        [Space]
         public bool UseMask = false;
         [Header("List of layer indexes to use as mask")]
         public List<Mask> Masks;
@@ -85,7 +87,7 @@ public class TerrainSettings : VariablePreset
     {
         public bool Do = true;
         public List<Biome.Type> RequiredBiomes;
-
+        [Space]
         public bool UseMask = false;
         [Header("List of layer indexes to use as mask")]
         public List<Mask> Masks;
@@ -95,8 +97,7 @@ public class TerrainSettings : VariablePreset
     public class Hole
     {
         public bool Do = true;
+        public List<Biome.Type> RequiredBiomes;
         public Biome.Type BiomeToSetTo;
-        public Biome.Type FloodFillBiomeType;
-
     }
 }
