@@ -415,15 +415,35 @@ public class TerrainGenerator : MonoBehaviour
                         return;
                     }
 
-
+                    
+                    List<Vector3> worldPoints = new List<Vector3>();
                     foreach (Vector2 local in localPoints)
                     {
                         Vector3 world = min + new Vector3(local.x, 0, local.y);
 
-                        g.Holes.Add(new Green.Hole()
+                        // Calculate the chunk for this world position
+                        // Then check biome is correct for this point
+
+                        //if (Utils.GetClosestIndex(world, d.TerrainMap.Bounds.min, d.TerrainMap.Bounds.max, d.TerrainMap.Width, d.TerrainMap.Height, out int x, out int y))
                         {
-                            WorldCentre = world
-                        });
+                            //Biome.Type t = d.TerrainMap.Biomes[y * d.TerrainMap.Width + x];
+
+                            //if (Settings.Holes.Any(x => x.RequiredBiomes.Contains(t)))
+                            {
+                                worldPoints.Add(world);
+                            }
+                        }
+                    }
+                    
+
+
+
+
+                    //g.Holes.Add(new Green.Hole() { WorldCentre = start });
+                    //g.Holes.Add(new Green.Hole() { WorldCentre = finish });
+                    foreach (Vector3 world in worldPoints)
+                    {
+                        g.Holes.Add(new Green.Hole() { WorldCentre = world });
                     }
                 }));
             }
