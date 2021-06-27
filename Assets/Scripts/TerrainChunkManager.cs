@@ -4,30 +4,12 @@ using UnityEngine;
 public class TerrainChunkManager : MonoBehaviour
 {
     public const float ChunkSizeWorldUnits = 1000;
+    public static readonly Vector3 ChunkSize = new Vector3 (ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits);
 
     [Header("References")]
-    public Grid ChunkGrid;
     public Transform ChunkParent;
 
     private Dictionary<Vector2Int, TerrainChunk> TerrainChunks = new Dictionary<Vector2Int, TerrainChunk>();
-
-
-    private void Awake()
-    {
-        UpdateGrid();
-    }
-
-
-
-
-
-    private void UpdateGrid()
-    {
-        ChunkGrid.cellSize = new Vector3(ChunkSizeWorldUnits, ChunkSizeWorldUnits);
-        ChunkGrid.cellSwizzle = GridLayout.CellSwizzle.XZY;
-    }
-
-
 
 
     public TerrainChunk TryAddChunk(TerrainChunkData data, Material material, PhysicMaterial physics, int terrainLayer)
@@ -48,7 +30,7 @@ public class TerrainChunkManager : MonoBehaviour
         // Just need to update some values
         else
         {
-            if(TerrainChunks.TryGetValue(position, out TerrainChunk c))
+            if (TerrainChunks.TryGetValue(position, out TerrainChunk c))
             {
                 // Update the chunk data 
                 c.UpdateChunkData(data);
@@ -128,30 +110,31 @@ public class TerrainChunkManager : MonoBehaviour
     }
 
 
-    public Vector3 CalculateTerrainChunkCentreWorld(Vector2Int chunk)
+    public static Vector3 CalculateTerrainChunkCentreWorld(Vector2Int chunk)
     {
-        return ChunkGrid.GetCellCenterWorld(new Vector3Int(chunk.x, chunk.y, 0));
+        const float half = ChunkSizeWorldUnits / 2;
+        return new Vector3(chunk.x * ChunkSizeWorldUnits + half, 0, chunk.y * ChunkSizeWorldUnits + half);
     }
 
 
-    public Bounds CalculateTerrainChunkBounds(Vector2Int chunk)
+    public static Bounds CalculateTerrainChunkBounds(Vector2Int chunk)
     {
-        return ChunkGrid.GetBoundsLocal(new Vector3Int(chunk.x, chunk.y, 0));
+        return new Bounds(CalculateTerrainChunkCentreWorld(chunk), new Vector3(ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits));
     }
 
-
-    public Vector3 LocalChunkPosToWorld(Vector2Int chunk, Vector3 localPos)
+    /*
+    public static Vector3 LocalChunkPosToWorld(Vector2Int chunk, Vector3 localPos)
     {
         Vector3 min = ChunkGrid.CellToWorld(new Vector3Int(chunk.x, chunk.y, 0));
 
         return min + localPos;
     }
+    */
 
 
     public Vector2Int WorldToChunk(Vector3 worldPos)
     {
-        Vector3Int chunk = ChunkGrid.WorldToCell(worldPos);
-        return new Vector2Int(chunk.x, chunk.y);
+        return new Vector2Int((int)(worldPos.x / ChunkSizeWorldUnits), (int)(worldPos.z / ChunkSizeWorldUnits));
     }
 
 
@@ -159,12 +142,8 @@ public class TerrainChunkManager : MonoBehaviour
     {
         // Clear all the chunks
         Utils.DestroyAllChildren(ChunkParent);
-
         TerrainChunks.Clear();
-        UpdateGrid();
     }
-
-
 
 
 }

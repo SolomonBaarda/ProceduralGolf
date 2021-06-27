@@ -7,7 +7,8 @@ public class Green
     public List<Point> PointsOnEdge = new List<Point>();
     public bool ToBeDeleted = false;
 
-    public List<Hole> Holes = new List<Hole>();
+    public Vector3 Start, Hole;
+    public List<Vector3> PossibleHoles;
 
     public class Point
     {
@@ -15,9 +16,5 @@ public class Green
         public int indexX, indexY;
     }
 
-    public class Hole
-    {
-        public Vector3 WorldCentre;
-        public List<Point> Points;
-    }
+
 }

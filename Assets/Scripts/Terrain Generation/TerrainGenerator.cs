@@ -77,7 +77,7 @@ public class TerrainGenerator : MonoBehaviour
         List<Thread> threads = new List<Thread>();
         object threadLock = new object();
         int width = Settings.SamplePointFrequency, height = Settings.SamplePointFrequency;
-        Vector3[] localVertexPositions = CalculateLocalVertexPointsForChunk(new Vector3(TerrainChunkManager.ChunkGrid.cellSize.x, 0, TerrainChunkManager.ChunkGrid.cellSize.y), Settings.SamplePointFrequency);
+        Vector3[] localVertexPositions = CalculateLocalVertexPointsForChunk(TerrainChunkManager.ChunkSize, Settings.SamplePointFrequency);
         Dictionary<Vector2Int, ChunkData> data = new Dictionary<Vector2Int, ChunkData>();
 
         // First PASS
@@ -424,7 +424,10 @@ public class TerrainGenerator : MonoBehaviour
                         // Calculate the chunk for this world position
                         // Then check biome is correct for this point
 
-                        //if (Utils.GetClosestIndex(world, d.TerrainMap.Bounds.min, d.TerrainMap.Bounds.max, d.TerrainMap.Width, d.TerrainMap.Height, out int x, out int y))
+                        Vector2Int chunk = TerrainChunkManager.WorldToChunk(world);
+                        TerrainMap map = data[chunk].TerrainMap;
+
+                        //if (Utils.GetClosestIndex(world, map.Bounds.min, map.Bounds.max, map.Width, map.Height, out int x, out int y))
                         {
                             //Biome.Type t = d.TerrainMap.Biomes[y * d.TerrainMap.Width + x];
 
@@ -434,16 +437,15 @@ public class TerrainGenerator : MonoBehaviour
                             }
                         }
                     }
-                    
 
 
+                    g.PossibleHoles = worldPoints;
+                    g.Start = worldPoints[0];
+                    g.Hole = worldPoints[1];
 
-
-                    //g.Holes.Add(new Green.Hole() { WorldCentre = start });
-                    //g.Holes.Add(new Green.Hole() { WorldCentre = finish });
-                    foreach (Vector3 world in worldPoints)
+                    //foreach (Vector3 world in worldPoints)
                     {
-                        g.Holes.Add(new Green.Hole() { WorldCentre = world });
+                        
                     }
                 }));
             }
@@ -551,10 +553,13 @@ public class TerrainGenerator : MonoBehaviour
                         Debug.DrawRay(pos, Vector3.up * 10, c, 1000);
                     }
                     */
-                    foreach (Green.Hole p in g.Holes)
+                    foreach (Vector3 p in g.PossibleHoles)
                     {
-                        Debug.DrawRay(p.WorldCentre, Vector3.up * 10, c, 1000);
+                        Debug.DrawRay(p, Vector3.up * 10, c, 1000);
                     }
+
+                    Debug.DrawRay(g.Start, Vector3.up * 100, c, 1000);
+                    Debug.DrawRay(g.Hole, Vector3.up * 100, c, 1000);
 
                     holeData.Add(new CourseData(start, finish));
                 }
