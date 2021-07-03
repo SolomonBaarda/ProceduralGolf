@@ -10,15 +10,13 @@ public class TerrainData : ScriptableObject
     public string TerrainSettingsName;
 
     public List<TerrainChunkData> Chunks;
-    public List<Green> Greens;
-    public List<CourseData> GolfHoles;
+    public List<CourseData> Courses;
 
 
-    public void SetData(int seed, List<TerrainChunkData> chunks, List<Green> greens, List<CourseData> holes, string terrainSettingsName)
+    public void SetData(int seed, List<TerrainChunkData> chunks, List<CourseData> courses, string terrainSettingsName)
     {
         Seed = seed;
-        Greens = greens;
-        GolfHoles = holes;
+        Courses = courses;
         Chunks = chunks;
         TerrainSettingsName = terrainSettingsName;
     }

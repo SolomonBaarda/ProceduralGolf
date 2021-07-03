@@ -556,7 +556,7 @@ public class TerrainGenerator : MonoBehaviour
 
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, terrainChunks, greens, courseData, Settings.name);
+            terrain.SetData(Seed, terrainChunks, courseData, Settings.name);
 
 
             // FINISHED GENERATING

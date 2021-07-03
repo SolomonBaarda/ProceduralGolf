@@ -9,7 +9,6 @@ public class GameManager : MonoBehaviour
 {
     public TerrainGenerator TerrainGenerator;
     public TerrainManager TerrainManager;
-    public CourseManager CourseManager;
 
     public GolfBall GolfBall;
     public Follower BallFollower;
@@ -42,7 +41,6 @@ public class GameManager : MonoBehaviour
 
         HUDHasLoaded = false;
 
-        CourseManager.TerrainManager = TerrainManager;
         TerrainGenerator.TerrainChunkManager = TerrainManager.TerrainChunkManager;
 
 
@@ -57,7 +55,7 @@ public class GameManager : MonoBehaviour
             HUD.OnShootPressed -= GolfBall.Shoot;
             HUD.OnShootPressed -= UpdateHUDShotCounter;
 
-            CourseManager.OnHoleCompleted -= UpdateHUDShotCounter;
+            TerrainManager.OnHoleCompleted -= UpdateHUDShotCounter;
 
             HUD.OnRestartPressed -= ResetGame;
             HUD.OnQuitPressed -= Application.Quit;
@@ -152,7 +150,7 @@ public class GameManager : MonoBehaviour
 
 
         // Set up the TerrainManager
-        TerrainManager.Set(Gamerules.DoHideFarChunks, GolfBall.transform, Gamerules.ViewDistanceWorldUnits);
+        TerrainManager.Set(Gamerules.DoHideFarChunks, Gamerules.ViewDistanceWorldUnits);
 
         // Disable the golf ball if we dont need it
         GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
@@ -173,21 +171,9 @@ public class GameManager : MonoBehaviour
             HUD.Active(false);
         }
 
-        // Force the coursemanager to order the holes
-        CourseManager.UpdateGolfHoles(data.GolfHoles);
-
-        // Ensure all of the holes have been correctly numbered
-        while (!CourseManager.HolesHaveBeenOrdered)
-        {
-            yield return null;
-        }
-        //Debug.Log("Finished ordering holes");
-        
-
-
         if (Gamerules.UseGolfBall)
         {
-            GolfBall.OnOutOfBounds += CourseManager.UndoShot;
+            GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
         }
 
 
@@ -202,7 +188,7 @@ public class GameManager : MonoBehaviour
 
         LoadingScreen.Active(false);
 
-        Debug.Log("Game has started. There are " + CourseManager.NumberOfHoles + " holes.");
+        Debug.Log("Game has started. There are " + TerrainManager.CurrentLoadedTerrain.Courses.Count + " courses.");
     }
 
 
@@ -211,11 +197,8 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-
-
         if (Gamerules.UseGolfBall)
         {
-
             // Taking a shot
             bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
             // Set the preview active or not
@@ -230,7 +213,6 @@ public class GameManager : MonoBehaviour
                 HUD.MainHUD.SetActive(true);
 
                 HUD.ShootingMenu.SetActive(isShooting);
-
 
 
                 // Update the camera angles
@@ -294,8 +276,6 @@ public class GameManager : MonoBehaviour
                         // Update the camera 
                         BallFollower.CurrentView = Follower.View.ShootingBehind;
 
-
-
                         // Update the HUD to display the correct values
                         HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
 
@@ -303,14 +283,11 @@ public class GameManager : MonoBehaviour
                         Color p = HUD.PowerSlider.Gradient.Evaluate(GolfBall.Power);
                         p.a = HUD.PowerSliderBackgroundAlpha;
                         HUD.PowerSlider.Background.color = p;
-
                         break;
-
                     // Flying mode
                     case GolfBall.PlayState.Flying:
                         BallFollower.CurrentView = Follower.View.Above;
                         break;
-
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
                         BallFollower.CurrentView = Follower.View.Behind;
@@ -321,39 +298,15 @@ public class GameManager : MonoBehaviour
     }
 
 
-
-
-
-
-
-
-
-
-
-    /*
-    private void CheckTerrainGeneration()
-    {
-        if (Gamerules.DoEndlessTerrain)
-        {
-            // Try and generate all the chunks that we need to
-            TerrainGenerator.TryGenerateChunks(TerrainGenerator.GetNearbyChunksToGenerate(GolfBall.Position, Gamerules.ViewDistanceWorldUnits), TerrainGenerator.Seed);
-        }
-    }
-    */
-
-
-
     public void GenerateAgain()
     {
         Clear();
-
         StartCoroutine(WaitUntilGameStart());
     }
 
     public void Clear()
     {
         TerrainManager.Clear();
-        CourseManager.Clear();
 
         if (HUD)
             HUD.Clear();
@@ -367,7 +320,7 @@ public class GameManager : MonoBehaviour
         HUD.OnShootPressed += GolfBall.Shoot;
         HUD.OnShootPressed += UpdateHUDShotCounter;
 
-        CourseManager.OnHoleCompleted += UpdateHUDShotCounter;
+        TerrainManager.OnHoleCompleted += UpdateHUDShotCounter;
 
         HUD.OnRestartPressed += ResetGame;
         HUD.OnQuitPressed += Application.Quit;
@@ -380,7 +333,7 @@ public class GameManager : MonoBehaviour
     {
         if (Gamerules.UseGolfBall)
         {
-            CourseManager.Restart();
+            TerrainManager.Restart();
         }
         if (Gamerules.UseHUD)
         {
@@ -398,7 +351,7 @@ public class GameManager : MonoBehaviour
             HUD.Shots.text = GolfBall.Progress.ShotsForThisHole.ToString();
 
 
-            GolfBall.Stats.Pot[] holes = GolfBall.Progress.HolesReached.ToArray();
+            GolfBall.Stats.Pot[] holes = GolfBall.Progress.CoursesCompleted.ToArray();
 
             if (holes != null && holes.Length > 0)
             {
@@ -416,7 +369,7 @@ public class GameManager : MonoBehaviour
                 {
                     int rowIndex = HUD.ScoreboardRows.Count - 1 - holeIndex;
 
-                    HUD.ScoreboardRows[rowIndex].HoleNumber.text = "#" + holes[holeIndex].Hole.Number;
+                    HUD.ScoreboardRows[rowIndex].HoleNumber.text = "#" + holes[holeIndex].CourseNumber;
                     HUD.ScoreboardRows[rowIndex].Shots.text = holes[holeIndex].ShotsTaken.ToString();
 
 

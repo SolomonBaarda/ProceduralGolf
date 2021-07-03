@@ -238,7 +238,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         ValidateValues();
         // Log the shot
-        Progress.Shots.Push(new Stats.Shot(Position, Rotation, Angle, Power));
+        Progress.ShotsCurrentCourse.Push(new Stats.Shot(Position, Rotation, Angle, Power));
 
         // Reset the drag just for the shot
         rigid.drag = 0;
@@ -400,12 +400,12 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
 
-    public void HoleReached(CourseData hole, DateTime reached)
+    public void HoleReached(int courseNumber, DateTime reached)
     {
         // Add the hole 
-        Progress.HolesReached.Push(new Stats.Pot(hole, reached, Progress.ShotsForThisHole));
+        Progress.CoursesCompleted.Push(new Stats.Pot(courseNumber, reached, Progress.ShotsForThisHole));
 
-        Progress.Shots.Clear();
+        Progress.ShotsCurrentCourse.Clear();
     }
 
 
@@ -413,12 +413,12 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public class Stats
     {
-        public Stack<Pot> HolesReached = new Stack<Pot>();
+        public Stack<Pot> CoursesCompleted = new Stack<Pot>();
 
-        public Stack<Shot> Shots = new Stack<Shot>();
-        public int ShotsForThisHole => Shots.Count;
+        public Stack<Shot> ShotsCurrentCourse = new Stack<Shot>();
+        public int ShotsForThisHole => ShotsCurrentCourse.Count;
 
-        public int LastHoleReached { get { if (HolesReached.Count > 0) { return HolesReached.Peek().Hole.Number; } else { return 0; } } }
+        public int CurrentCourse { get { if (CoursesCompleted.Count > 0) { return CoursesCompleted.Peek().CourseNumber + 1; } else { return 0; } } }
 
 
         public Stats()
@@ -428,20 +428,19 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         public void Clear()
         {
-            HolesReached.Clear();
-            Shots.Clear();
+            CoursesCompleted.Clear();
+            ShotsCurrentCourse.Clear();
         }
 
         public class Pot
         {
-            public CourseData Hole;
+            public int CourseNumber;
             public DateTime TimeReached;
-
             public int ShotsTaken;
 
-            public Pot(in CourseData reached, in DateTime time, in int shots)
+            public Pot(int courseNumber, in DateTime time, in int shots)
             {
-                Hole = reached;
+                CourseNumber = courseNumber;
                 TimeReached = time;
                 ShotsTaken = shots;
             }

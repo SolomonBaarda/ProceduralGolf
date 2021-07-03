@@ -290,7 +290,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    m_TransformParent: {fileID: 1684111221}
+    m_TransformParent: {fileID: 1510809343}
     m_Modifications:
     - target: {fileID: 291345258, guid: 8b5ace1036e996949aaff71ced827337, type: 3}
       propertyPath: m_LocalPosition.y
@@ -412,6 +412,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 784421682}
   - {fileID: 1943703577}
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -431,7 +432,12 @@ MonoBehaviour:
   TerrainChunkManager: {fileID: 1510809345}
   MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
   PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
+  GolfHoleFlagPrefab: {fileID: 110804456460024580, guid: af95c3459d594514e98b7681ed2c151b,
+    type: 3}
+  GolfHoleBeaconPrefab: {fileID: 515401796162439050, guid: 5e8d16aaab5fabc4a93352f985eb9bb7,
+    type: 3}
   CurrentLoadedTerrain: {fileID: 0}
+  GolfBall: {fileID: 1324745660}
 --- !u!114 &1510809345
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -444,58 +450,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58be7f369eea4cc489eaf822f020f3a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ChunkGrid: {fileID: 1943703578}
   ChunkParent: {fileID: 1943703577}
---- !u!1 &1684111219
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1684111221}
-  - component: {fileID: 1684111220}
-  m_Layer: 0
-  m_Name: Golf Course Manager
-  m_TagString: Untagged
-  m_Icon: {fileID: 5721338939258241955, guid: 0000000000000000d000000000000000, type: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1684111220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1684111219}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92122228427df9645bda7940958a8ef4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GolfBall: {fileID: 1324745660}
-  TerrainManager: {fileID: 0}
-  GolfHoleFlagPrefab: {fileID: 110804456460024580, guid: af95c3459d594514e98b7681ed2c151b,
-    type: 3}
-  GolfHoleBeaconPrefab: {fileID: 515401796162439050, guid: 5e8d16aaab5fabc4a93352f985eb9bb7,
-    type: 3}
---- !u!4 &1684111221
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1684111219}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 784421682}
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1852344704
 GameObject:
   m_ObjectHideFlags: 0
@@ -525,7 +480,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1852344706
 MonoBehaviour:
@@ -666,7 +621,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1510809343}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!156049354 &1943703578
 Grid:
@@ -712,11 +667,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TerrainGenerator: {fileID: 2130833002}
   TerrainManager: {fileID: 1510809344}
-  CourseManager: {fileID: 1684111220}
   GolfBall: {fileID: 1324745660}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
-  TerrainMode: 2
+  TerrainMode: 1
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
   WorldSaves:
   - {fileID: 11400000, guid: 8e6b2ecf0da267944b57d1def9673305, type: 2}
@@ -785,7 +739,7 @@ Transform:
   m_Children:
   - {fileID: 295252892}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1069462429095147909
 MonoBehaviour:
