@@ -381,13 +381,19 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         // Fourth PASS
+        List<CourseData> courseData = new List<CourseData>();
+
         OnGenerationStateChanged.Invoke("Fourth pass: calculate holes and generate texture data");
         {
+            System.Random r = new System.Random(0);
+
             foreach (Green g in greens)
             {
                 // Merge the greens not in the main thread
                 StartThread(threads, "Pass 3: calculate holes", new Thread(() =>
                 {
+                    Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
+
                     ChunkData d = data[g.Points[0].Map.Chunk];
                     Vector3 min = d.TerrainMap.Bounds.min + d.MeshData.Vertices[g.Points[0].indexY * d.MeshData.Width + g.Points[0].indexX], max = min;
 
@@ -449,7 +455,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
 
 
-
+                    // Find furthest away points for start and finish
 
                     //foreach (Vector3 world in worldPoints)
                     {
@@ -458,30 +464,32 @@ public class TerrainGenerator : MonoBehaviour
 
                     g.Start = g.PossibleHoles[0];
                     g.Hole = g.PossibleHoles[1];
+
+
+
+
+
+
+                    // Create the course data obkect
+
+                    foreach (Vector3 p in g.PossibleHoles)
+                    {
+                        Debug.DrawRay(p, Vector3.up * 100, c, 1000);
+                    }
+
+                    //Debug.DrawRay(g.Start, Vector3.up * 100, c, 1000);
+                    //Debug.DrawRay(g.Hole, Vector3.up * 100, c, 1000);
+
+                    lock (threadLock)
+                    {
+                        courseData.Add(new CourseData(g.Start, g.Hole));
+                    }
                 }));
             }
 
             yield return WaitForThreadsToComplete(threads);
 
             greens.RemoveAll(x => x.ToBeDeleted);
-
-
-
-            // TODO move into next thread instead
-
-            foreach (ChunkData d in data.Values)
-            {
-                StartThread(threads, "Pass 4 (" + d.TerrainMap.Chunk.x + "," + d.TerrainMap.Chunk.y + ")", new Thread(() =>
-                {
-                    TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForTerrainMap(d.TerrainMap, TextureSettings);
-
-                    lock (threadLock)
-                    {
-                        // Add the mesh data 
-                        data[d.TerrainMap.Chunk].TextureData = textureData;
-                    }
-                }));
-            }
 
             yield return WaitForThreadsToComplete(threads);
             Debug.Log($"* Fourth pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
@@ -522,9 +530,12 @@ public class TerrainGenerator : MonoBehaviour
                         });
                     }
 
+                    TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForTerrainMap(d.TerrainMap, TextureSettings);
+
                     lock (threadLock)
                     {
                         data[d.TerrainMap.Chunk].WorldObjects = worldObjects;
+                        data[d.TerrainMap.Chunk].TextureData = textureData;
                     }
                 }
             }));
@@ -548,35 +559,12 @@ public class TerrainGenerator : MonoBehaviour
                 yield return null;
             }
 
-            // Calculate the holes
-            // TODO: move to thread
-            List<CourseData> holeData = new List<CourseData>();
-            {
-                System.Random r = new System.Random(0);
-                foreach (Green g in greens)
-                {
-                    ChunkData d = data[g.Points[0].Map.Chunk];
-                    //Vector3 start = d.TerrainMap.Bounds.min + d.MeshData.Vertices[g.Points[0].indexY * d.MeshData.Width + g.Points[0].indexX], finish = start;
-
-                    Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-
-                    foreach (Vector3 p in g.PossibleHoles)
-                    {
-                        Debug.DrawRay(p, Vector3.up * 100, c, 1000);
-                    }
-
-                    //Debug.DrawRay(g.Start, Vector3.up * 100, c, 1000);
-                    //Debug.DrawRay(g.Hole, Vector3.up * 100, c, 1000);
-
-                    holeData.Add(new CourseData(g.Start, g.Hole));
-                }
-            }
 
             yield return WaitForThreadsToComplete(threads);
 
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, terrainChunks, greens, holeData, Settings.name);
+            terrain.SetData(Seed, terrainChunks, greens, courseData, Settings.name);
 
 
             // FINISHED GENERATING
