@@ -95,22 +95,31 @@ public static class Utils
         return array[indexY * width + indexX];
     }
 
-    public static bool GetClosestIndex(Vector3 position, Vector3 min, Vector3 max, int width, int height, out int indexX, out int indexY)
+    public static bool GetClosestIndex(Vector3 position, Vector3 min, Vector3 max, int arrayWidth, int arrayHeight, out int indexX, out int indexY)
     {
-        return GetClosestIndex(position.x, position.z, min.x, min.z, max.x, max.z, width, height, out indexX, out indexY);
+        return GetClosestIndex(position.x, position.z, min.x, min.z, max.x, max.z, arrayWidth, arrayHeight, out indexX, out indexY);
     }
 
-    public static bool GetClosestIndex(Vector2 position, Vector2 min, Vector2 max, int width, int height, out int indexX, out int indexY)
+    public static bool GetClosestIndex(Vector2 position, Vector2 min, Vector2 max, int arrayWidth, int arrayHeight, out int indexX, out int indexY)
     {
-        return GetClosestIndex(position.x, position.y, min.x, min.y, max.x, max.y, width, height, out indexX, out indexY);
+        return GetClosestIndex(position.x, position.y, min.x, min.y, max.x, max.y, arrayWidth, arrayHeight, out indexX, out indexY);
     }
 
-    private static bool GetClosestIndex(float posX, float posY, float minX, float minY, float maxX, float maxY, int width, int height, out int indexX, out int indexY)
+    private static bool GetClosestIndex(float posX, float posY, float minX, float minY, float maxX, float maxY, int arrayWidth, int arrayHeight, out int indexX, out int indexY)
     {
-        indexX = width - 1 - Mathf.RoundToInt((maxX - posX) / (maxX - minX) * width);
-        indexY = height - 1 - Mathf.RoundToInt((maxY - posY) / (maxY - minY) * height);
+        indexX = -1;
+        indexY = -1;
 
-        return indexX >= 0 && indexY >= 0 && indexX < width && indexY < height;
+        // Ensure points are valid
+        if (minX < maxX && minY < maxY && posX >= minX && posX <= maxX && posY >= minY && posY <= maxY)
+        {
+            float percentX = (posX - minX) / (maxX - minX), percentY = (posY - minY) / (maxY - minY);
+
+            indexX = (int)Mathf.Abs(percentX * arrayWidth);
+            indexY = (int)Mathf.Abs(percentY * arrayHeight);
+        }
+
+        return indexX >= 0 && indexY >= 0 && indexX < arrayWidth && indexY < arrayHeight;
     }
 
 

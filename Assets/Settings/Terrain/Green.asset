@@ -103,9 +103,5 @@ MonoBehaviour:
     - LayerIndex: 1
       NoiseThresholdMin: 0.7
       NoiseThresholdMax: 1
-  HolesPerGreen: 2
-  MinDistanceBetweenHoles: 250
-  Holes:
-  - Do: 1
-    RequiredBiomes: 0100000002000000
-    BiomeToSetTo: 3
+  MinDistanceBetweenHoles: 200
+  ValidHoleBiomes: 02000000

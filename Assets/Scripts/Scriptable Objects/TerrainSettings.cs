@@ -25,7 +25,7 @@ public class TerrainSettings : VariablePreset
 
     [Header("Holes")]
     public float MinDistanceBetweenHoles = 100;
-    public List<Hole> Holes;
+    public List<Biome.Type> ValidHoleBiomes;
 
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
@@ -93,11 +93,4 @@ public class TerrainSettings : VariablePreset
         public List<Mask> Masks;
     }
 
-    [Serializable]
-    public class Hole
-    {
-        public bool Do = true;
-        public List<Biome.Type> RequiredBiomes;
-        public Biome.Type BiomeToSetTo;
-    }
 }

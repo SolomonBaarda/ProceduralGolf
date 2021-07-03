@@ -4,7 +4,7 @@ using UnityEngine;
 public class TerrainChunkManager : MonoBehaviour
 {
     public const float ChunkSizeWorldUnits = 1000;
-    public static readonly Vector3 ChunkSize = new Vector3 (ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits);
+    public static readonly Vector3 ChunkSize = new Vector3(ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits);
 
     [Header("References")]
     public Transform ChunkParent;
@@ -122,19 +122,13 @@ public class TerrainChunkManager : MonoBehaviour
         return new Bounds(CalculateTerrainChunkCentreWorld(chunk), new Vector3(ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits));
     }
 
-    /*
-    public static Vector3 LocalChunkPosToWorld(Vector2Int chunk, Vector3 localPos)
+    public static Vector2Int WorldToChunk(Vector3 worldPos)
     {
-        Vector3 min = ChunkGrid.CellToWorld(new Vector3Int(chunk.x, chunk.y, 0));
+        float rawX = worldPos.x / ChunkSizeWorldUnits, rawY = worldPos.z / ChunkSizeWorldUnits;
 
-        return min + localPos;
-    }
-    */
-
-
-    public Vector2Int WorldToChunk(Vector3 worldPos)
-    {
-        return new Vector2Int((int)(worldPos.x / ChunkSizeWorldUnits), (int)(worldPos.z / ChunkSizeWorldUnits));
+        // Negative positions must be shifted by -1 chunks direction
+        int chunkX = rawX < 0 ? (int)rawX - 1 : (int)rawX, chunkY = rawY < 0 ? (int)rawY - 1 : (int)rawY;
+        return new Vector2Int(chunkX, chunkY);
     }
 
 

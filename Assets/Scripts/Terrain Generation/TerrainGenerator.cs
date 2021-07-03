@@ -415,44 +415,59 @@ public class TerrainGenerator : MonoBehaviour
                         return;
                     }
 
-                    
-                    List<Vector3> worldPoints = new List<Vector3>();
+
+                    g.PossibleHoles = new List<Vector3>();
                     foreach (Vector2 local in localPoints)
                     {
                         Vector3 world = min + new Vector3(local.x, 0, local.y);
 
                         // Calculate the chunk for this world position
-                        // Then check biome is correct for this point
-
                         Vector2Int chunk = TerrainChunkManager.WorldToChunk(world);
-                        TerrainMap map = data[chunk].TerrainMap;
 
-                        //if (Utils.GetClosestIndex(world, map.Bounds.min, map.Bounds.max, map.Width, map.Height, out int x, out int y))
+                        ChunkData pointChunkData = data[chunk];
+                        TerrainMap map = pointChunkData.TerrainMap;
+
+                        // Get the closest index for this point
+                        if (Utils.GetClosestIndex(world, map.Bounds.min, map.Bounds.max, map.Width, map.Height, out int x, out int y))
                         {
-                            //Biome.Type t = d.TerrainMap.Biomes[y * d.TerrainMap.Width + x];
+                            int index = y * map.Width + x;
+                            Biome.Type t = map.Biomes[index];
 
-                            //if (Settings.Holes.Any(x => x.RequiredBiomes.Contains(t)))
+                            // Set the correct height
+                            world.y = pointChunkData.MeshData.Vertices[index].y;
+
+                            // Then check biome is correct for this point
+                            if (Settings.ValidHoleBiomes.Contains(t))
                             {
-                                worldPoints.Add(world);
+                                g.PossibleHoles.Add(world);
                             }
+                        }
+                        else
+                        {
+                            Debug.LogError("Failed to get closest index for a point");
                         }
                     }
 
 
-                    g.PossibleHoles = worldPoints;
-                    g.Start = worldPoints[0];
-                    g.Hole = worldPoints[1];
+
 
                     //foreach (Vector3 world in worldPoints)
                     {
-                        
+
                     }
+
+                    g.Start = g.PossibleHoles[0];
+                    g.Hole = g.PossibleHoles[1];
                 }));
             }
 
             yield return WaitForThreadsToComplete(threads);
 
             greens.RemoveAll(x => x.ToBeDeleted);
+
+
+
+            // TODO move into next thread instead
 
             foreach (ChunkData d in data.Values)
             {
@@ -541,27 +556,19 @@ public class TerrainGenerator : MonoBehaviour
                 foreach (Green g in greens)
                 {
                     ChunkData d = data[g.Points[0].Map.Chunk];
-                    Vector3 start = d.TerrainMap.Bounds.min + d.MeshData.Vertices[g.Points[0].indexY * d.MeshData.Width + g.Points[0].indexX], finish = start;
+                    //Vector3 start = d.TerrainMap.Bounds.min + d.MeshData.Vertices[g.Points[0].indexY * d.MeshData.Width + g.Points[0].indexX], finish = start;
 
                     Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-                    /*
-                    foreach (Green.Point p in g.Points)
-                    {
-                        d = data[p.Map.Chunk];
 
-                        Vector3 pos = d.TerrainMap.Bounds.min + d.MeshData.Vertices[p.indexY * d.MeshData.Width + p.indexX];
-                        Debug.DrawRay(pos, Vector3.up * 10, c, 1000);
-                    }
-                    */
                     foreach (Vector3 p in g.PossibleHoles)
                     {
-                        Debug.DrawRay(p, Vector3.up * 10, c, 1000);
+                        Debug.DrawRay(p, Vector3.up * 100, c, 1000);
                     }
 
-                    Debug.DrawRay(g.Start, Vector3.up * 100, c, 1000);
-                    Debug.DrawRay(g.Hole, Vector3.up * 100, c, 1000);
+                    //Debug.DrawRay(g.Start, Vector3.up * 100, c, 1000);
+                    //Debug.DrawRay(g.Hole, Vector3.up * 100, c, 1000);
 
-                    holeData.Add(new CourseData(start, finish));
+                    holeData.Add(new CourseData(g.Start, g.Hole));
                 }
             }
 
