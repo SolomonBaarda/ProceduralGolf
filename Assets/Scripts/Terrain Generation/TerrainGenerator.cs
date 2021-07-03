@@ -123,8 +123,7 @@ public class TerrainGenerator : MonoBehaviour
             }
 
             yield return WaitForThreadsToComplete(threads);
-            Debug.Log($"* First pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
-            last = DateTime.Now;
+            UpdatePassTimer(ref last, "First");
         }
 
         // Second PASS
@@ -285,8 +284,8 @@ public class TerrainGenerator : MonoBehaviour
             }
 
             yield return WaitForThreadsToComplete(threads);
-            Debug.Log($"* Second pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
-            last = DateTime.Now;
+            UpdatePassTimer(ref last, "Second");
+
         }
 
         // Third PASS
@@ -325,7 +324,6 @@ public class TerrainGenerator : MonoBehaviour
                                     total += a.PointsOnEdge.RemoveAll(other => TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, other.Map.Chunk, other.indexX, other.indexY, p.Map.Width, p.Map.Height));
                                 }
 
-                                //Debug.Log("Total removed " + total);
                                 return total > 0;
                             }
                         }
@@ -375,9 +373,7 @@ public class TerrainGenerator : MonoBehaviour
             }
 
             yield return WaitForThreadsToComplete(threads);
-
-            Debug.Log($"* Third pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
-            last = DateTime.Now;
+            UpdatePassTimer(ref last, "Third");
         }
 
         // Fourth PASS
@@ -415,6 +411,7 @@ public class TerrainGenerator : MonoBehaviour
 
                     List<Vector2> localPoints = PoissonDiscSampling.GenerateLocalPoints(Settings.MinDistanceBetweenHoles, new Vector2(size.x, size.z), Seed);
 
+                    // Ensure there are at least 2 points
                     if (localPoints.Count < 2)
                     {
                         g.ToBeDeleted = true;
@@ -454,32 +451,31 @@ public class TerrainGenerator : MonoBehaviour
                         }
                     }
 
-
                     // Find furthest away points for start and finish
-
-                    //foreach (Vector3 world in worldPoints)
-                    {
-
-                    }
-
+                    float curSqrMag = 0;
                     g.Start = g.PossibleHoles[0];
                     g.Hole = g.PossibleHoles[1];
-
-
-
-
-
-
-                    // Create the course data obkect
-
-                    foreach (Vector3 p in g.PossibleHoles)
+                    foreach (Vector3 first in g.PossibleHoles)
                     {
-                        Debug.DrawRay(p, Vector3.up * 100, c, 1000);
+                        foreach (Vector3 second in g.PossibleHoles)
+                        {
+                            if (!first.Equals(second))
+                            {
+                                float sqrMag = (second - first).sqrMagnitude;
+                                if (sqrMag > curSqrMag)
+                                {
+                                    curSqrMag = sqrMag;
+                                    g.Start = first;
+                                    g.Hole = second;
+                                }
+                            }
+                        }
                     }
 
-                    //Debug.DrawRay(g.Start, Vector3.up * 100, c, 1000);
-                    //Debug.DrawRay(g.Hole, Vector3.up * 100, c, 1000);
+                    Debug.DrawRay(g.Start, Vector3.up * 100, c, 1000);
+                    Debug.DrawRay(g.Hole, Vector3.up * 100, c, 1000);
 
+                    // Create the course data object
                     lock (threadLock)
                     {
                         courseData.Add(new CourseData(g.Start, g.Hole));
@@ -488,21 +484,17 @@ public class TerrainGenerator : MonoBehaviour
             }
 
             yield return WaitForThreadsToComplete(threads);
+            UpdatePassTimer(ref last, "Fourth");
 
             greens.RemoveAll(x => x.ToBeDeleted);
-
-            yield return WaitForThreadsToComplete(threads);
-            Debug.Log($"* Fourth pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
-            last = DateTime.Now;
         }
 
         // Fifth PASS
         OnGenerationStateChanged.Invoke("Fifth pass: constructing meshes");
         {
-            // Update the world objects not in the main thread
-            StartThread(threads, $"Pass 5: update world objects", new Thread(() =>
+            foreach (ChunkData d in data.Values)
             {
-                foreach (ChunkData d in data.Values)
+                StartThread(threads, $"Pass 5: update world objects", new Thread(() =>
                 {
                     // Update the world object data
                     Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
@@ -520,6 +512,7 @@ public class TerrainGenerator : MonoBehaviour
                         positions.Add((world, w.Rotation));
                         worldObjectDictionary[w.Prefab] = positions;
                     }
+                    // Now add the data to the correct objects
                     List<WorldObjectData> worldObjects = new List<WorldObjectData>();
                     foreach (KeyValuePair<GameObject, List<(Vector3, Vector3)>> pair in worldObjectDictionary)
                     {
@@ -530,6 +523,7 @@ public class TerrainGenerator : MonoBehaviour
                         });
                     }
 
+                    // Generate the texture data
                     TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForTerrainMap(d.TerrainMap, TextureSettings);
 
                     lock (threadLock)
@@ -537,8 +531,9 @@ public class TerrainGenerator : MonoBehaviour
                         data[d.TerrainMap.Chunk].WorldObjects = worldObjects;
                         data[d.TerrainMap.Chunk].TextureData = textureData;
                     }
-                }
-            }));
+                }));
+            }
+            yield return WaitForThreadsToComplete(threads);
 
             // Construct textures and meshes
             // This needs to be done in the main thread
@@ -559,17 +554,13 @@ public class TerrainGenerator : MonoBehaviour
                 yield return null;
             }
 
-
-            yield return WaitForThreadsToComplete(threads);
-
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
             terrain.SetData(Seed, terrainChunks, greens, courseData, Settings.name);
 
 
             // FINISHED GENERATING
-            Debug.Log($"* Fifth pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
-            last = DateTime.Now;
+            UpdatePassTimer(ref last, "Fifth");
 
             double totalTime = (DateTime.Now - before).TotalSeconds;
             Debug.Log($"* Generated terrain in { totalTime.ToString("0.0") } seconds.");
@@ -590,6 +581,12 @@ public class TerrainGenerator : MonoBehaviour
             threads.RemoveAll((x) => !x.IsAlive);
             yield return null;
         }
+    }
+
+    private void UpdatePassTimer(ref DateTime last, string passName)
+    {
+        Debug.Log($"* {passName} pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
+        last = DateTime.Now;
     }
 
     private void StartThread(List<Thread> threads, string name, Thread thread)
