@@ -80,11 +80,17 @@ public class TerrainGenerator : MonoBehaviour
         Vector3[] localVertexPositions = CalculateLocalVertexPointsForChunk(TerrainChunkManager.ChunkSize, Settings.SamplePointFrequency);
         Dictionary<Vector2Int, ChunkData> data = new Dictionary<Vector2Int, ChunkData>();
 
-        // First PASS
-        OnGenerationStateChanged.Invoke("First pass: generating random noise");
-        // Generate the initial chunks
         List<(float, float)> terrainLayerHeightsMinMax = new List<(float, float)>();
 
+        float minHeight = float.MaxValue, maxHeight = float.MinValue;
+        List<Green> greens = new List<Green>();
+
+        List<CourseData> courseData = new List<CourseData>();
+        List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
+
+
+        // First PASS
+        OnGenerationStateChanged.Invoke("First pass: generating random noise");
         {
             for (int i = 0; i < Settings.TerrainLayers.Count; i++)
             {
@@ -93,12 +99,10 @@ public class TerrainGenerator : MonoBehaviour
 
             foreach (Vector2Int chunk in chunks)
             {
-                // Get the chunk bounds
-                // This has to be called from the main thread
-                Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
-
                 StartThread(threads, "Pass 1 (" + chunk.x + "," + chunk.y + ")", new Thread(() =>
                 {
+                    Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
+
                     GenerateTerrainMapRawData(chunk, seed, chunkBounds, width, height, in localVertexPositions, out TerrainMap map);
 
                     // Gain access to the critical region once we have calculated the data
@@ -128,8 +132,6 @@ public class TerrainGenerator : MonoBehaviour
 
         // Second PASS
         OnGenerationStateChanged.Invoke("Second pass: calculating terrain values");
-        float minHeight = float.MaxValue, maxHeight = float.MinValue;
-        List<Green> greens = new List<Green>();
         {
             foreach (ChunkData d in data.Values)
             {
@@ -285,17 +287,15 @@ public class TerrainGenerator : MonoBehaviour
 
             yield return WaitForThreadsToComplete(threads);
             UpdatePassTimer(ref last, "Second");
-
         }
 
         // Third PASS
         OnGenerationStateChanged.Invoke("Third pass: calculate mesh data and merge greens");
-        {
-            // Merge the greens not in the main thread
+        { 
+            // Do this calculation in a thread so that it is done in the background 
             StartThread(threads, "Pass 3: merge greens", new Thread(() =>
             {
                 DateTime a = DateTime.Now;
-
                 int greensBefore = greens.Count;
 
                 // Merge greens from seperate chunks
@@ -377,15 +377,12 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         // Fourth PASS
-        List<CourseData> courseData = new List<CourseData>();
-
         OnGenerationStateChanged.Invoke("Fourth pass: calculate holes and generate texture data");
         {
             System.Random r = new System.Random(0);
 
             foreach (Green g in greens)
             {
-                // Merge the greens not in the main thread
                 StartThread(threads, "Pass 3: calculate holes", new Thread(() =>
                 {
                     Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
@@ -534,11 +531,14 @@ public class TerrainGenerator : MonoBehaviour
                 }));
             }
             yield return WaitForThreadsToComplete(threads);
+            UpdatePassTimer(ref last, "Fifth");
+        }
 
+
+        OnGenerationStateChanged.Invoke("Sixth pass: constructing meshes");
+        {
             // Construct textures and meshes
             // This needs to be done in the main thread
-            List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
-
             foreach (ChunkData d in data.Values)
             {
                 // Generate the mesh
@@ -560,11 +560,12 @@ public class TerrainGenerator : MonoBehaviour
 
 
             // FINISHED GENERATING
-            UpdatePassTimer(ref last, "Fifth");
+            UpdatePassTimer(ref last, "Sixth");
 
             double totalTime = (DateTime.Now - before).TotalSeconds;
-            Debug.Log($"* Generated terrain in { totalTime.ToString("0.0") } seconds.");
-            OnGenerationStateChanged.Invoke($"Finished generating terrain. Completed in {totalTime.ToString("0.0")} seconds");
+            string message = $"Finished generating terrain. Completed in {totalTime.ToString("0.0")} seconds";
+            Debug.Log(message);
+            OnGenerationStateChanged.Invoke(message);
 
             IsGenerating = false;
 
