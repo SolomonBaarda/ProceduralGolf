@@ -670,7 +670,7 @@ MonoBehaviour:
   GolfBall: {fileID: 1324745660}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
-  TerrainMode: 2
+  TerrainMode: 1
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
   WorldSaves:
   - {fileID: 11400000, guid: 8e6b2ecf0da267944b57d1def9673305, type: 2}
@@ -705,7 +705,7 @@ MonoBehaviour:
   Settings: {fileID: 11400000, guid: 392c806505110884192175365aabbd81, type: 2}
   TextureSettings: {fileID: 11400000, guid: 9e788a4a2ac8e7d49ab7dbea7ef4e3e1, type: 2}
   Seed: 0
-  DoRandomSeed: 0
+  DoRandomSeed: 1
   OnGenerationStateChanged:
     m_PersistentCalls:
       m_Calls: []

@@ -11,7 +11,10 @@ public static class Biome
 
             if (c != null)
             {
-                return Utils.GetClosestTo(worldPos, c.Bounds.min, c.Bounds.max, c.Biomes, out int _, out int _);
+                if (Utils.GetClosestIndex(worldPos, c.Bounds.min, c.Bounds.max, c.Biomes.GetLength(0), c.Biomes.GetLength(1), out int x, out int y))
+                {
+                    return c.Biomes[x, y];
+                }
             }
         }
 
@@ -19,7 +22,7 @@ public static class Biome
     }
 
 
-    
+
 
     public enum Type
     {

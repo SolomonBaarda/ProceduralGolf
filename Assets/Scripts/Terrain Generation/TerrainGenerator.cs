@@ -291,7 +291,7 @@ public class TerrainGenerator : MonoBehaviour
 
         // Third PASS
         OnGenerationStateChanged.Invoke("Third pass: calculate mesh data and merge greens");
-        { 
+        {
             // Do this calculation in a thread so that it is done in the background 
             StartThread(threads, "Pass 3: merge greens", new Thread(() =>
             {
@@ -312,16 +312,18 @@ public class TerrainGenerator : MonoBehaviour
                                 // Add the vertices
                                 original.Points.AddRange(toMerge.Points);
                                 original.PointsOnEdge.AddRange(toMerge.PointsOnEdge);
-                                //toMerge.Vertices.Clear();
                             }
 
-                            static bool ContainsAnySharedPoints(Green a, Green b)
+                            bool ContainsAnySharedPoints(Green a, Green b)
                             {
                                 int total = 0;
 
                                 foreach (Green.Point p in b.PointsOnEdge)
                                 {
-                                    total += a.PointsOnEdge.RemoveAll(other => TerrainMap.IsSharedPositionOnBorder(p.Map.Chunk, p.indexX, p.indexY, other.Map.Chunk, other.indexX, other.indexY, p.Map.Width, p.Map.Height));
+                                    // Removed all shared points from a
+                                    // Since a is the green being merged, this will speed up future calls 
+                                    // as we will have to compare less elements in the list
+                                    total += a.PointsOnEdge.RemoveAll(other => TerrainMap.IsSharedPositionOnBorder(p.Chunk, p.indexX, p.indexY, other.Chunk, other.indexX, other.indexY, width, height));
                                 }
 
                                 return total > 0;
@@ -387,12 +389,12 @@ public class TerrainGenerator : MonoBehaviour
                 {
                     Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
 
-                    ChunkData d = data[g.Points[0].Map.Chunk];
+                    ChunkData d = data[g.Points[0].Chunk];
                     Vector3 min = d.TerrainMap.Bounds.min + d.MeshData.Vertices[g.Points[0].indexY * d.MeshData.Width + g.Points[0].indexX], max = min;
 
                     foreach (Green.Point p in g.Points)
                     {
-                        d = data[p.Map.Chunk];
+                        d = data[p.Chunk];
                         Vector3 pos = d.TerrainMap.Bounds.min + d.MeshData.Vertices[p.indexY * d.MeshData.Width + p.indexX];
 
                         if (pos.x < min.x)
@@ -503,7 +505,7 @@ public class TerrainGenerator : MonoBehaviour
                         }
 
                         Vector3 world = d.TerrainMap.Bounds.min + w.LocalPosition;
-                        world.y += d.MeshData.Vertices[w.ClosestIndexY * d.TerrainMap.Width + w.ClosestIndexX].y;
+                        world.y = d.MeshData.Vertices[w.ClosestIndexY * d.TerrainMap.Width + w.ClosestIndexX].y;
 
                         // Add the new position
                         positions.Add((world, w.Rotation));
@@ -574,7 +576,7 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private IEnumerator WaitForThreadsToComplete(List<Thread> threads)
+    private static IEnumerator WaitForThreadsToComplete(List<Thread> threads)
     {
         // Wait for threads to complete
         while (threads.Count > 0)
@@ -584,13 +586,13 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private void UpdatePassTimer(ref DateTime last, string passName)
+    private static void UpdatePassTimer(ref DateTime last, string passName)
     {
         Debug.Log($"* {passName} pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
         last = DateTime.Now;
     }
 
-    private void StartThread(List<Thread> threads, string name, Thread thread)
+    private static void StartThread(List<Thread> threads, string name, Thread thread)
     {
         thread.Name = name;
         thread.IsBackground = true;
@@ -636,46 +638,49 @@ public class TerrainGenerator : MonoBehaviour
             if (attempt.Do && r.NextDouble() <= attempt.Chance)
             {
                 Vector3 localPosition = new Vector3(pos.x, 0, pos.y);
-                Biome.Type biome = Utils.GetClosestTo(localPosition, Vector3.zero, map.Bounds.size, in map.Biomes, map.Width, map.Height, out int x, out int y);
-
-                // The biome for this position is valid
-                if (attempt.RequiredBiomes.Contains(biome))
+                if (Utils.GetClosestIndex(localPosition, Vector3.zero, map.Bounds.size, map.Width, map.Height, out int x, out int y))
                 {
-                    // Check that the mask is valid if we are using it
-                    bool maskvalid = true;
-                    if (attempt.UseMask)
+                    Biome.Type biome = map.Biomes[y * map.Width + x];
+
+                    // The biome for this position is valid
+                    if (attempt.RequiredBiomes.Contains(biome))
                     {
-                        for (int j = 0; j < attempt.Masks.Count; j++)
+                        // Check that the mask is valid if we are using it
+                        bool maskvalid = true;
+                        if (attempt.UseMask)
                         {
-                            int index = y * map.Width + x;
-                            TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
-                            // Mask is not valid here
-                            if (!(maskValues.Noise[index] >= attempt.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= attempt.Masks[j].NoiseThresholdMax))
+                            for (int j = 0; j < attempt.Masks.Count; j++)
                             {
-                                maskvalid = false;
-                                break;
+                                int index = y * map.Width + x;
+                                TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
+                                // Mask is not valid here
+                                if (!(maskValues.Noise[index] >= attempt.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= attempt.Masks[j].NoiseThresholdMax))
+                                {
+                                    maskvalid = false;
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    if (!attempt.UseMask || maskvalid)
-                    {
-                        // If we get here then this object must be valid at the position
-                        map.WorldObjects.Add(new TerrainMap.WorldObjectData()
+                        if (!attempt.UseMask || maskvalid)
                         {
-                            LocalPosition = localPosition,
-                            Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
-                            Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
-                            ClosestIndexX = x,
-                            ClosestIndexY = y,
-                        });
+                            // If we get here then this object must be valid at the position
+                            map.WorldObjects.Add(new TerrainMap.WorldObjectData()
+                            {
+                                LocalPosition = localPosition,
+                                Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
+                                Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
+                                ClosestIndexX = x,
+                                ClosestIndexY = y,
+                            });
+                        }
                     }
                 }
             }
         }
     }
 
-    private void FixProceduralObjectsOnChunkBorders(TerrainMap chunk, List<TerrainMap> neighbours, float minRadius)
+    private static void FixProceduralObjectsOnChunkBorders(TerrainMap chunk, List<TerrainMap> neighbours, float minRadius)
     {
         foreach (TerrainMap.WorldObjectData worldObject in chunk.WorldObjects)
         {
@@ -689,7 +694,7 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private Green FloodFill(TerrainMap map, ref bool[] checkedFloodFill, int x, int y)
+    private static Green FloodFill(TerrainMap map, ref bool[] checkedFloodFill, int x, int y)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
 
@@ -714,15 +719,13 @@ public class TerrainGenerator : MonoBehaviour
         return green;
     }
 
-    private void UpdateGreenPositionHorizontal(TerrainMap map, ref bool[] checkedFloodFill, Green green, Queue<(int, int)> q, int x, int y)
+    private static void UpdateGreenPositionHorizontal(TerrainMap map, ref bool[] checkedFloodFill, Green green, Queue<(int, int)> q, int x, int y)
     {
         int index = y * map.Width + x;
         if (!checkedFloodFill[index])
         {
             checkedFloodFill[index] = true;
-            //Vector3 pos = map.Bounds.min + data.Vertices[index];
-            //green.Vertices.Add(pos);
-            Green.Point p = new Green.Point() { Map = map, indexX = x, indexY = y };
+            Green.Point p = new Green.Point() { Chunk = map.Chunk, indexX = x, indexY = y };
             green.Points.Add(p);
             if (x == 0 || y == 0 || x == map.Width - 1 || y == map.Height - 1)
             {
@@ -745,7 +748,7 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    public HashSet<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, int chunks)
+    public static HashSet<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, int chunks)
     {
         // Calculate the centre chunk
         Vector2Int centre = TerrainChunkManager.WorldToChunk(position);
@@ -765,7 +768,7 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    public HashSet<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, float radius)
+    public static HashSet<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, float radius)
     {
         return GetAllPossibleNearbyChunks(position, Mathf.RoundToInt(radius / TerrainChunkManager.ChunkSizeWorldUnits));
     }
@@ -777,7 +780,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private Vector3[] CalculateLocalVertexPointsForChunk(Vector3 size, int numSamplePoints)
+    private static Vector3[] CalculateLocalVertexPointsForChunk(Vector3 size, int numSamplePoints)
     {
         Vector3[] localPositions = new Vector3[numSamplePoints * numSamplePoints];
         Vector3 one = size / (numSamplePoints - 1);

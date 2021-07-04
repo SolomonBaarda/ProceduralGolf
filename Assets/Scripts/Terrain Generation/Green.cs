@@ -12,7 +12,7 @@ public class Green
 
     public class Point
     {
-        public TerrainMap Map;
+        public Vector2Int Chunk;
         public int indexX, indexY;
     }
 

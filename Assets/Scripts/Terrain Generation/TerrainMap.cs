@@ -86,7 +86,6 @@ public class TerrainMap
             IsEqual(a.x, a.y + 1, b.x, b.y, aY, height - 1, bY, 0, aX, bX);
     }
 
-
 }
 
 
