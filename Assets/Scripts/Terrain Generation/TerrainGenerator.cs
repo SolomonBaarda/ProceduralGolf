@@ -410,14 +410,6 @@ public class TerrainGenerator : MonoBehaviour
 
                     List<Vector2> localPoints = PoissonDiscSampling.GenerateLocalPoints(Settings.MinDistanceBetweenHoles, new Vector2(size.x, size.z), Seed);
 
-                    // Ensure there are at least 2 points
-                    if (localPoints.Count < 2)
-                    {
-                        g.ToBeDeleted = true;
-                        return;
-                    }
-
-
                     g.PossibleHoles = new List<Vector3>();
                     foreach (Vector2 local in localPoints)
                     {
@@ -448,6 +440,13 @@ public class TerrainGenerator : MonoBehaviour
                         {
                             Debug.LogError("Failed to get closest index for a point");
                         }
+                    }
+
+                    // Ensure there are at least 2 points
+                    if (g.PossibleHoles.Count < 2)
+                    {
+                        g.ToBeDeleted = true;
+                        return;
                     }
 
                     // Find furthest away points for start and finish

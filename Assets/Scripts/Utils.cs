@@ -88,7 +88,7 @@ public static class Utils
         indexY = -1;
 
         // Ensure points are valid
-        if (minX < maxX && minY < maxY && posX >= minX && posX <= maxX && posY >= minY && posY <= maxY)
+        if (minX < maxX && minY < maxY && posX >= minX && posX < maxX && posY >= minY && posY < maxY)
         {
             float percentX = (posX - minX) / (maxX - minX), percentY = (posY - minY) / (maxY - minY);
 
@@ -96,7 +96,7 @@ public static class Utils
             indexY = (int)Mathf.Abs(percentY * arrayHeight);
         }
 
-        return indexX >= 0 && indexY >= 0 && indexX < arrayWidth && indexY < arrayHeight;
+        return arrayWidth > 0 && arrayHeight > 0 && indexX >= 0 && indexY >= 0 && indexX < arrayWidth && indexY < arrayHeight;
     }
 
 
