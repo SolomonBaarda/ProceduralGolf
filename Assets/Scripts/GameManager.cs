@@ -21,10 +21,11 @@ public class GameManager : MonoBehaviour
     private Gamerule Gamerules;
     private static readonly Gamerule FromFile = new Gamerule(false, true, 0, 550, true, true);
     private static readonly Gamerule RealtimeEndless = new Gamerule(true, true, 3, 400, true, true);
-    private static readonly Gamerule Testing = new Gamerule(false, false, 3, 0, false, false);
+    private static readonly Gamerule Testing = new Gamerule(false, false, 1, 0, false, false);
     private static readonly Gamerule FixedArea = new Gamerule(false, true, 3, 2000, true, true);
 
-    public delegate void LoadLevel(TerrainData data);
+    public delegate void CourseGenerated(TerrainData data);
+    public delegate void PreviewGenerated(Texture2D map);
 
 
     [Space]
@@ -66,8 +67,6 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         StartCoroutine(WaitUntilGameStart());
-
-        //InvokeRepeating(nameof(CheckTerrainGeneration), 1, 2);
     }
 
 
@@ -79,26 +78,9 @@ public class GameManager : MonoBehaviour
         TerrainGenerator.OnGenerationStateChanged.RemoveAllListeners();
         TerrainGenerator.OnGenerationStateChanged.AddListener(info => { LoadingScreen.Instance.Info.text = info; });
 
-        // Load the map from file
-        if (TerrainMode == TerrainGenerationMethod.LoadFromFile)
+        // Generate a fixed area for testing
+        if (TerrainMode == TerrainGenerationMethod.Testing)
         {
-            Gamerules = FromFile;
-            TerrainData data = WorldSaves[0];
-
-            if (data.Chunks[0].MainMesh == null || data.Chunks[0].BiomeColourMap == null)
-            {
-                throw new Exception("World references not set.");
-            }
-
-            TerrainData d = Instantiate(data);
-            yield return null;
-
-            LoadGame(d);
-        }
-        // Generate a fixed area to save to file
-        else if (TerrainMode == TerrainGenerationMethod.Testing)
-        {
-            //Gamerules = FixedArea;
             Gamerules = Testing;
 
             List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();
@@ -106,10 +88,8 @@ public class GameManager : MonoBehaviour
 
             TerrainGenerator.Generate(l, LoadGame);
         }
-        // Generate a fixed area to save to file
         else if (TerrainMode == TerrainGenerationMethod.FixedArea)
         {
-            //Gamerules = FixedArea;
             Gamerules = FixedArea;
 
             List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();

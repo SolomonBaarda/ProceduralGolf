@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
@@ -11,7 +12,6 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainChunkManager TerrainChunkManager;
 
     public bool IsGenerating { get; private set; } = false;
-
 
     [Header("Settings")]
     public MeshSettings MeshSettings;
@@ -26,7 +26,8 @@ public class TerrainGenerator : MonoBehaviour
 
     public UnityEvent<string> OnGenerationStateChanged = new UnityEvent<string>();
 
-    public void Generate(List<Vector2Int> chunks, GameManager.LoadLevel callback)
+
+    public void Generate(List<Vector2Int> chunks, GameManager.CourseGenerated callback)
     {
         if (IsGenerating)
         {
@@ -55,7 +56,7 @@ public class TerrainGenerator : MonoBehaviour
         StartCoroutine(WaitForGenerate(chunks, Seed, callback));
     }
 
-    private IEnumerator WaitForGenerate(List<Vector2Int> chunks, int seed, GameManager.LoadLevel callback)
+    private IEnumerator WaitForGenerate(List<Vector2Int> chunks, int seed, GameManager.CourseGenerated callback)
     {
         DateTime before = DateTime.Now;
         DateTime last = before;
@@ -536,6 +537,12 @@ public class TerrainGenerator : MonoBehaviour
         }
 
 
+        Texture2D map = GenerateMap(data);
+        //then Save To Disk as PNG
+        byte[] bytes = map.EncodeToPNG();
+        File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
+
+
         OnGenerationStateChanged.Invoke("Sixth pass: constructing meshes");
         {
             // Construct textures and meshes
@@ -549,7 +556,7 @@ public class TerrainGenerator : MonoBehaviour
                 MeshGenerator.OptimiseMesh(ref mesh);
 
                 // Generate the texture
-                Texture2D colourMap = TextureGenerator.GenerateBiomeColourMap(d.TextureData);
+                Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.TextureData);
                 terrainChunks.Add(new TerrainChunkData(d.TerrainMap.Chunk.x, d.TerrainMap.Chunk.y, d.TerrainMap.Bounds.center, d.TerrainMap.Biomes, width, height, colourMap, mesh, d.WorldObjects));
 
                 yield return null;
@@ -574,6 +581,7 @@ public class TerrainGenerator : MonoBehaviour
             callback(terrain);
         }
     }
+
 
     private static IEnumerator WaitForThreadsToComplete(List<Thread> threads)
     {
@@ -677,6 +685,32 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
         }
+    }
+
+    private Texture2D GenerateMap(Dictionary<Vector2Int, ChunkData> data)
+    {
+        KeyValuePair<Vector2Int, ChunkData> first = data.First();
+        Vector2Int min = first.Key, max = min;
+        foreach (Vector2Int key in data.Keys)
+        {
+            if (key.x < min.x)
+                min.x = key.x;
+            if (key.y < min.y)
+                min.y = key.y;
+            if (key.x > max.x)
+                max.x = key.x;
+            if (key.y > max.y)
+                max.y = key.y;
+        }
+
+        TextureGenerator.TextureData[,] textures = new TextureGenerator.TextureData[Mathf.Abs(max.x - min.x) + 1, Mathf.Abs(max.y - min.y) + 1];
+        foreach (KeyValuePair<Vector2Int, ChunkData> pair in data)
+        {
+            textures[pair.Key.x - min.x, pair.Key.y - min.y] = pair.Value.TextureData;
+        }
+
+        TextureGenerator.TextureData d = TextureGenerator.CombineChunkTextureData(textures, first.Value.TextureData.Width, first.Value.TextureData.Height, TextureSettings);
+        return TextureGenerator.GenerateTextureFromData(d);
     }
 
     private static void FixProceduralObjectsOnChunkBorders(TerrainMap chunk, List<TerrainMap> neighbours, float minRadius)

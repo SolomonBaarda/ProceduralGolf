@@ -1,8 +1,35 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class TextureGenerator
 {
+    public static TextureData CombineChunkTextureData(TextureData[,] textureData, int dataWidth, int dataHeight, in TextureSettings settings)
+    {
+        int width = textureData.GetLength(0) * dataWidth, height = textureData.GetLength(1) * dataHeight;
+        Color32[] colours = new Color32[width * height];
+
+        for (int chunkY = 0; chunkY < textureData.GetLength(1); chunkY++)
+        {
+            for (int chunkX = 0; chunkX < textureData.GetLength(0); chunkX++)
+            {
+                TextureData d = textureData[chunkX, chunkY];
+
+                for (int pixelY = 0; pixelY < d.Height; pixelY++)
+                {
+                    for (int pixelX = 0; pixelX < d.Width; pixelX++)
+                    {
+                        int dataX = chunkX * d.Width + pixelX, dataY = chunkY * d.Height + pixelY;
+                        int index = dataY * width + dataX;
+                        colours[index] = d.ColourMap[pixelY * d.Width + pixelX];
+                    }
+                }
+            }
+        }
+
+        return new TextureData(width, height, colours, settings);
+    }
+
     public static TextureData GenerateTextureDataForTerrainMap(in TerrainMap map, in TextureSettings settings)
     {
         int width = map.Width * 2 - 2, height = map.Height * 2 - 2;
@@ -34,7 +61,7 @@ public static class TextureGenerator
         return new TextureData(width, height, colours, settings);
     }
 
-    public static Texture2D GenerateBiomeColourMap(in TextureData data)
+    public static Texture2D GenerateTextureFromData(in TextureData data)
     {
         // Create the texture from the data
         Texture2D t = new Texture2D(data.Width, data.Height)
@@ -45,7 +72,7 @@ public static class TextureGenerator
 
         t.SetPixels32(data.ColourMap);
         t.Apply();
-        t.Compress(false);
+        //t.Compress(false);
 
         return t;
     }

@@ -705,7 +705,7 @@ MonoBehaviour:
   Settings: {fileID: 11400000, guid: 392c806505110884192175365aabbd81, type: 2}
   TextureSettings: {fileID: 11400000, guid: 9e788a4a2ac8e7d49ab7dbea7ef4e3e1, type: 2}
   Seed: 0
-  DoRandomSeed: 1
+  DoRandomSeed: 0
   OnGenerationStateChanged:
     m_PersistentCalls:
       m_Calls: []
