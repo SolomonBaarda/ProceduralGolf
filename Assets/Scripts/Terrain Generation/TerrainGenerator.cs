@@ -537,10 +537,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
 
-        Texture2D map = GenerateMap(data);
-        //then Save To Disk as PNG
-        byte[] bytes = map.EncodeToPNG();
-        File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
+
 
 
         OnGenerationStateChanged.Invoke("Sixth pass: constructing meshes");
@@ -562,9 +559,15 @@ public class TerrainGenerator : MonoBehaviour
                 yield return null;
             }
 
+            MapData mapData = GenerateMap(data);
+            //then Save To Disk as PNG
+            byte[] bytes = mapData.Map.EncodeToPNG();
+            File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
+
+
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, terrainChunks, courseData, Settings.name);
+            terrain.SetData(Seed, terrainChunks, courseData, Settings.name, mapData);
 
 
             // FINISHED GENERATING
@@ -687,7 +690,7 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private Texture2D GenerateMap(Dictionary<Vector2Int, ChunkData> data)
+    private MapData GenerateMap(Dictionary<Vector2Int, ChunkData> data)
     {
         KeyValuePair<Vector2Int, ChunkData> first = data.First();
         Vector2Int min = first.Key, max = min;
@@ -710,7 +713,15 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         TextureGenerator.TextureData d = TextureGenerator.CombineChunkTextureData(textures, first.Value.TextureData.Width, first.Value.TextureData.Height, TextureSettings);
-        return TextureGenerator.GenerateTextureFromData(d);
+        Texture2D map = TextureGenerator.GenerateTextureFromData(d);
+
+
+        return new MapData()
+        {
+            Map = map,
+            MinWorldPos = data[min].TerrainMap.Bounds.min,
+            MaxWorldPox = data[max].TerrainMap.Bounds.max,
+        };
     }
 
     private static void FixProceduralObjectsOnChunkBorders(TerrainMap chunk, List<TerrainMap> neighbours, float minRadius)

@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public TerrainManager TerrainManager;
 
     public GolfBall GolfBall;
-    public Follower BallFollower;
+    public FollowingCamera BallFollower;
 
     public HUD HUD;
     private bool HUDHasLoaded;
@@ -254,7 +254,7 @@ public class GameManager : MonoBehaviour
                         GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
 
                         // Update the camera 
-                        BallFollower.CurrentView = Follower.View.ShootingBehind;
+                        BallFollower.CurrentView = FollowingCamera.View.ShootingBehind;
 
                         // Update the HUD to display the correct values
                         HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
@@ -266,11 +266,11 @@ public class GameManager : MonoBehaviour
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
-                        BallFollower.CurrentView = Follower.View.Above;
+                        BallFollower.CurrentView = FollowingCamera.View.Above;
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
-                        BallFollower.CurrentView = Follower.View.Behind;
+                        BallFollower.CurrentView = FollowingCamera.View.Behind;
                         break;
                 }
             }
