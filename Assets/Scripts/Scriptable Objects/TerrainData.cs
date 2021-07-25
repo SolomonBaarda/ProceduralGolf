@@ -12,16 +12,11 @@ public class TerrainData : ScriptableObject
     public List<TerrainChunkData> Chunks;
     public List<CourseData> Courses;
 
-    public MapData MapData;
-
-    public void SetData(int seed, List<TerrainChunkData> chunks, List<CourseData> courses, string terrainSettingsName, MapData mapData)
+    public void SetData(int seed, List<TerrainChunkData> chunks, List<CourseData> courses, string terrainSettingsName)
     {
         Seed = seed;
         Courses = courses;
         Chunks = chunks;
         TerrainSettingsName = terrainSettingsName;
-        MapData = mapData;
     }
-
-
 }

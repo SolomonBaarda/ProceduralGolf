@@ -559,15 +559,15 @@ public class TerrainGenerator : MonoBehaviour
                 yield return null;
             }
 
-            MapData mapData = GenerateMap(data);
+            //MapData mapData = GenerateMap(data);
             //then Save To Disk as PNG
-            byte[] bytes = mapData.Map.EncodeToPNG();
-            File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
+            //byte[] bytes = mapData.Map.EncodeToPNG();
+            //File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
 
 
             // Create the object and set the data
             TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-            terrain.SetData(Seed, terrainChunks, courseData, Settings.name, mapData);
+            terrain.SetData(Seed, terrainChunks, courseData, Settings.name);
 
 
             // FINISHED GENERATING

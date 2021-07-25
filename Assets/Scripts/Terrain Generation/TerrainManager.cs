@@ -128,11 +128,6 @@ public class TerrainManager : MonoBehaviour
 
     }
 
-    public static Vector3 CalculateSpawnPoint(float sphereRadius, Vector3 pointOnMesh)
-    {
-        return pointOnMesh + (UP * sphereRadius);
-    }
-
 
     private void FixedUpdate()
     {
@@ -186,7 +181,7 @@ public class TerrainManager : MonoBehaviour
 
 
                 // Set the points
-                NextHoleBeacon.SetPoints(target.Hole, TerrainManager.UP);
+                NextHoleBeacon.SetPoints(target.Hole, UP);
             }
         }
     }
@@ -230,8 +225,11 @@ public class TerrainManager : MonoBehaviour
 
     public void SpawnGolfBall(CourseData hole)
     {
+        Vector3 pointOnMesh = hole.Start;
+        // do raycast here to find point on mesh
+        
         // And move the ball there
-        MoveGolfBallAndWaitForNextShot(CalculateSpawnPoint(GolfBall.Radius, hole.Start));
+        MoveGolfBallAndWaitForNextShot(pointOnMesh + (UP * GolfBall.Radius));
     }
 
     private void MoveGolfBallAndWaitForNextShot(Vector3 position)
