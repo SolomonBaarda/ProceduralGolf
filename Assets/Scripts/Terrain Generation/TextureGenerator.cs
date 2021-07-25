@@ -21,7 +21,10 @@ public static class TextureGenerator
                     {
                         int dataX = chunkX * d.Width + pixelX, dataY = chunkY * d.Height + pixelY;
                         int index = dataY * width + dataX;
-                        colours[index] = d.ColourMap[pixelY * d.Width + pixelX];
+
+                        // Add the colours in reverse order - the original colour map is reversed
+                        colours[index] = d.ColourMap[d.ColourMap.Length - (pixelY * d.Width + pixelX) - 1];
+                        
                     }
                 }
             }
