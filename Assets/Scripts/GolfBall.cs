@@ -31,7 +31,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     // Statistics
     public Stats Progress = new Stats();
 
-
     private Vector3 Facing
     {
         get
@@ -90,9 +89,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     [Header("Line Previews")]
     public LinePreview ShotPowerPreview;
-    public LinePreview ShotNormalPreview;
     public TextMesh ShotAnglePreview;
-
 
 
     private void Awake()
@@ -102,7 +99,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         OnRollingFinished += Utils.EMPTY;
         OnOutOfBounds += Utils.EMPTY;
-
 
         ShotPowerPreview.enabled = false;
     }
@@ -245,9 +241,16 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         rigid.angularDrag = 0;
 
         // Apply the force in direction
-        Vector3 force = transform.forward * Power * FullPower * CurrentPreset.ShotPowerMultiplier;
+        Vector3 force = CalculateInitialShotForce();
         rigid.AddForce(force, ForceMode.Impulse);
     }
+
+    private Vector3 CalculateInitialShotForce()
+    {
+        return CurrentPreset.ShotPowerMultiplier * FullPower * Power * transform.forward;
+    }
+
+
 
 
 
@@ -306,42 +309,44 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         rigid.constraints = c;
     }
 
-
-    public void SetShotPowerPreview(bool useRotation, bool useAngle, bool usePower)
+    private List<Vector3> CalculateShotPreviewPositions(int maxSteps = 100, float timePerStep = 0.25f)
     {
-        // Calculate which axis to use
-        Vector3 offset = transform.forward;
-        offset.x = useRotation ? offset.x : 0;
-        offset.z = useRotation ? offset.z : 0;
+        Vector3 initialForce = CalculateInitialShotForce();
+        List<Vector3> positions = new List<Vector3>();
 
-        offset.y = useAngle ? offset.y : 0;
+        // S = UT + 1/2AT^2
 
-        // Now ensure it is the correct length
-        offset.Normalize();
+        float time = 0;
+        for (int i = 0; i < maxSteps; i++)
+        {
+            float displacementX = initialForce.x * time, displacementZ = initialForce.z * time;
+            float displacementY = initialForce.y * time + 0.5f * Physics.gravity.y * time * time;
 
-        // Apply power multiplier if we need to
-        offset *= usePower ? Power : 1;
+            Vector3 worldPosition = new Vector3(displacementX, displacementY, displacementZ) + transform.position;
+            positions.Add(worldPosition);
 
-        // Assign the point
-        ShotPowerPreview.SetPoints(transform.position, offset);
+            // Break out if this was the first position to go below the ground
+            if (!GroundCheck.DoRaycastDown(worldPosition, out _, 100000))
+                break;
+                
+            time += timePerStep;
+        }
+
+        return positions;
     }
 
-
-    public void SetShotNormalPreview()
+    public void UpdateShotPreview()
     {
-        Vector3 forwardNoYComponent = Forward;
-        forwardNoYComponent.y = 0;
-
-        ShotNormalPreview.SetPoints(transform.position, forwardNoYComponent.normalized);
+        Vector3[] positions = CalculateShotPreviewPositions().ToArray();
+        // Assign the points
+        ShotPowerPreview.SetPoints(positions);
     }
 
 
     public void SetShotAnglePreview(string text)
     {
         Vector3 rotation = new Vector3(0, 90, Angle);
-
         ShotAnglePreview.transform.localEulerAngles = rotation;
-
         ShotAnglePreview.text = text;
     }
 
@@ -360,7 +365,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Power = 0.5f;
         Angle = 40;
 
-        // Face the direction we were rolling last TODO
+        // Face the direction we were rolling last @TODO
         //transform.forward = LastDirectionWhenRolling;
         //Quaternion.Euler(LastDirectionWhenRolling).eulerAngles.y
 
@@ -387,7 +392,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Clamp the angle
         Angle = Mathf.Clamp(Angle, 0, 80);
 
-
         transform.rotation = Quaternion.Euler(-Angle, Rotation, 0);
     }
 
@@ -398,8 +402,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     }
 
 
-
-
     public void HoleReached(int courseNumber, DateTime reached)
     {
         // Add the hole 
@@ -407,8 +409,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         Progress.ShotsCurrentCourse.Clear();
     }
-
-
 
 
     public class Stats
@@ -504,6 +504,15 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Draw the facing
         Gizmos.color = Color.green;
         Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
+
+
+
+        Gizmos.color = Color.red;
+        foreach (Vector3 pos in CalculateShotPreviewPositions())
+        {
+            Gizmos.DrawSphere(pos, 1f);
+        }
+
     }
 
 }

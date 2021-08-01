@@ -18,8 +18,8 @@ TagManager:
   - WorldObject
   - 
   - 
-  - 
-  - 
+  - Minimap
+  - IngameHUD
   - PostProcessing
   - 
   - 

@@ -182,7 +182,7 @@ public class TerrainManager : MonoBehaviour
 
 
                 // Set the points
-                NextHoleBeacon.SetPoints(target.Hole, UP);
+                NextHoleBeacon.SetPoints(new Vector3[] { target.Hole, UP });
             }
         }
     }
