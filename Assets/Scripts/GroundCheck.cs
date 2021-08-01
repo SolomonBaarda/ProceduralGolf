@@ -8,6 +8,8 @@ public static class GroundCheck
 
     public const float DEFAULT_RADIUS = 0.2f;
 
+    public const float DEFAULT_RAYCAST_DISTANCE = 10f;
+
 
     public static Collider[] GetGroundCollisions(Vector3 worldPosition, float collisionCheckRadius = DEFAULT_RADIUS)
     {
@@ -20,6 +22,9 @@ public static class GroundCheck
         return GetGroundCollisions(worldPosition, collisionCheckRadius).Length != 0;
     }
 
-
-
+    public static bool DoRaycastDown(Vector3 worldPosition, out RaycastHit hit, float maxRaycastDistance = DEFAULT_RAYCAST_DISTANCE)
+    {
+        Debug.DrawLine(worldPosition, worldPosition + -TerrainManager.UP * maxRaycastDistance, Color.white, 100);
+        return Physics.Raycast(worldPosition, -TerrainManager.UP, out hit, maxRaycastDistance, GroundMask);
+    }
 }

@@ -109,6 +109,8 @@ public class TerrainManager : MonoBehaviour
             yield return null;
         }
 
+        data.Courses.Sort((x,y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
+
         // Assign hole numbers
         for (int i = 0; i < data.Courses.Count; i++)
         {
@@ -133,7 +135,6 @@ public class TerrainManager : MonoBehaviour
     {
         if (CurrentLoadedTerrain != null)
         {
-
             // Current course
             if (GetCourse(GolfBall.Progress.CurrentCourse, out CourseData target))
             {
@@ -225,11 +226,19 @@ public class TerrainManager : MonoBehaviour
 
     public void SpawnGolfBall(CourseData hole)
     {
-        Vector3 pointOnMesh = hole.Start;
-        // do raycast here to find point on mesh
-        
+        Vector3 spawnPoint = hole.Start;
+        if (GroundCheck.DoRaycastDown(hole.Start + (UP * 25), out RaycastHit hit, 50))
+        {
+            spawnPoint = hit.point;
+            Debug.Log("SUCCESS");
+        }
+        else
+        {
+            Debug.Log("FAILED");
+        }
+
         // And move the ball there
-        MoveGolfBallAndWaitForNextShot(pointOnMesh + (UP * GolfBall.Radius));
+        MoveGolfBallAndWaitForNextShot(spawnPoint + (UP * GolfBall.Radius));
     }
 
     private void MoveGolfBallAndWaitForNextShot(Vector3 position)

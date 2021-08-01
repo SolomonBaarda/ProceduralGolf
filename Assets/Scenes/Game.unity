@@ -754,7 +754,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1943703577}
-  - component: {fileID: 1943703578}
   m_Layer: 0
   m_Name: Chunks
   m_TagString: Untagged
@@ -776,18 +775,6 @@ Transform:
   m_Father: {fileID: 1510809343}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!156049354 &1943703578
-Grid:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1943703576}
-  m_Enabled: 1
-  m_CellSize: {x: 1000, y: 1000, z: 0}
-  m_CellGap: {x: 0, y: 0, z: 0}
-  m_CellLayout: 0
-  m_CellSwizzle: 1
 --- !u!1 &2130832999
 GameObject:
   m_ObjectHideFlags: 0

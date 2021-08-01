@@ -2,9 +2,6 @@
 
 public class FollowingCamera : MonoBehaviour
 {
-    public static readonly Vector3 Up = Vector3.up;
-
-
     public Transform Following;
     private ICanBeFollowed target;
 
@@ -70,10 +67,10 @@ public class FollowingCamera : MonoBehaviour
             forward.z = view.UseZ ? forward.z : 0;
             forward.Normalize();
 
-            Vector3 left = Quaternion.AngleAxis(-90, Up) * forward;
+            Vector3 left = Quaternion.AngleAxis(-90, TerrainManager.UP) * forward;
 
             // Offset is backwards + upwards + sideways
-            Vector3 relativeOffset = (forward * view.Backwards) - (Up * view.Upwards) - (left * view.Sideways);
+            Vector3 relativeOffset = (forward * view.Backwards) - (TerrainManager.UP * view.Upwards) - (left * view.Sideways);
             // Set the position
             Vector3 newPos = target.Position - relativeOffset;
 
@@ -100,9 +97,9 @@ public class FollowingCamera : MonoBehaviour
             // If the target is on the ground, ensure the new pos is never below the surface
             if (target.IsOnGround)
             {
-                if (GetGroundPositionBelow(transform.position, out Vector3 groundBelow))
+                if (GroundCheck.DoRaycastDown(transform.position + (TerrainManager.UP * 10), out RaycastHit hit, 20))
                 {
-                    float minimumY = groundBelow.y + MinimumHeightAboveGround;
+                    float minimumY = hit.point.y + MinimumHeightAboveGround;
                     if (newPos.y < minimumY)
                     {
                         newPos.y = minimumY;
@@ -133,28 +130,6 @@ public class FollowingCamera : MonoBehaviour
             transform.eulerAngles = transform.eulerAngles + view.ExtraRotation;
         }
     }
-
-
-
-
-
-    private bool GetGroundPositionBelow(Vector3 pos, out Vector3 point)
-    {
-        point = default;
-
-        float raycastDistance = 10;
-
-        // Do a raycast down using the ground mask
-        if (Physics.Raycast(new Ray(pos + (TerrainManager.UP * raycastDistance / 2), -TerrainManager.UP), out RaycastHit hit, raycastDistance, GroundCheck.GroundMask))
-        {
-            point = hit.point;
-            return true;
-        }
-        return false;
-    }
-
-
-
 
 
 
