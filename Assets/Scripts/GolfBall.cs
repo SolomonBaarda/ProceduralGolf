@@ -25,6 +25,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public bool IsOnGround { get; private set; } = false;
     public bool IsFrozen { get; private set; } = false;
 
+    private bool isBeforeFirstBounce = false;
+
     [Space]
     public Biome.Type CurrentBiome;
 
@@ -110,48 +112,33 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private void FixedUpdate()
     {
         // Get the onground value
-        IsOnGround = GroundCheck.IsOnGround(transform.position, sphereCollider.radius + GroundCheck.DEFAULT_RADIUS);
+        Collider[] groundCollisions = GroundCheck.DoSphereCast(transform.position, sphereCollider.radius + 0.01f);
+        IsOnGround = groundCollisions.Length > 0;
 
-        // Do a raycast down to find the gameobject below
-        Collider c = null;
-        float maxRaycastDistance = 1000;
-        if (Physics.Raycast(new Ray(transform.position, -TerrainManager.UP * maxRaycastDistance), out RaycastHit hit, maxRaycastDistance, GroundCheck.GroundMask))
-        {
-            c = hit.transform.gameObject.GetComponent<Collider>();
-        }
-
-
-        // Get the biome
-        CurrentBiome = Biome.Type.None;
-        Biome.Type biomeBelow = Biome.GetBiomeSamplePoint(c, Position); ;
-        if (IsOnGround)
-        {
-            CurrentBiome = biomeBelow;
-        }
+        // Get the current biome
+        CurrentBiome = IsOnGround ? Biome.GetBiomeSamplePoint(groundCollisions[0], transform.position) : Biome.Type.None;
 
 
         PlayState lastFrame = State;
 
-        // Update the state
-        // On the ground
         if (IsOnGround)
         {
-            float speed = rigid.velocity.magnitude;
+            isBeforeFirstBounce = false;
 
             // Speed is below the threshold
-            if (speed < SpeedCutoffThreshold)
+            if (rigid.velocity.magnitude < SpeedCutoffThreshold)
             {
                 stopRollingTimer += Time.fixedDeltaTime;
                 if (stopRollingTimer >= SecondsRequiredBelowSpeedThreshold)
                 {
-                    State = PlayState.Shooting;
-
                     // First frame of shooting
-                    if (lastFrame == PlayState.Rolling && State == PlayState.Shooting)
+                    if (State == PlayState.Rolling)
                     {
                         WaitForNextShot();
                         OnRollingFinished.Invoke();
                     }
+                    
+                    State = PlayState.Shooting;
                 }
             }
             // Still above it
@@ -160,9 +147,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
                 stopRollingTimer = 0;
                 State = PlayState.Rolling;
             }
-
         }
-        // In the air
         else
         {
             State = PlayState.Flying;
@@ -200,31 +185,29 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
             CurrentPreset = Preset_Air;
         }
 
-        // Set the values
-        rigid.angularDrag = CurrentPreset.AngularDrag;
-        rigid.drag = CurrentPreset.Drag;
+
+        // TODO fix drag
 
 
-
-
-        // Record the last direction we were rolling in
-        if (State == PlayState.Rolling)
+        if(IsOnGround && State != PlayState.Shooting && !isBeforeFirstBounce)
         {
-            LastDirectionWhenRolling = Facing;
+            rigid.drag = CurrentPreset.Drag;
         }
-
+        else
+        {
+            rigid.drag = 0;
+        }
 
 
         // Check out of bounds
         if (!IsFrozen)
         {
             // We are in water or there is nothing below us (left the map)
-            if (CurrentBiome == Biome.Type.Water || biomeBelow == Biome.Type.None)
+            if (CurrentBiome == Biome.Type.Water)
             {
                 OnOutOfBounds.Invoke();
             }
         }
-
     }
 
 
@@ -242,9 +225,20 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         rigid.drag = 0;
         rigid.angularDrag = 0;
 
+        isBeforeFirstBounce = true;
+
         // Apply the force in direction
         Vector3 force = CalculateInitialShotForce();
-        rigid.AddForce(force, ForceMode.Impulse);
+        rigid.velocity = force;
+        Debug.Log(force);
+
+        List<Vector3> positions = CalculateShotPreviewPositions();
+
+        for (int i = 0; i < positions.Count - 1; i++)
+        {
+            Debug.DrawLine(positions[i], positions[i + 1], Color.red, 100);
+        }
+        //Time.timeScale = 0.025f;
     }
 
     private Vector3 CalculateInitialShotForce()
@@ -310,7 +304,11 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     private List<Vector3> CalculateShotPreviewPositions(int maxSteps = 100, float timePerStep = 0.25f)
     {
-        Vector3 initialForce = CalculateInitialShotForce();
+        return CalculatePreviewPositions(CalculateInitialShotForce(), maxSteps, timePerStep);
+    }
+
+    private List<Vector3> CalculatePreviewPositions(Vector3 initialForce, int maxSteps = 100, float timePerStep = 0.25f)
+    {
         List<Vector3> positions = new List<Vector3>();
 
         float time = 0;
@@ -514,17 +512,16 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private void OnDrawGizmosSelected()
     {
         // Draw the facing
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.blue;
         Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
 
 
 
-        Gizmos.color = Color.red;
-        foreach (Vector3 pos in CalculateShotPreviewPositions())
+        Gizmos.color = Color.green;
+        foreach (Vector3 pos in CalculatePreviewPositions(rigid.velocity))
         {
             Gizmos.DrawSphere(pos, 0.25f);
         }
-
     }
 
 }
