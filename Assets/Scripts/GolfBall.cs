@@ -88,7 +88,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
     [Header("Line Previews")]
-    public LinePreview ShotPowerPreview;
+    public LinePreview ShotPreview;
+    public LinePreview ShotPreviewMinimap;
+
     public TextMesh ShotAnglePreview;
 
 
@@ -100,7 +102,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         OnRollingFinished += Utils.EMPTY;
         OnOutOfBounds += Utils.EMPTY;
 
-        ShotPowerPreview.enabled = false;
+        ShotPreview.enabled = false;
     }
 
 
@@ -251,9 +253,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     }
 
 
-
-
-
     public void Reset()
     {
         // Reset all movement
@@ -314,21 +313,33 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Vector3 initialForce = CalculateInitialShotForce();
         List<Vector3> positions = new List<Vector3>();
 
-        // S = UT + 1/2AT^2
-
         float time = 0;
         for (int i = 0; i < maxSteps; i++)
         {
-            float displacementX = initialForce.x * time, displacementZ = initialForce.z * time;
-            float displacementY = initialForce.y * time + 0.5f * Physics.gravity.y * time * time;
+
+            float displacementX = Utils.CalculateDisplacementSUVAT(initialForce.x, time, Physics.gravity.x);
+            float displacementY = Utils.CalculateDisplacementSUVAT(initialForce.y, time, Physics.gravity.y);
+            float displacementZ = Utils.CalculateDisplacementSUVAT(initialForce.z, time, Physics.gravity.z);
 
             Vector3 worldPosition = new Vector3(displacementX, displacementY, displacementZ) + transform.position;
-            positions.Add(worldPosition);
 
             // Break out if this was the first position to go below the ground
             if (!GroundCheck.DoRaycastDown(worldPosition, out _, 100000))
+            {
+                if (positions.Count - 1 >= 0)
+                {
+                    // Calculate the position on the ground
+                    Vector3 lastPosition = positions[positions.Count - 1];
+                    Vector3 direction = (worldPosition - lastPosition).normalized;
+                    if (GroundCheck.DoRaycast(lastPosition, direction, out RaycastHit hit, 1000))
+                    {
+                        positions.Add(hit.point);
+                    }
+                }
                 break;
-                
+            }
+
+            positions.Add(worldPosition);
             time += timePerStep;
         }
 
@@ -339,7 +350,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     {
         Vector3[] positions = CalculateShotPreviewPositions().ToArray();
         // Assign the points
-        ShotPowerPreview.SetPoints(positions);
+        ShotPreview.SetPoints(positions);
+        ShotPreviewMinimap.SetPoints(new Vector3[] { positions[0] + Vector3.up * 10, positions[positions.Length - 1] + Vector3.up * 10 });
     }
 
 
@@ -510,7 +522,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Gizmos.color = Color.red;
         foreach (Vector3 pos in CalculateShotPreviewPositions())
         {
-            Gizmos.DrawSphere(pos, 1f);
+            Gizmos.DrawSphere(pos, 0.25f);
         }
 
     }

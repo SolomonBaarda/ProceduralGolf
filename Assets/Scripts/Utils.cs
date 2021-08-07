@@ -134,7 +134,14 @@ public static class Utils
 
 
 
-
+    /**
+     * @brief S = UT + 1/2AT^2
+     */
+    public static float CalculateDisplacementSUVAT(float initialVelocity, float time, float acceleration)
+    {
+        // S = UT + 1/2AT^2
+        return (initialVelocity * time) + (0.5f * acceleration * time * time);
+    }
 
 
     public static void EMPTY() { }

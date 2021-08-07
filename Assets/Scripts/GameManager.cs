@@ -181,17 +181,18 @@ public class GameManager : MonoBehaviour
         {
             // Taking a shot
             bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
-            // Set the preview active or not
-            GolfBall.ShotPowerPreview.gameObject.SetActive(isShooting);
-            GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
 
+            // Set the preview active or not
+            GolfBall.ShotPreview.gameObject.SetActive(isShooting);
+            GolfBall.ShotPreviewMinimap.gameObject.SetActive(isShooting);
+            GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
 
             if (Gamerules.UseHUD && HUD != null)
             {
                 HUD.CanvasInteraction.gameObject.SetActive(true);
                 HUD.MainHUD.SetActive(true);
-
                 HUD.ShootingMenu.SetActive(isShooting);
+                HUD.Minimap.SetActive(isShooting);
 
 
                 // Update the camera angles
@@ -204,8 +205,8 @@ public class GameManager : MonoBehaviour
                         int touchMultiplier = 10;
 
                         // Calculate the deltas for each 
-                        Vector2 rotationAndAngleDelta = HUD.MainSlider.DeltaPosition * Time.deltaTime * touchMultiplier;
-                        Vector2 powerDelta = HUD.PowerSlider.DeltaPosition * Time.deltaTime * touchMultiplier;
+                        Vector2 rotationAndAngleDelta = Time.deltaTime * touchMultiplier * HUD.MainSlider.DeltaPosition;
+                        Vector2 powerDelta = Time.deltaTime * touchMultiplier * HUD.PowerSlider.DeltaPosition;
 
                         // Make sure power has priority over rotation and angle
                         if (powerDelta.x != 0 || powerDelta.y != 0)

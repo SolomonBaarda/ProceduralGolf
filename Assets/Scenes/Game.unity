@@ -124,6 +124,81 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &92329946
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 92329947}
+  - component: {fileID: 92329948}
+  m_Layer: 13
+  m_Name: Shot MINIMAP
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &92329947
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92329946}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4213627501115095108}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &92329948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92329946}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 082e47ee6631fa5458683eb23786604e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LineColour:
+    serializedVersion: 2
+    key0: {r: 0, g: 0.55093956, b: 1, a: 1}
+    key1: {r: 0, g: 0.55093956, b: 1, a: 1}
+    key2: {r: 0.3679245, g: 0.2481755, b: 0.2481755, a: 0}
+    key3: {r: 0.38679248, g: 0.21711464, b: 0.21711464, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 65535
+    ctime2: 65535
+    ctime3: 65535
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 65535
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 2
+    m_NumAlphaKeys: 2
+  LineWidth: 10
+  LineMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  OrderInLayer: 1
 --- !u!1 &295252888
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,7 +291,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 50999
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -350,7 +425,7 @@ Camera:
   far clip plane: 1000
   field of view: 131.8
   orthographic: 1
-  orthographic size: 750
+  orthographic size: 250
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -449,7 +524,7 @@ GameObject:
   - component: {fileID: 1508229865}
   - component: {fileID: 1508229864}
   m_Layer: 14
-  m_Name: Shot power preview
+  m_Name: Shot preview
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -557,7 +632,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4213627501115095108}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 40}
 --- !u!1 &1605079250
 GameObject:
@@ -805,6 +880,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Target: {fileID: 4213627501115095108}
   OffsetFromTarget: {x: 0, y: 100, z: 0}
+  DoOffsetFromTargetFacingDirection: 1
+  FacingDirectionDistance: -150
+  SetRotation: 1
 --- !u!1 &1943703576
 GameObject:
   m_ObjectHideFlags: 0
@@ -967,6 +1045,7 @@ Transform:
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children:
   - {fileID: 1508229865}
+  - {fileID: 92329947}
   - {fileID: 1605079249}
   m_Father: {fileID: 1510809343}
   m_RootOrder: 0
@@ -1093,5 +1172,6 @@ MonoBehaviour:
   Angle: 0
   rigid: {fileID: 4448303047686481679}
   sphereCollider: {fileID: 4213627501115095111}
-  ShotPowerPreview: {fileID: 1508229864}
+  ShotPreview: {fileID: 1508229864}
+  ShotPreviewMinimap: {fileID: 92329948}
   ShotAnglePreview: {fileID: 1605079248}

@@ -43,6 +43,8 @@ public class HUD : MonoBehaviour
     public GameObject ScoreRowParent;
     public List<ScoreboardRow> ScoreboardRows = new List<ScoreboardRow>();
 
+    [Header("Minimap")]
+    public GameObject Minimap;
 
     public static HUD Instance;
 
