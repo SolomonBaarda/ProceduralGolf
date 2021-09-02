@@ -9,6 +9,7 @@ public class ShotPreview : MonoBehaviour
     public LinePreview ShotPreviewMinimap;
 
     public Transform ShotPreviewTarget;
+    public Transform ShotPreviewStart;
 
     public TextMesh ShotAnglePreview;
 
@@ -16,6 +17,7 @@ public class ShotPreview : MonoBehaviour
     {
         ShotPreviewMain.SetPoints(positions);
         ShotPreviewMinimap.SetPoints(new Vector3[] { positions[0] + Vector3.up * 10, positions[positions.Length - 1] + Vector3.up * 10 });
+        ShotPreviewStart.position = positions[0];
         ShotPreviewTarget.position = positions[positions.Length - 1];
     }
 

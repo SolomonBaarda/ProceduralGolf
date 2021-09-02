@@ -41,7 +41,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
             {
                 switch (State)
                 {
-                    case PlayState.Shooting:
+                    case PlayState.Aiming:
                         return transform.forward;
                     // Use the velocity
                     case PlayState.Flying:
@@ -134,7 +134,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
                         OnRollingFinished.Invoke();
                     }
                     
-                    State = PlayState.Shooting;
+                    State = PlayState.Aiming;
                 }
             }
             // Still above it
@@ -185,7 +185,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // TODO fix drag
 
 
-        if(IsOnGround && State != PlayState.Shooting && !isBeforeFirstBounce)
+        if(IsOnGround && State != PlayState.Aiming && !isBeforeFirstBounce)
         {
             rigid.drag = CurrentPreset.Drag;
         }
@@ -228,7 +228,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         rigid.velocity = force;
 
 
-        List<Vector3> positions = CalculateShotPreviewPositions();
+        List<Vector3> positions = CalculateShotPreviewWorldPositions();
         for (int i = 0; i < positions.Count - 1; i++)
         {
             Debug.DrawLine(positions[i], positions[i + 1], Color.red, 100);
@@ -296,12 +296,12 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         rigid.constraints = c;
     }
 
-    private List<Vector3> CalculateShotPreviewPositions(int maxSteps = 100, float timePerStep = 0.25f)
+    private List<Vector3> CalculateShotPreviewWorldPositions(int maxSteps = 100, float timePerStep = 0.25f)
     {
-        return CalculatePreviewPositions(CalculateInitialShotForce(), maxSteps, timePerStep);
+        return CalculateShotPreviewWorldPositions(CalculateInitialShotForce(), maxSteps, timePerStep);
     }
 
-    private List<Vector3> CalculatePreviewPositions(Vector3 initialForce, int maxSteps = 100, float timePerStep = 0.25f)
+    private List<Vector3> CalculateShotPreviewWorldPositions(Vector3 initialForce, int maxSteps = 100, float timePerStep = 0.25f)
     {
         List<Vector3> positions = new List<Vector3>();
 
@@ -340,7 +340,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public void UpdateShotPreview()
     {
-        Vector3[] positions = CalculateShotPreviewPositions().ToArray();
+        Vector3[] positions = CalculateShotPreviewWorldPositions().ToArray();
         ShotPreview.SetPoints(positions);
     }
 
@@ -483,7 +483,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public enum PlayState
     {
-        Shooting,
+        Aiming,
         Flying,
         Rolling,
     }
@@ -509,7 +509,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
 
         Gizmos.color = Color.green;
-        foreach (Vector3 pos in CalculatePreviewPositions(rigid.velocity))
+        foreach (Vector3 pos in CalculateShotPreviewWorldPositions(rigid.velocity))
         {
             Gizmos.DrawSphere(pos, 0.25f);
         }

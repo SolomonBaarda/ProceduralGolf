@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
 
     [Space]
     public Animator CameraStates;
-    public const string CameraShootingTrigger = "IsShooting", CameraRollingTrigger = "IsRolling", CameraFollowingTrigger = "IsFollowing";
+    public const string CameraAimingTrigger = "IsAiming", CameraRollingTrigger = "IsRolling", CameraFlyingTrigger = "IsFlying";
 
     [Space]
     public TerrainGenerationMethod TerrainMode;
@@ -180,27 +180,23 @@ public class GameManager : MonoBehaviour
         if (Gamerules.UseGolfBall)
         {
             // Taking a shot
-            bool isShooting = GolfBall.State == GolfBall.PlayState.Shooting;
+            bool isAiming = GolfBall.State == GolfBall.PlayState.Aiming;
 
             // Set the preview active or not
-            GolfBall.ShotPreview.gameObject.SetActive(isShooting);
+            GolfBall.ShotPreview.gameObject.SetActive(isAiming);
 
             if (Gamerules.UseHUD && HUD != null)
             {
-                HUD.CanvasInteraction.gameObject.SetActive(true);
-                HUD.MainHUD.SetActive(true);
-                HUD.ShootingMenu.SetActive(isShooting);
-                HUD.Minimap.SetActive(isShooting);
-
+                HUD.ShootingMenu.SetActive(isAiming);
+                HUD.Minimap.SetActive(isAiming);
 
                 // Update the camera angles
                 switch (GolfBall.State)
                 {
                     // Shooting mode
-                    case GolfBall.PlayState.Shooting:
+                    case GolfBall.PlayState.Aiming:
 
-                        int heldButtonMultiplier = 24;
-                        int touchMultiplier = 10;
+                        const int heldButtonMultiplier = 24, touchMultiplier = 10;
 
                         // Calculate the deltas for each 
                         Vector2 rotationAndAngleDelta = Time.deltaTime * touchMultiplier * HUD.MainSlider.DeltaPosition;
@@ -212,8 +208,7 @@ public class GameManager : MonoBehaviour
                             rotationAndAngleDelta = Vector2.zero;
                         }
 
-                        float rotationDelta = rotationAndAngleDelta.x;
-                        float angleDelta = rotationAndAngleDelta.y;
+                        float rotationDelta = rotationAndAngleDelta.x, angleDelta = rotationAndAngleDelta.y;
 
                         // Rotation
                         // Move less
@@ -244,14 +239,9 @@ public class GameManager : MonoBehaviour
                         GolfBall.SetValues(GolfBall.Rotation + rotationDelta, GolfBall.Angle + angleDelta, GolfBall.Power + powerDelta.y / 50f);
 
 
-                        // Just use the one camera view for now
-
                         // Update the shot preview
                         GolfBall.UpdateShotPreview();
                         GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
-
-                        // Update the camera 
-                        //BallFollower.CurrentView = FollowingCamera.View.ShootingBehind;
 
                         // Update the HUD to display the correct values
                         HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
@@ -262,13 +252,13 @@ public class GameManager : MonoBehaviour
                         HUD.PowerSlider.Background.color = p;
 
                         ResetCameraTriggers();
-                        CameraStates.SetTrigger(CameraShootingTrigger);
+                        CameraStates.SetTrigger(CameraAimingTrigger);
 
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
                         ResetCameraTriggers();
-                        CameraStates.SetTrigger(CameraFollowingTrigger); 
+                        CameraStates.SetTrigger(CameraFlyingTrigger); 
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
@@ -380,9 +370,9 @@ public class GameManager : MonoBehaviour
 
     private void ResetCameraTriggers()
     {
-        CameraStates.ResetTrigger(CameraShootingTrigger);
+        CameraStates.ResetTrigger(CameraAimingTrigger);
         CameraStates.ResetTrigger(CameraRollingTrigger);
-        CameraStates.ResetTrigger(CameraFollowingTrigger);
+        CameraStates.ResetTrigger(CameraFlyingTrigger);
     }
 
 
