@@ -15,6 +15,10 @@ public class GameManager : MonoBehaviour
     private bool HUDHasLoaded;
 
     [Space]
+    public Animator CameraStates;
+    public const string CameraShootingTrigger = "IsShooting", CameraRollingTrigger = "IsRolling", CameraFollowingTrigger = "IsFollowing";
+
+    [Space]
     public TerrainGenerationMethod TerrainMode;
     private Gamerule Gamerules;
     private static readonly Gamerule Testing = new Gamerule(false, false, 3, 0, false, false);
@@ -256,14 +260,20 @@ public class GameManager : MonoBehaviour
                         Color p = HUD.PowerSlider.Gradient.Evaluate(GolfBall.Power);
                         p.a = HUD.PowerSliderBackgroundAlpha;
                         HUD.PowerSlider.Background.color = p;
+
+                        ResetCameraTriggers();
+                        CameraStates.SetTrigger(CameraShootingTrigger);
+
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
-                        //BallFollower.CurrentView = FollowingCamera.View.Above;
+                        ResetCameraTriggers();
+                        CameraStates.SetTrigger(CameraFollowingTrigger); 
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
-                        //BallFollower.CurrentView = FollowingCamera.View.Behind;
+                        ResetCameraTriggers();
+                        CameraStates.SetTrigger(CameraRollingTrigger); 
                         break;
                 }
             }
@@ -368,6 +378,12 @@ public class GameManager : MonoBehaviour
     }
 
 
+    private void ResetCameraTriggers()
+    {
+        CameraStates.ResetTrigger(CameraShootingTrigger);
+        CameraStates.ResetTrigger(CameraRollingTrigger);
+        CameraStates.ResetTrigger(CameraFollowingTrigger);
+    }
 
 
 

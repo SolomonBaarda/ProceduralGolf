@@ -226,15 +226,13 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Apply the force in direction
         Vector3 force = CalculateInitialShotForce();
         rigid.velocity = force;
-        Debug.Log(force);
+
 
         List<Vector3> positions = CalculateShotPreviewPositions();
-
         for (int i = 0; i < positions.Count - 1; i++)
         {
             Debug.DrawLine(positions[i], positions[i + 1], Color.red, 100);
         }
-        //Time.timeScale = 0.025f;
     }
 
     private Vector3 CalculateInitialShotForce()
