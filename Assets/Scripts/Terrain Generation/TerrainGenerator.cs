@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
@@ -143,130 +144,114 @@ public class TerrainGenerator : MonoBehaviour
                     map.NormaliseLayers(terrainLayerHeightsMinMax);
 
                     // Now calculate the actual heights from the noise and the biomes
-                    for (int y = 0; y < height; y++)
+                    for (int index = 0; index < map.Heights.Length; index++)
                     {
-                        for (int x = 0; x < width; x++)
+                        // Set the default biome 
+                        map.Biomes[index] = Settings.MainBiome;
+
+                        // Set the height and update biomes
+                        map.Heights[index] = 0;
+                        for (int i = 0; i < map.Layers.Count; i++)
                         {
-                            int index = y * width + x;
-                            int fromOriginMagnitude = (width * width * x * x) + (height * height * y * y) + 1;
-
-                            // Set the default biome 
-                            map.Biomes[index] = Settings.MainBiome;
-
-                            // Set the height and update biomes
-                            map.Heights[index] = 0;
-                            for (int i = 0; i < map.Layers.Count; i++)
+                            TerrainSettings.Layer s = Settings.TerrainLayers[i];
+                            TerrainMap.Layer m = map.Layers[i];
+                            if (s.Apply && m.Noise[index] >= s.NoiseThresholdMin && m.Noise[index] <= s.NoiseThresholdMax)
                             {
-                                TerrainSettings.Layer s = Settings.TerrainLayers[i];
-                                TerrainMap.Layer m = map.Layers[i];
-
-                                if(s.UseDistanceFromOriginMultiplier)
+                                // Check that the mask is valid if we are using it 
+                                bool maskvalid = true;
+                                if (s.UseMask)
                                 {
-                                    // x^2 + y^2 
-                                    // TODO
-                                    float multiplier = Mathf.Clamp(s.DistanceFromOriginRadius * s.DistanceFromOriginRadius / fromOriginMagnitude, 0, 1);
-                                    m.Noise[index] *= multiplier;
-                                }
-
-                                if (s.Apply && m.Noise[index] >= s.NoiseThresholdMin && m.Noise[index] <= s.NoiseThresholdMax)
-                                {
-                                    // Check that the mask is valid if we are using it 
-                                    bool maskvalid = true;
-                                    if (s.UseMask)
+                                    for (int j = 0; j < s.Masks.Count; j++)
                                     {
-                                        // Regular masks using noise
-                                        for (int j = 0; j < s.Masks.Count; j++)
+                                        TerrainSettings.Layer mask = Settings.TerrainLayers[s.Masks[j].LayerIndex];
+                                        TerrainMap.Layer maskValues = map.Layers[s.Masks[j].LayerIndex];
+                                        // Mask is not valid here
+                                        if (!(maskValues.Noise[index] >= s.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= s.Masks[j].NoiseThresholdMax))
                                         {
-                                            TerrainSettings.Layer mask = Settings.TerrainLayers[s.Masks[j].LayerIndex];
-                                            TerrainMap.Layer maskValues = map.Layers[s.Masks[j].LayerIndex];
-                                            // Mask is not valid here
-                                            if (!(maskValues.Noise[index] >= s.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= s.Masks[j].NoiseThresholdMax))
-                                            {
-                                                maskvalid = false;
-                                                break;
-                                            }
+                                            maskvalid = false;
+                                            break;
                                         }
                                     }
+                                }
 
-                                    if (!s.UseMask || maskvalid)
+                                if (!s.UseMask || maskvalid)
+                                {
+                                    // None biome layer will not effect the final biome
+                                    if (s.Biome != Biome.Type.None)
                                     {
-                                        // None biome layer will not effect the final biome
-                                        if (s.Biome != Biome.Type.None)
-                                        {
-                                            map.Biomes[index] = s.Biome;
-                                        }
+                                        map.Biomes[index] = s.Biome;
+                                    }
 
-                                        float value = m.Noise[index] * s.Multiplier;
+                                    float value = m.Noise[index] * s.Multiplier;
 
-                                        switch (s.CombinationMode)
-                                        {
-                                            case TerrainSettings.Layer.Mode.Add:
-                                                map.Heights[index] += value;
-                                                break;
-                                            case TerrainSettings.Layer.Mode.Subtract:
-                                                map.Heights[index] -= value;
-                                                break;
-                                            case TerrainSettings.Layer.Mode.Divide:
-                                                map.Heights[index] /= value;
-                                                break;
-                                            case TerrainSettings.Layer.Mode.Multiply:
-                                                map.Heights[index] *= value;
-                                                break;
-                                            case TerrainSettings.Layer.Mode.Modulus:
-                                                map.Heights[index] %= value;
-                                                break;
-                                            case TerrainSettings.Layer.Mode.Set:
-                                                map.Heights[index] = value;
-                                                break;
-                                        }
+                                    switch (s.CombinationMode)
+                                    {
+                                        case TerrainSettings.Layer.Mode.Add:
+                                            map.Heights[index] += value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Subtract:
+                                            map.Heights[index] -= value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Divide:
+                                            map.Heights[index] /= value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Multiply:
+                                            map.Heights[index] *= value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Modulus:
+                                            map.Heights[index] %= value;
+                                            break;
+                                        case TerrainSettings.Layer.Mode.Set:
+                                            map.Heights[index] = value;
+                                            break;
                                     }
                                 }
                             }
+                        }
 
-                            // Set the green
-                            map.Greens[index] = false;
-                            foreach (TerrainSettings.Green g in Settings.Greens)
+                        // Set the green
+                        map.Greens[index] = false;
+                        foreach (TerrainSettings.Green g in Settings.Greens)
+                        {
+                            if (g.Do && g.RequiredBiomes.Contains(map.Biomes[index]))
                             {
-                                if (g.Do && g.RequiredBiomes.Contains(map.Biomes[index]))
+                                // Check that the mask is valid if we are using it 
+                                bool maskvalid = true;
+                                if (g.UseMask)
                                 {
-                                    // Check that the mask is valid if we are using it 
-                                    bool maskvalid = true;
-                                    if (g.UseMask)
+                                    for (int j = 0; j < g.Masks.Count; j++)
                                     {
-                                        for (int j = 0; j < g.Masks.Count; j++)
-                                        {
-                                            TerrainMap.Layer maskValues = map.Layers[g.Masks[j].LayerIndex];
+                                        TerrainMap.Layer maskValues = map.Layers[g.Masks[j].LayerIndex];
 
-                                            // Mask is not valid here
-                                            if (!(maskValues.Noise[index] >= g.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= g.Masks[j].NoiseThresholdMax))
-                                            {
-                                                maskvalid = false;
-                                                break;
-                                            }
+                                        // Mask is not valid here
+                                        if (!(maskValues.Noise[index] >= g.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= g.Masks[j].NoiseThresholdMax))
+                                        {
+                                            maskvalid = false;
+                                            break;
                                         }
                                     }
+                                }
 
-                                    // Either no mask and will be valid biome, or mask must be valid
-                                    map.Greens[index] = !g.UseMask || (g.UseMask && maskvalid);
+                                // Either no mask and will be valid biome, or mask must be valid
+                                map.Greens[index] = !g.UseMask || (g.UseMask && maskvalid);
 
-                                    if (!map.Greens[index])
-                                    {
-                                        break;
-                                    }
+                                if (!map.Greens[index])
+                                {
+                                    break;
                                 }
                             }
+                        }
 
-                            // Get final min max
-                            lock (threadLock)
+                        // Get final min max
+                        lock (threadLock)
+                        {
+                            if (map.Heights[index] < minHeight)
                             {
-                                if (map.Heights[index] < minHeight)
-                                {
-                                    minHeight = map.Heights[index];
-                                }
-                                if (map.Heights[index] > maxHeight)
-                                {
-                                    maxHeight = map.Heights[index];
-                                }
+                                minHeight = map.Heights[index];
+                            }
+                            if (map.Heights[index] > maxHeight)
+                            {
+                                maxHeight = map.Heights[index];
                             }
                         }
                     }

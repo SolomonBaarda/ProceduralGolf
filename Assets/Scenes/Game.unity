@@ -948,7 +948,7 @@ MonoBehaviour:
   GolfBall: {fileID: 5612774800490992908}
   BallFollower: {fileID: 1069462429095147909}
   HUD: {fileID: 0}
-  TerrainMode: 2
+  TerrainMode: 1
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
   WorldSaves:
   - {fileID: 11400000, guid: 8e6b2ecf0da267944b57d1def9673305, type: 2}

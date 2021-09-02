@@ -56,8 +56,6 @@ public class TerrainSettings : VariablePreset
         public NoiseSettings Settings;
         [Space]
         public bool UseMask = false;
-        public bool UseDistanceFromOriginMultiplier = false;
-        public float DistanceFromOriginRadius = 0;
         [Header("List of layer indexes to use as mask")]
         public List<Mask> Masks;
     }

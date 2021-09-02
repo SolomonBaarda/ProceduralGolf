@@ -48,8 +48,6 @@ MonoBehaviour:
     CombinationMode: 0
     Settings: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3, type: 2}
     UseMask: 0
-    UseDistanceFromOriginMultiplier: 0
-    DistanceFromOriginRadius: 0
     Masks: []
   - Apply: 1
     Multiplier: 0.1
@@ -59,8 +57,6 @@ MonoBehaviour:
     CombinationMode: 1
     Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
     UseMask: 0
-    UseDistanceFromOriginMultiplier: 0
-    DistanceFromOriginRadius: 700
     Masks: []
   - Apply: 1
     Multiplier: 0.25
@@ -70,8 +66,6 @@ MonoBehaviour:
     CombinationMode: 1
     Settings: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0, type: 2}
     UseMask: 1
-    UseDistanceFromOriginMultiplier: 0
-    DistanceFromOriginRadius: 0
     Masks:
     - LayerIndex: 1
       NoiseThresholdMin: 0.6
@@ -84,8 +78,6 @@ MonoBehaviour:
     CombinationMode: 5
     Settings: {fileID: 11400000, guid: b2258d188ca865c43ad49f7b2b3bf462, type: 2}
     UseMask: 0
-    UseDistanceFromOriginMultiplier: 0
-    DistanceFromOriginRadius: 0
     Masks: []
   PoissonSamplingIterations: 5
   PoissonSamplingRadius: 12
