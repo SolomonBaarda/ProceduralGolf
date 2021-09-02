@@ -59,7 +59,7 @@ MonoBehaviour:
     CombinationMode: 1
     Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
     UseMask: 0
-    UseDistanceFromOriginMultiplier: 1
+    UseDistanceFromOriginMultiplier: 0
     DistanceFromOriginRadius: 700
     Masks: []
   - Apply: 1
