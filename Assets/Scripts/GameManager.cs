@@ -9,18 +9,14 @@ public class GameManager : MonoBehaviour
 {
     public TerrainGenerator TerrainGenerator;
     public TerrainManager TerrainManager;
-
     public GolfBall GolfBall;
-    public FollowingCamera BallFollower;
-
+    [HideInInspector]
     public HUD HUD;
     private bool HUDHasLoaded;
 
     [Space]
     public TerrainGenerationMethod TerrainMode;
     private Gamerule Gamerules;
-    private static readonly Gamerule FromFile = new Gamerule(false, true, 0, 550, true, true);
-    private static readonly Gamerule RealtimeEndless = new Gamerule(true, true, 3, 400, true, true);
     private static readonly Gamerule Testing = new Gamerule(false, false, 3, 0, false, false);
     private static readonly Gamerule FixedArea = new Gamerule(false, true, 3, 2000, true, true);
 
@@ -184,8 +180,6 @@ public class GameManager : MonoBehaviour
 
             // Set the preview active or not
             GolfBall.ShotPreview.gameObject.SetActive(isShooting);
-            GolfBall.ShotPreviewMinimap.gameObject.SetActive(isShooting);
-            GolfBall.ShotAnglePreview.gameObject.SetActive(isShooting);
 
             if (Gamerules.UseHUD && HUD != null)
             {
@@ -253,7 +247,7 @@ public class GameManager : MonoBehaviour
                         GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
 
                         // Update the camera 
-                        BallFollower.CurrentView = FollowingCamera.View.ShootingBehind;
+                        //BallFollower.CurrentView = FollowingCamera.View.ShootingBehind;
 
                         // Update the HUD to display the correct values
                         HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
@@ -265,11 +259,11 @@ public class GameManager : MonoBehaviour
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
-                        BallFollower.CurrentView = FollowingCamera.View.Above;
+                        //BallFollower.CurrentView = FollowingCamera.View.Above;
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
-                        BallFollower.CurrentView = FollowingCamera.View.Behind;
+                        //BallFollower.CurrentView = FollowingCamera.View.Behind;
                         break;
                 }
             }

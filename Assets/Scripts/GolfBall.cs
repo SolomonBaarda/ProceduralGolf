@@ -88,12 +88,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public Rigidbody rigid;
     public SphereCollider sphereCollider;
 
+    public ShotPreview ShotPreview;
 
-    [Header("Line Previews")]
-    public LinePreview ShotPreview;
-    public LinePreview ShotPreviewMinimap;
-
-    public TextMesh ShotAnglePreview;
 
 
     private void Awake()
@@ -347,17 +343,14 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public void UpdateShotPreview()
     {
         Vector3[] positions = CalculateShotPreviewPositions().ToArray();
-        // Assign the points
         ShotPreview.SetPoints(positions);
-        ShotPreviewMinimap.SetPoints(new Vector3[] { positions[0] + Vector3.up * 10, positions[positions.Length - 1] + Vector3.up * 10 });
     }
 
 
     public void SetShotAnglePreview(string text)
     {
         Vector3 rotation = new Vector3(0, 90, Angle);
-        ShotAnglePreview.transform.localEulerAngles = rotation;
-        ShotAnglePreview.text = text;
+        ShotPreview.SetAnglePreview(rotation, text);
     }
 
 

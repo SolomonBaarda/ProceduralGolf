@@ -230,11 +230,11 @@ public class TerrainManager : MonoBehaviour
         if (GroundCheck.DoRaycastDown(hole.Start + (UP * 25), out RaycastHit hit, 50))
         {
             spawnPoint = hit.point;
-            Debug.Log("SUCCESS");
+            Debug.Log("SUCCESSFULLY SPAWNED GOLF BALL PROPERLY");
         }
         else
         {
-            Debug.Log("FAILED");
+            Debug.Log("FAILED TO SPAWN GOLF BALL PROPERLY");
         }
 
         // And move the ball there
