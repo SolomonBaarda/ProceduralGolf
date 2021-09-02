@@ -880,7 +880,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Target: {fileID: 4213627501115095108}
   OffsetFromTarget: {x: 0, y: 100, z: 0}
-  DoOffsetFromTargetFacingDirection: 1
+  DoOffsetFromTargetFacingDirection: 0
   FacingDirectionDistance: -150
   SetRotation: 1
 --- !u!1 &1943703576
