@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
 
     [Space]
     public Animator CameraStates;
+    public const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
     public const string CameraAimingTrigger = "IsAiming", CameraRollingTrigger = "IsRolling", CameraFlyingTrigger = "IsFlying";
     private readonly string[] AllCameraTriggers = { CameraAimingTrigger, CameraRollingTrigger, CameraFlyingTrigger };
 
@@ -266,6 +267,9 @@ public class GameManager : MonoBehaviour
                         CameraStates.SetTrigger(CameraRollingTrigger);
                         break;
                 }
+
+                float sqrMag = (GolfBall.ShotPreview.ShotPreviewTarget.position - GolfBall.transform.position).sqrMagnitude;
+                CameraStates.SetFloat(CameraSqrMagToTargetFloat, sqrMag);
             }
         }
     }

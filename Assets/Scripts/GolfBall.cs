@@ -33,34 +33,27 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     // Statistics
     public Stats Progress = new Stats();
 
-    private Vector3 Facing
+    public Vector3 Forward
     {
         get
         {
-            if (rigid != null)
+            switch (State)
             {
-                switch (State)
-                {
-                    case PlayState.Aiming:
-                        return transform.forward;
-                    // Use the velocity
-                    case PlayState.Flying:
-                        return rigid.velocity;
-                    // Use the velocity
-                    case PlayState.Rolling:
-                        return rigid.velocity;
-                }
+                case PlayState.Aiming:
+                    return transform.forward;
+                // Use the velocity
+                case PlayState.Flying:
+                    return rigid.velocity.normalized;
+                // Use the velocity
+                case PlayState.Rolling:
+                    return rigid.velocity.normalized;
+                default:
+                    return transform.forward;
             }
-
-            return Vector3.zero;
         }
     }
 
-    public Vector3 Forward => Facing.normalized;
-
     public Vector3 Position => transform.position;
-    private Vector3 LastDirectionWhenRolling;
-
 
     // Settings
     public const float FullPower = 50;
@@ -73,14 +66,19 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public float Rotation;
     public float Angle;
 
-
-    private float Scale => (transform.localScale.x + transform.localScale.y + transform.localScale.z) / 3;
-    public float Radius => Scale / 2;
+    /// <summary>
+    /// Radius of the Golf Ball
+    /// </summary>
+    public float Radius => (transform.localScale.x + transform.localScale.y + transform.localScale.z) / 3 / 2;
 
     /// <summary>
     /// Event called when the GolfBall has finished rolling and the Shooting state has been entered.
     /// </summary>
     public UnityAction OnRollingFinished;
+
+    /// <summary>
+    /// Event called when the Golf Ball goes out of bounds of the map
+    /// </summary>
     public UnityAction OnOutOfBounds;
 
 
@@ -91,11 +89,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public ShotPreview ShotPreview;
 
 
-
     private void Awake()
     {
         gameObject.layer = Layer;
-        transform.localScale = new Vector3(Scale, Scale, Scale);
 
         OnRollingFinished += Utils.EMPTY;
         OnOutOfBounds += Utils.EMPTY;
@@ -103,7 +99,20 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         ShotPreview.enabled = false;
     }
 
+    private void OnDestroy()
+    {
+        OnRollingFinished -= Utils.EMPTY;
+        OnOutOfBounds -= Utils.EMPTY;
+    }
 
+    public void Reset()
+    {
+        // Reset all movement
+        rigid.velocity = Vector3.zero;
+        rigid.angularVelocity = Vector3.zero;
+
+        SetDefaultShotValues();
+    }
 
     private void FixedUpdate()
     {
@@ -133,7 +142,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
                         WaitForNextShot();
                         OnRollingFinished.Invoke();
                     }
-                    
+
                     State = PlayState.Aiming;
                 }
             }
@@ -185,7 +194,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // TODO fix drag
 
 
-        if(IsOnGround && State != PlayState.Aiming && !isBeforeFirstBounce)
+        if (IsOnGround && State != PlayState.Aiming && !isBeforeFirstBounce)
         {
             rigid.drag = CurrentPreset.Drag;
         }
@@ -205,8 +214,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
             }
         }
     }
-
-
 
     public void Shoot()
     {
@@ -238,62 +245,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     private Vector3 CalculateInitialShotForce()
     {
         return CurrentPreset.ShotPowerMultiplier * FullPower * Power * transform.forward;
-    }
-
-
-    public void Reset()
-    {
-        // Reset all movement
-        rigid.velocity = Vector3.zero;
-        rigid.angularVelocity = Vector3.zero;
-
-        SetDefaultShotValues();
-    }
-
-
-
-
-
-    public void WaitForNextShot()
-    {
-        Reset();
-
-        if (!IsFrozen)
-        {
-            StartCoroutine(FreezeUntilShoot());
-        }
-    }
-
-
-    private IEnumerator FreezeUntilShoot()
-    {
-        Freeze(true);
-
-
-        // Freeze until a shot has been taken
-        int shotsBefore = Progress.ShotsForThisHole;
-        while (shotsBefore == Progress.ShotsForThisHole)
-        {
-            yield return null;
-        }
-
-
-        Freeze(false);
-    }
-
-
-    private void Freeze(bool freeze)
-    {
-        IsFrozen = freeze;
-
-        // Set the freeze mode
-        RigidbodyConstraints c = RigidbodyConstraints.None;
-        if (freeze)
-        {
-            c = RigidbodyConstraints.FreezeAll;
-        }
-
-        rigid.constraints = c;
     }
 
     private List<Vector3> CalculateShotPreviewWorldPositions(int maxSteps = 100, float timePerStep = 0.25f)
@@ -344,13 +295,49 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         ShotPreview.SetPoints(positions, transform.rotation);
     }
 
+    public void WaitForNextShot()
+    {
+        Reset();
+
+        if (!IsFrozen)
+        {
+            StartCoroutine(FreezeUntilShoot());
+        }
+    }
+
+    private IEnumerator FreezeUntilShoot()
+    {
+        Freeze(true);
+
+        // Freeze until a shot has been taken
+        int shotsBefore = Progress.ShotsForThisHole;
+        while (shotsBefore == Progress.ShotsForThisHole)
+        {
+            yield return null;
+        }
+
+        Freeze(false);
+    }
+
+    private void Freeze(bool freeze)
+    {
+        IsFrozen = freeze;
+
+        // Set the freeze mode
+        RigidbodyConstraints c = RigidbodyConstraints.None;
+        if (freeze)
+        {
+            c = RigidbodyConstraints.FreezeAll;
+        }
+
+        rigid.constraints = c;
+    }
 
     public void SetShotAnglePreview(string text)
     {
         Vector3 rotation = new Vector3(0, 90, Angle);
         ShotPreview.SetAnglePreview(rotation, text);
     }
-
 
     public void SetValues(float rotation, float angle, float power)
     {
@@ -396,18 +383,15 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         transform.rotation = Quaternion.Euler(-Angle, Rotation, 0);
     }
 
-
     private void OnValidate()
     {
         ValidateValues();
     }
 
-
     public void HoleReached(int courseNumber, DateTime reached)
     {
         // Add the hole 
         Progress.CoursesCompleted.Push(new Stats.Pot(courseNumber, reached, Progress.ShotsForThisHole));
-
         Progress.ShotsCurrentCourse.Clear();
     }
 
@@ -464,8 +448,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
     }
 
-
-
     [Serializable]
     public struct RigidPreset
     {
@@ -488,30 +470,23 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         Rolling,
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
     private void OnDrawGizmosSelected()
     {
-        // Draw the facing
-        Gizmos.color = Color.blue;
-        Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
-
-
-
-        Gizmos.color = Color.green;
-        foreach (Vector3 pos in CalculateShotPreviewWorldPositions(rigid.velocity))
+        // Draw the shot preview
+        if(State == PlayState.Aiming)
         {
-            Gizmos.DrawSphere(pos, 0.25f);
+            Gizmos.color = Color.green;
+            foreach (Vector3 pos in CalculateShotPreviewWorldPositions(rigid.velocity))
+            {
+                Gizmos.DrawSphere(pos, 0.25f);
+            }
+        }
+        // Draw the facing
+        else
+        {
+            
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
         }
     }
 
