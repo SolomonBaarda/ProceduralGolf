@@ -8,7 +8,6 @@ public class GameManagerEditor : Editor
 {
     private GameManager G => (GameManager) target;
 
-
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
@@ -20,33 +19,5 @@ public class GameManagerEditor : Editor
                 G.GenerateAgain();
             }
         }
-
-        /*
-        if (GUILayout.Button("Clear terrain"))
-        {
-            G.Clear();
-        }
-        */
-
-        /*
-        if (GUILayout.Button("Update world save references"))
-        {
-            UpdateAllWorldSaveReferences();
-        }
-        */
     }
-
-
-    public void UpdateAllWorldSaveReferences()
-    {
-        foreach (TerrainData d in G.WorldSaves)
-        {
-            TerrainData data = d;
-
-            TerrainSaver.UpdateReferences(ref data);
-        }
-    }
-
-
-
 }

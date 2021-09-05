@@ -7,20 +7,23 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("Managers")]
     public TerrainGenerator TerrainGenerator;
     public TerrainManager TerrainManager;
-    public GolfBall GolfBall;
     [HideInInspector]
     public HUD HUD;
     private bool HUDHasLoaded;
 
-    [Space]
+    [Header("Golf Ball")]
+    public ShotPreview GolfBallShotPreview;
+
+    [Header("Camera")]
     public Animator CameraStates;
     public const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
     public const string CameraAimingTrigger = "IsAiming", CameraRollingTrigger = "IsRolling", CameraFlyingTrigger = "IsFlying";
     private readonly string[] AllCameraTriggers = { CameraAimingTrigger, CameraRollingTrigger, CameraFlyingTrigger };
 
-    [Space]
+    [Header("Terrain settings")]
     public TerrainGenerationMethod TerrainMode;
     private Gamerule Gamerules;
     private static readonly Gamerule Testing = new Gamerule(false, false, 3, 0, false, false);
@@ -29,12 +32,8 @@ public class GameManager : MonoBehaviour
     public delegate void CourseGenerated(TerrainData data);
     public delegate void PreviewGenerated(Texture2D map);
 
-
     [Space]
     public Material Skybox;
-
-
-    [SerializeField] public List<TerrainData> WorldSaves = new List<TerrainData>();
 
     private void Awake()
     {
@@ -55,7 +54,7 @@ public class GameManager : MonoBehaviour
     {
         if (HUD != null)
         {
-            HUD.OnShootPressed -= GolfBall.Shoot;
+            HUD.OnShootPressed -= TerrainManager.GolfBall.Shoot;
             HUD.OnShootPressed -= UpdateHUDShotCounter;
 
             TerrainManager.OnHoleCompleted -= UpdateHUDShotCounter;
@@ -112,7 +111,6 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
-        //Debug.Log("Finished generating");
 
         TerrainManager.LoadTerrain(data);
 
@@ -121,8 +119,6 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
-        //Debug.Log("Finished loading terrain");
-
 
         if (!TerrainManager.HasTerrain)
         {
@@ -135,7 +131,7 @@ public class GameManager : MonoBehaviour
         TerrainManager.Set(Gamerules.DoHideFarChunks, Gamerules.ViewDistanceWorldUnits);
 
         // Disable the golf ball if we dont need it
-        GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
+        TerrainManager.GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
 
 
         // Load the HUD if we need it
@@ -155,7 +151,7 @@ public class GameManager : MonoBehaviour
 
         if (Gamerules.UseGolfBall)
         {
-            GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
+            TerrainManager.GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
         }
 
 
@@ -164,7 +160,7 @@ public class GameManager : MonoBehaviour
 
         if (Gamerules.UseHUD)
         {
-            HUD.Compass.Following = GolfBall.transform;
+            HUD.Compass.Following = TerrainManager.GolfBall.transform;
             HUD.Active(true);
         }
 
@@ -182,10 +178,10 @@ public class GameManager : MonoBehaviour
         if (Gamerules.UseGolfBall)
         {
             // Taking a shot
-            bool isAiming = GolfBall.State == GolfBall.PlayState.Aiming;
+            bool isAiming = TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming;
 
             // Set the preview active or not
-            GolfBall.ShotPreview.gameObject.SetActive(isAiming);
+            GolfBallShotPreview.gameObject.SetActive(isAiming);
 
             if (Gamerules.UseHUD && HUD != null)
             {
@@ -193,7 +189,7 @@ public class GameManager : MonoBehaviour
                 HUD.Minimap.SetActive(isAiming);
 
                 // Update the camera angles
-                switch (GolfBall.State)
+                switch (TerrainManager.GolfBall.State)
                 {
                     // Shooting mode
                     case GolfBall.PlayState.Aiming:
@@ -238,18 +234,18 @@ public class GameManager : MonoBehaviour
 
 
                         // Set the new values
-                        GolfBall.SetValues(GolfBall.Rotation + rotationDelta, GolfBall.Angle + angleDelta, GolfBall.Power + powerDelta.y / 50f);
+                        TerrainManager.GolfBall.SetValues(TerrainManager.GolfBall.Rotation + rotationDelta, TerrainManager.GolfBall.Angle + angleDelta, TerrainManager.GolfBall.Power + powerDelta.y / 50f);
 
 
                         // Update the shot preview
-                        GolfBall.UpdateShotPreview();
-                        GolfBall.SetShotAnglePreview(GolfBall.Angle.ToString("0") + "°");
+                        Vector3[] positions = TerrainManager.GolfBall.CalculateShotPreviewWorldPositions().ToArray();
+                        GolfBallShotPreview.SetShotPreviewPoints(TerrainManager.GolfBall.Angle.ToString("0") + "°", TerrainManager.GolfBall.Angle, positions, TerrainManager.GolfBall.transform.rotation);
 
                         // Update the HUD to display the correct values
-                        HUD.PowerSlider.DisplayValue.text = (GolfBall.Power * 100).ToString("0") + "%";
+                        HUD.PowerSlider.DisplayValue.text = (TerrainManager.GolfBall.Power * 100).ToString("0") + "%";
 
                         // Set the power slider colour
-                        Color p = HUD.PowerSlider.Gradient.Evaluate(GolfBall.Power);
+                        Color p = HUD.PowerSlider.Gradient.Evaluate(TerrainManager.GolfBall.Power);
                         p.a = HUD.PowerSliderBackgroundAlpha;
                         HUD.PowerSlider.Background.color = p;
 
@@ -261,7 +257,7 @@ public class GameManager : MonoBehaviour
                     case GolfBall.PlayState.Flying:
                         ResetCameraTriggers();
                         CameraStates.SetTrigger(CameraFlyingTrigger);
-                        float sqrMag = (GolfBall.ShotPreview.ShotPreviewTarget.position - GolfBall.transform.position).sqrMagnitude;
+                        float sqrMag = (GolfBallShotPreview.ShotPreviewTarget.position - TerrainManager.GolfBall.transform.position).sqrMagnitude;
                         CameraStates.SetFloat(CameraSqrMagToTargetFloat, sqrMag);
                         break;
                     // Rolling mode
@@ -295,7 +291,7 @@ public class GameManager : MonoBehaviour
     {
         HUD = HUD.Instance;
 
-        HUD.OnShootPressed += GolfBall.Shoot;
+        HUD.OnShootPressed += TerrainManager.GolfBall.Shoot;
         HUD.OnShootPressed += UpdateHUDShotCounter;
 
         TerrainManager.OnHoleCompleted += UpdateHUDShotCounter;
@@ -326,10 +322,10 @@ public class GameManager : MonoBehaviour
         if (HUD != null)
         {
             // Update the shots counter
-            HUD.Shots.text = GolfBall.Progress.ShotsForThisHole.ToString();
+            HUD.Shots.text = TerrainManager.GolfBall.Progress.ShotsForThisHole.ToString();
 
 
-            GolfBall.Stats.Pot[] holes = GolfBall.Progress.CoursesCompleted.ToArray();
+            GolfBall.Stats.Pot[] holes = TerrainManager.GolfBall.Progress.CoursesCompleted.ToArray();
 
             if (holes != null && holes.Length > 0)
             {

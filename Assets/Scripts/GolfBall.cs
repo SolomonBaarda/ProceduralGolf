@@ -55,7 +55,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public Vector3 Position => transform.position;
 
     // Settings
-    public const float FullPower = 50;
+    public const float FullPower = 25;
     public const float SpeedCutoffThreshold = 0.5f;
     public const float SecondsRequiredBelowSpeedThreshold = 1f;
     private float stopRollingTimer;
@@ -87,16 +87,12 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public Rigidbody rigid;
     public SphereCollider sphereCollider;
 
-    public ShotPreview ShotPreview;
-
     private void Awake()
     {
         gameObject.layer = Layer;
 
         OnRollingFinished += Utils.EMPTY;
         OnOutOfBounds += Utils.EMPTY;
-
-        ShotPreview.enabled = false;
     }
 
     private void OnDestroy()
@@ -238,13 +234,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Apply the force in direction
         Vector3 force = CalculateInitialShotForce();
         rigid.velocity = force;
-
-
-        List<Vector3> positions = CalculateShotPreviewWorldPositions();
-        for (int i = 0; i < positions.Count - 1; i++)
-        {
-            Debug.DrawLine(positions[i], positions[i + 1], Color.red, 100);
-        }
     }
 
     private Vector3 CalculateInitialShotForce()
@@ -294,12 +283,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         return positions;
     }
 
-    public void UpdateShotPreview()
-    {
-        Vector3[] positions = CalculateShotPreviewWorldPositions().ToArray();
-        ShotPreview.SetPoints(positions, transform.rotation);
-    }
-
     public void WaitForNextShot()
     {
         Reset();
@@ -336,12 +319,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
 
         rigid.constraints = c;
-    }
-
-    public void SetShotAnglePreview(string text)
-    {
-        Vector3 rotation = new Vector3(0, 90, Angle);
-        ShotPreview.SetAnglePreview(rotation, text);
     }
 
     public void SetValues(float rotation, float angle, float power)

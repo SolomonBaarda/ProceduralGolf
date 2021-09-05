@@ -393,7 +393,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 492435871}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: Shot target
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -962,7 +962,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1208001001}
   - component: {fileID: 1208001002}
-  m_Layer: 9
+  m_Layer: 14
   m_Name: Golf Ball Shot Preview
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1166,6 +1166,7 @@ MonoBehaviour:
   TerrainGenerator: {fileID: 1510809347}
   TerrainManager: {fileID: 1510809344}
   GolfBall: {fileID: 5612774800490992908}
+  GolfBallShotPreview: {fileID: 1208001002}
   HUD: {fileID: 0}
   CameraStates: {fileID: 950426080}
   TerrainMode: 1
@@ -1297,7 +1298,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1739976842}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: Shot start
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1617,7 +1618,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CurrentPreset:
     Drag: 0
-    AngularDrag: 0
     ShotPowerMultiplier: 0
   State: 0
   CurrentBiome: 0
@@ -1626,4 +1626,3 @@ MonoBehaviour:
   Angle: 0
   rigid: {fileID: 4448303047686481679}
   sphereCollider: {fileID: 4213627501115095111}
-  ShotPreview: {fileID: 1208001002}
