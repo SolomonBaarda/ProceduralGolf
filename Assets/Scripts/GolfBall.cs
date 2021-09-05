@@ -341,7 +341,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public void UpdateShotPreview()
     {
         Vector3[] positions = CalculateShotPreviewWorldPositions().ToArray();
-        ShotPreview.SetPoints(positions);
+        ShotPreview.SetPoints(positions, transform.rotation);
     }
 
 

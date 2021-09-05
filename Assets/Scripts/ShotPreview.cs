@@ -13,12 +13,13 @@ public class ShotPreview : MonoBehaviour
 
     public TextMesh ShotAnglePreview;
 
-    public void SetPoints(Vector3[] positions)
+    public void SetPoints(Vector3[] positions, Quaternion rotation)
     {
         ShotPreviewMain.SetPoints(positions);
         ShotPreviewMinimap.SetPoints(new Vector3[] { positions[0] + Vector3.up * 10, positions[positions.Length - 1] + Vector3.up * 10 });
-        ShotPreviewStart.position = positions[0];
-        ShotPreviewTarget.position = positions[positions.Length - 1];
+
+        ShotPreviewStart.SetPositionAndRotation(positions[0], rotation);
+        ShotPreviewTarget.SetPositionAndRotation(positions[positions.Length - 1], rotation);
     }
 
     public void SetAnglePreview(Vector3 localEuler, string text)

@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     [Space]
     public Animator CameraStates;
     public const string CameraAimingTrigger = "IsAiming", CameraRollingTrigger = "IsRolling", CameraFlyingTrigger = "IsFlying";
+    private readonly string[] AllCameraTriggers = { CameraAimingTrigger, CameraRollingTrigger, CameraFlyingTrigger };
 
     [Space]
     public TerrainGenerationMethod TerrainMode;
@@ -253,17 +254,16 @@ public class GameManager : MonoBehaviour
 
                         ResetCameraTriggers();
                         CameraStates.SetTrigger(CameraAimingTrigger);
-
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
                         ResetCameraTriggers();
-                        CameraStates.SetTrigger(CameraFlyingTrigger); 
+                        CameraStates.SetTrigger(CameraFlyingTrigger);
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
                         ResetCameraTriggers();
-                        CameraStates.SetTrigger(CameraRollingTrigger); 
+                        CameraStates.SetTrigger(CameraRollingTrigger);
                         break;
                 }
             }
@@ -370,9 +370,10 @@ public class GameManager : MonoBehaviour
 
     private void ResetCameraTriggers()
     {
-        CameraStates.ResetTrigger(CameraAimingTrigger);
-        CameraStates.ResetTrigger(CameraRollingTrigger);
-        CameraStates.ResetTrigger(CameraFlyingTrigger);
+        foreach (string s in AllCameraTriggers)
+        {
+            CameraStates.ResetTrigger(s);
+        }
     }
 
 
