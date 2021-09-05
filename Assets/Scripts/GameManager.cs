@@ -17,6 +17,9 @@ public class GameManager : MonoBehaviour
     [Header("Golf Ball")]
     public ShotPreview GolfBallShotPreview;
 
+    [Space]
+    public List<GameObject> ObjectsToDisableWhileLoading;
+
     [Header("Camera")]
     public Animator CameraStates;
     public const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
@@ -76,6 +79,11 @@ public class GameManager : MonoBehaviour
     {
         LoadingScreen.Active(true);
 
+        foreach(GameObject g in ObjectsToDisableWhileLoading)
+        {
+            g.SetActive(false);
+        }
+
         TerrainGenerator.OnGenerationStateChanged.RemoveAllListeners();
         TerrainGenerator.OnGenerationStateChanged.AddListener(info => { LoadingScreen.Instance.Info.text = info; });
 
@@ -130,10 +138,6 @@ public class GameManager : MonoBehaviour
         // Set up the TerrainManager
         TerrainManager.Set(Gamerules.DoHideFarChunks, Gamerules.ViewDistanceWorldUnits);
 
-        // Disable the golf ball if we dont need it
-        TerrainManager.GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
-
-
         // Load the HUD if we need it
         if (Gamerules.UseHUD)
         {
@@ -154,6 +158,13 @@ public class GameManager : MonoBehaviour
             TerrainManager.GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
         }
 
+        foreach (GameObject g in ObjectsToDisableWhileLoading)
+        {
+            g.SetActive(true);
+        }
+
+        // Disable the golf ball if we dont need it
+        TerrainManager.GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
 
         // Start the game
         ResetGame();
@@ -238,7 +249,7 @@ public class GameManager : MonoBehaviour
 
 
                         // Update the shot preview
-                        Vector3[] positions = TerrainManager.GolfBall.CalculateShotPreviewWorldPositions().ToArray();
+                        Vector3[] positions = TerrainManager.GolfBall.CalculateShotPreviewWorldPositions(1000, 0.1f).ToArray();
                         GolfBallShotPreview.SetShotPreviewPoints(TerrainManager.GolfBall.Angle.ToString("0") + "°", TerrainManager.GolfBall.Angle, positions, TerrainManager.GolfBall.transform.rotation);
 
                         // Update the HUD to display the correct values

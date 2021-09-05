@@ -17,17 +17,6 @@ public class ShotPreview : MonoBehaviour
     {
         // Update the shot angle text
         ShotAnglePreview.text = angleText;
-
-
-        // TODO fix angle text
-        // add camera angles
-        // check for other bounces in preview?
-        // Fix minimap to use new cinemachine?
-        // Add postprocessing to cinemachine
-
-
-        // TODO Disable objects on scene loading
-
         ShotAnglePreview.transform.localEulerAngles = new Vector3(0, 90, angle);
 
         // Update the shot preview

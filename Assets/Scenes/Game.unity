@@ -1165,14 +1165,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TerrainGenerator: {fileID: 1510809347}
   TerrainManager: {fileID: 1510809344}
-  GolfBall: {fileID: 5612774800490992908}
-  GolfBallShotPreview: {fileID: 1208001002}
   HUD: {fileID: 0}
+  GolfBallShotPreview: {fileID: 1208001002}
+  ObjectsToDisableWhileLoading:
+  - {fileID: 4213627501115095112}
+  - {fileID: 1208001000}
+  - {fileID: 295252888}
   CameraStates: {fileID: 950426080}
   TerrainMode: 1
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
-  WorldSaves:
-  - {fileID: 11400000, guid: 8e6b2ecf0da267944b57d1def9673305, type: 2}
 --- !u!114 &1510809347
 MonoBehaviour:
   m_ObjectHideFlags: 0
