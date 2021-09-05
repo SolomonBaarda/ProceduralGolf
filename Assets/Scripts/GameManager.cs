@@ -255,21 +255,22 @@ public class GameManager : MonoBehaviour
 
                         ResetCameraTriggers();
                         CameraStates.SetTrigger(CameraAimingTrigger);
+                        CameraStates.SetFloat(CameraSqrMagToTargetFloat, -1);
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
                         ResetCameraTriggers();
                         CameraStates.SetTrigger(CameraFlyingTrigger);
+                        float sqrMag = (GolfBall.ShotPreview.ShotPreviewTarget.position - GolfBall.transform.position).sqrMagnitude;
+                        CameraStates.SetFloat(CameraSqrMagToTargetFloat, sqrMag);
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
                         ResetCameraTriggers();
                         CameraStates.SetTrigger(CameraRollingTrigger);
+                        CameraStates.SetFloat(CameraSqrMagToTargetFloat, -1);
                         break;
                 }
-
-                float sqrMag = (GolfBall.ShotPreview.ShotPreviewTarget.position - GolfBall.transform.position).sqrMagnitude;
-                CameraStates.SetFloat(CameraSqrMagToTargetFloat, sqrMag);
             }
         }
     }

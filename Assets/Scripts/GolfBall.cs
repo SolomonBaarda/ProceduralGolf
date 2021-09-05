@@ -11,21 +11,19 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public static int Mask => LayerMask.GetMask(LAYER_NAME);
 
     // Constants 
-    public readonly static RigidPreset Preset_Air = new RigidPreset(0f, 0f, 1f);
-    public readonly static RigidPreset Preset_Grass = new RigidPreset(3f, 1f, 1f);
-    public readonly static RigidPreset Preset_GrassShort = new RigidPreset(1.5f, 1f, 1f);
-    public readonly static RigidPreset Preset_GrassLong = new RigidPreset(5f, 2f, 0.9f);
-    public readonly static RigidPreset Preset_Sand = new RigidPreset(9f, 12f, 0.8f);
-    public readonly static RigidPreset Preset_Water = new RigidPreset(20f, 50f, 0.5f);
-    public readonly static RigidPreset Preset_Ice = new RigidPreset(0f, 0f, 1f);
+    public readonly static RigidPreset Preset_Air = new RigidPreset(0f, 1f);
+    public readonly static RigidPreset Preset_Grass = new RigidPreset(3f, 1f);
+    public readonly static RigidPreset Preset_GrassShort = new RigidPreset(1.5f, 1f);
+    public readonly static RigidPreset Preset_GrassLong = new RigidPreset(5f, 0.9f);
+    public readonly static RigidPreset Preset_Sand = new RigidPreset(9f, 0.8f);
+    public readonly static RigidPreset Preset_Water = new RigidPreset(20f, 0.5f);
+    public readonly static RigidPreset Preset_Ice = new RigidPreset(0f, 1f);
     [SerializeField] private RigidPreset CurrentPreset;
 
     // States
     public PlayState State;
     public bool IsOnGround { get; private set; } = false;
     public bool IsFrozen { get; private set; } = false;
-
-    private bool isBeforeFirstBounce = false;
 
     [Space]
     public Biome.Type CurrentBiome;
@@ -88,7 +86,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     public ShotPreview ShotPreview;
 
-
     private void Awake()
     {
         gameObject.layer = Layer;
@@ -128,9 +125,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         if (IsOnGround)
         {
-            isBeforeFirstBounce = false;
-
-            // Speed is below the threshold
+                        // Speed is below the threshold
             if (rigid.velocity.magnitude < SpeedCutoffThreshold)
             {
                 stopRollingTimer += Time.fixedDeltaTime;
@@ -191,10 +186,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
 
 
-        // TODO fix drag
-
-
-        if (IsOnGround && State != PlayState.Aiming && !isBeforeFirstBounce)
+        // Apply drag
+        // Must have been on the ground for two consecutive physics frames before drag applies
+        if (false)
         {
             rigid.drag = CurrentPreset.Drag;
         }
@@ -213,6 +207,9 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
                 OnOutOfBounds.Invoke();
             }
         }
+
+        if (rigid.drag != 0)
+            Debug.Log(rigid.drag);
     }
 
     public void Shoot()
@@ -226,9 +223,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         // Reset the drag just for the shot
         rigid.drag = 0;
-        rigid.angularDrag = 0;
-
-        isBeforeFirstBounce = true;
+        //StartCoroutine(DisableDragUntilOffGround());
 
         // Apply the force in direction
         Vector3 force = CalculateInitialShotForce();
@@ -242,12 +237,22 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
     }
 
+    private IEnumerator DisableDragUntilOffGround()
+    {
+        // Set the drag to 0 while we are on the ground
+        while (IsOnGround)
+        {
+            
+            yield return null;
+        }
+    }
+
     private Vector3 CalculateInitialShotForce()
     {
         return CurrentPreset.ShotPowerMultiplier * FullPower * Power * transform.forward;
     }
 
-    private List<Vector3> CalculateShotPreviewWorldPositions(int maxSteps = 100, float timePerStep = 0.25f)
+    public List<Vector3> CalculateShotPreviewWorldPositions(int maxSteps = 100, float timePerStep = 0.25f)
     {
         return CalculateShotPreviewWorldPositions(CalculateInitialShotForce(), maxSteps, timePerStep);
     }
@@ -452,13 +457,11 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public struct RigidPreset
     {
         public float Drag;
-        public float AngularDrag;
         public float ShotPowerMultiplier;
 
-        public RigidPreset(float drag, float angularDrag, float shotPowerMultiplier)
+        public RigidPreset(float drag, float shotPowerMultiplier)
         {
             Drag = drag;
-            AngularDrag = angularDrag;
             ShotPowerMultiplier = shotPowerMultiplier;
         }
     }
@@ -476,7 +479,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         if(State == PlayState.Aiming)
         {
             Gizmos.color = Color.green;
-            foreach (Vector3 pos in CalculateShotPreviewWorldPositions(rigid.velocity))
+            foreach (Vector3 pos in CalculateShotPreviewWorldPositions())
             {
                 Gizmos.DrawSphere(pos, 0.25f);
             }
@@ -484,7 +487,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         // Draw the facing
         else
         {
-            
             Gizmos.color = Color.blue;
             Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
         }
