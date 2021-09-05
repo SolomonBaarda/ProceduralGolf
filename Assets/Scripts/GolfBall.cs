@@ -23,6 +23,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     // States
     public PlayState State;
     public bool IsOnGround { get; private set; } = false;
+    private int ConsecutiveFramesOnGround = 0;
     public bool IsFrozen { get; private set; } = false;
 
     [Space]
@@ -58,6 +59,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public const float SpeedCutoffThreshold = 0.5f;
     public const float SecondsRequiredBelowSpeedThreshold = 1f;
     private float stopRollingTimer;
+
+    private const int NumPhysicsFramesBeforeDragAplies = 5;
 
     [Header("Control settings")]
     [Range(0, 1)] public float Power;
@@ -113,12 +116,23 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
     private void FixedUpdate()
     {
+        bool wasOnGroundLastFrame = IsOnGround;
+
         // Get the onground value
         Collider[] groundCollisions = GroundCheck.DoSphereCast(transform.position, sphereCollider.radius + 0.01f);
         IsOnGround = groundCollisions.Length > 0;
 
         // Get the current biome
         CurrentBiome = IsOnGround ? Biome.GetBiomeSamplePoint(groundCollisions[0], transform.position) : Biome.Type.None;
+
+        if(IsOnGround && wasOnGroundLastFrame)
+        {
+            ConsecutiveFramesOnGround++;
+        }
+        else
+        {
+            ConsecutiveFramesOnGround = 0;
+        }
 
 
         PlayState lastFrame = State;
@@ -186,9 +200,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         }
 
 
-        // Apply drag
-        // Must have been on the ground for two consecutive physics frames before drag applies
-        if (false)
+        // Must have been on the ground for consecutive physics frames before drag applies
+        if (ConsecutiveFramesOnGround >= NumPhysicsFramesBeforeDragAplies)
         {
             rigid.drag = CurrentPreset.Drag;
         }
@@ -207,9 +220,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
                 OnOutOfBounds.Invoke();
             }
         }
-
-        if (rigid.drag != 0)
-            Debug.Log(rigid.drag);
     }
 
     public void Shoot()
@@ -223,7 +233,7 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         // Reset the drag just for the shot
         rigid.drag = 0;
-        //StartCoroutine(DisableDragUntilOffGround());
+        ConsecutiveFramesOnGround = 0;
 
         // Apply the force in direction
         Vector3 force = CalculateInitialShotForce();
@@ -234,16 +244,6 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
         for (int i = 0; i < positions.Count - 1; i++)
         {
             Debug.DrawLine(positions[i], positions[i + 1], Color.red, 100);
-        }
-    }
-
-    private IEnumerator DisableDragUntilOffGround()
-    {
-        // Set the drag to 0 while we are on the ground
-        while (IsOnGround)
-        {
-            
-            yield return null;
         }
     }
 
