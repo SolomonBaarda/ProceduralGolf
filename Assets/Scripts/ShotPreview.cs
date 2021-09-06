@@ -11,21 +11,23 @@ public class ShotPreview : MonoBehaviour
     public Transform ShotPreviewTarget;
     public Transform ShotPreviewStart;
 
-    public TextMesh ShotAnglePreview;
+    public TextMesh ShotAngleText;
+    public Transform ShotAnglePosition;
 
-    public void SetShotPreviewPoints(string angleText, float angle, Vector3[] positions, Quaternion rotation)
+    public void UpdateShotPreview(string angleText, float angle, Vector3[] previewPositions, Quaternion rotation)
     {
         // Update the shot angle text
-        ShotAnglePreview.text = angleText;
-        ShotAnglePreview.transform.localEulerAngles = new Vector3(0, 90, angle);
+        ShotAngleText.text = angleText;
+        ShotAngleText.transform.localEulerAngles = new Vector3(0, 90, angle);
+        ShotAnglePosition.SetPositionAndRotation(previewPositions[0], rotation);
 
         // Update the shot preview
-        ShotPreviewMain.SetPoints(positions);
-        ShotPreviewMinimap.SetPoints(new Vector3[] { positions[0] + Vector3.up * 10, positions[positions.Length - 1] + Vector3.up * 10 });
+        ShotPreviewMain.SetPoints(previewPositions);
+        ShotPreviewMinimap.SetPoints(new Vector3[] { previewPositions[0] + Vector3.up * 10, previewPositions[previewPositions.Length - 1] + Vector3.up * 10 });
 
         // Update the start and end positions
-        ShotPreviewStart.SetPositionAndRotation(positions[0], rotation);
-        ShotPreviewTarget.SetPositionAndRotation(positions[positions.Length - 1], rotation);
+        ShotPreviewStart.SetPositionAndRotation(previewPositions[0], rotation);
+        ShotPreviewTarget.SetPositionAndRotation(previewPositions[previewPositions.Length - 1], rotation);
     }
 
 }
