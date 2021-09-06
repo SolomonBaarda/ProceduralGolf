@@ -39,7 +39,7 @@ public class TerrainMap
 
     public void NormaliseHeights(float min, float max)
     {
-        //Debug.Log("final layer with min: " + min + " max: " + max);
+        //Logger.Log("final layer with min: " + min + " max: " + max);
         Noise.NormaliseNoise(ref Heights, min, max);
     }
 
@@ -47,7 +47,7 @@ public class TerrainMap
     {
         for (int i = 0; i < minMax.Count; i++)
         {
-            //Debug.Log("layer " + i+" with min: " + minMax[i].Item1 +" max: " + minMax[i].Item2);
+            //Logger.Log("layer " + i+" with min: " + minMax[i].Item1 +" max: " + minMax[i].Item2);
             Noise.NormaliseNoise(ref Layers[i].Noise, minMax[i].Item1, minMax[i].Item2);
         }
     }

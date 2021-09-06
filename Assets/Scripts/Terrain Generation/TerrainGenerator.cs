@@ -9,8 +9,6 @@ using UnityEngine.Events;
 
 public class TerrainGenerator : MonoBehaviour
 {
-    public TerrainChunkManager TerrainChunkManager;
-
     public bool IsGenerating { get; private set; } = false;
 
     [Header("Settings")]
@@ -335,7 +333,7 @@ public class TerrainGenerator : MonoBehaviour
 
                 greens.RemoveAll(x => x.ToBeDeleted || x.Points.Count < Settings.GreenMinVertexCount);
 
-                Debug.Log($"* Greens: {greensBefore} reduced to {greens.Count} in {(DateTime.Now - a).TotalSeconds.ToString("0.0")} seconds");
+                Logger.Log($"* Greens: {greensBefore} reduced to {greens.Count} in {(DateTime.Now - a).TotalSeconds.ToString("0.0")} seconds");
             }));
 
 
@@ -575,7 +573,7 @@ public class TerrainGenerator : MonoBehaviour
 
             double totalTime = (DateTime.Now - before).TotalSeconds;
             string message = $"Finished generating terrain. Completed in {totalTime.ToString("0.0")} seconds";
-            Debug.Log(message);
+            Logger.Log(message);
             OnGenerationStateChanged.Invoke(message);
 
             IsGenerating = false;
@@ -598,7 +596,7 @@ public class TerrainGenerator : MonoBehaviour
 
     private static void UpdatePassTimer(ref DateTime last, string passName)
     {
-        Debug.Log($"* {passName} pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
+        Logger.Log($"* {passName} pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
         last = DateTime.Now;
     }
 

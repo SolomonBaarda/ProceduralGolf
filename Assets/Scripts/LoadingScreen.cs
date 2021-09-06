@@ -8,20 +8,16 @@ public class LoadingScreen : MonoBehaviour
     public static LoadingScreen Instance;
 
     public Transform Parent;
-
     public TMP_Text Info; 
 
 
     void Awake()
     {
-        Instance = FindObjectOfType<LoadingScreen>();
+        Instance = this;
     }
-
 
     public static void Active(bool visible)
     {
         Instance.Parent.gameObject.SetActive(visible);
     }
-
-
 }

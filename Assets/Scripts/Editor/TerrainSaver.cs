@@ -54,7 +54,7 @@ public static class TerrainSaver
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("* Saved terrain data in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds to " + path);
+        Logger.Log("* Saved terrain data in " + (DateTime.Now - before).TotalSeconds.ToString("0.0") + " seconds to " + path);
     }
 
 

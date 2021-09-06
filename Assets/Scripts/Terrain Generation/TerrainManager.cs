@@ -9,9 +9,14 @@ public class TerrainManager : MonoBehaviour
     public static readonly Vector3 UP = Vector3.up;
     public static readonly Vector3 ORIGIN = Vector3.zero;
 
+    [Header("References")]
     public TerrainChunkManager TerrainChunkManager;
+    public GolfBall GolfBall;
+    public LinePreview NextHoleBeacon;
+    public GameObject NextHoleFlag;
 
-    public bool HasTerrain { get; private set; }
+    public TerrainData CurrentLoadedTerrain { get; private set; }
+    public bool HasTerrain { get; private set; } = false;
     public bool IsLoading { get; private set; } = false;
 
     private bool HideChunks = true;
@@ -23,31 +28,48 @@ public class TerrainManager : MonoBehaviour
     [Header("Physics")]
     public PhysicMaterial PhysicsGrass;
 
-    [Header("Prefabs")]
-    public GameObject GolfHoleFlagPrefab;
-    public GameObject GolfHoleBeaconPrefab;
-    private LinePreview NextHoleBeacon;
-
-    [Space]
-    public TerrainData CurrentLoadedTerrain;
-
-    [Space]
-    public GolfBall GolfBall;
-
-    public UnityAction OnHoleCompleted;
-
-
-
+    [Header("Events")]
+    public UnityAction<CourseData> OnCourseStarted;
+    public UnityAction<CourseData> OnCourseCompleted;
 
     private void Awake()
     {
-        OnHoleCompleted += Utils.EMPTY;
+        OnCourseStarted += StartCourse;
+        OnCourseCompleted += Utils.EMPTY;
     }
 
     private void OnDestroy()
     {
-        OnHoleCompleted -= Utils.EMPTY;
+        OnCourseStarted -= StartCourse;
+        OnCourseCompleted -= Utils.EMPTY;
         Clear();
+    }
+
+    private void CourseCompleted(CourseData course)
+    {
+        GolfBall.HoleReached(course.Number, DateTime.Now);
+
+        // Get the next course if there is one
+        if (GetCourse(course.Number + 1, out CourseData next))
+        {
+            OnCourseStarted.Invoke(next);
+        }
+        else
+        {
+            Debug.LogError("No more courses left");
+        }
+    }
+
+    private void StartCourse(CourseData course)
+    {
+        // Update course game object positions
+        NextHoleBeacon.transform.position = course.Hole;
+        NextHoleFlag.transform.position = course.Hole;
+
+        // Set the beacon points
+        NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, UP });
+
+        SpawnGolfBall(course);
     }
 
     public void Clear()
@@ -55,6 +77,7 @@ public class TerrainManager : MonoBehaviour
         TerrainChunkManager.Clear();
         HasTerrain = false;
         CurrentLoadedTerrain = null;
+        IsLoading = false;
     }
 
     public void Set(bool hideChunks, float viewDistance)
@@ -64,24 +87,12 @@ public class TerrainManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Load all the chunks.
+    /// Load the TerrainData into the TerrainChunkManager.
     /// </summary>
     /// <param name="data"></param>
     public void LoadTerrain(TerrainData data)
     {
         StartCoroutine(LoadTerrainAsync(data));
-    }
-
-    private void LateUpdate()
-    {
-        if (HideChunks && GolfBall != null && ViewDistance > 0)
-        {
-            foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
-            {
-                // Only set the chunks within render distance to be visible
-                chunk.SetVisible((chunk.Bounds.center - GolfBall.transform.position).sqrMagnitude <= ViewDistance * ViewDistance);
-            }
-        }
     }
 
     private IEnumerator LoadTerrainAsync(TerrainData data)
@@ -109,7 +120,7 @@ public class TerrainManager : MonoBehaviour
             yield return null;
         }
 
-        data.Courses.Sort((x,y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
+        data.Courses.Sort((x, y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
 
         // Assign hole numbers
         for (int i = 0; i < data.Courses.Count; i++)
@@ -126,63 +137,35 @@ public class TerrainManager : MonoBehaviour
         string message = "* Loaded terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0")
             + " seconds with " + data.Chunks.Count + " chunks and " + data.Courses.Count + " holes.";
 
-        Debug.Log(message);
-
+        Logger.Log(message);
     }
-
 
     private void FixedUpdate()
     {
-        if (CurrentLoadedTerrain != null)
+        if (CurrentLoadedTerrain != null && GetCourse(GolfBall.Progress.CurrentCourse, out CourseData target))
         {
-            // Current course
-            if (GetCourse(GolfBall.Progress.CurrentCourse, out CourseData target))
+            // Ball was potted this frame
+            if (target.BallWasPotted(GolfBall.Mask))
             {
-                // Ball was potted this frame
-                if (target.BallWasPotted(GolfBall.Mask))
-                {
-                    GolfBall.HoleReached(target.Number, DateTime.Now);
-                    int nextHole = target.Number + 1;
+                OnCourseCompleted.Invoke(target);
+            }
 
-                    // Set the next hole now 
-                    if (nextHole < CurrentLoadedTerrain.Courses.Count)
-                    {
-                        GetCourse(nextHole, out target);
+            // Update the next hole beacon width
+            float distanceSqr = (target.Hole - GolfBall.Position).sqrMagnitude;
+            const float maximumDistance = TerrainChunkManager.ChunkSizeWorldUnits * 2;
+            float percent = Mathf.Clamp01(distanceSqr / (maximumDistance * maximumDistance));
+            NextHoleBeacon.UpdateLineWidth(Mathf.Lerp(0.05f, 10, percent));
+        }
+    }
 
-                        // Respawn the ball here
-                        SpawnGolfBall(target);
-
-                        // Call the event once the ball has been respawned
-                        OnHoleCompleted.Invoke();
-                    }
-                    else
-                    {
-                        Debug.LogError("No more courses left");
-                    }
-                }
-
-                // Ensure the beacon is always active
-                if (NextHoleBeacon == null)
-                {
-                    GameObject beaconObject = Instantiate(GolfHoleBeaconPrefab, transform);
-                    beaconObject.name = "Next hole beacon";
-                    NextHoleBeacon = beaconObject.GetComponent<LinePreview>();
-                }
-
-                // Set the position
-                NextHoleBeacon.transform.position = target.Hole;
-
-                // Calculate the beacon width
-                float distanceSqr = (target.Hole - GolfBall.Position).sqrMagnitude;
-                float maximumDistance = TerrainChunkManager.ChunkSizeWorldUnits * 2;
-                float percent = Mathf.Clamp(distanceSqr / (maximumDistance * maximumDistance), 0f, 1f);
-
-                // Set the width
-                NextHoleBeacon.UpdateLineWidth(Mathf.Lerp(0.05f, 10, percent));
-
-
-                // Set the points
-                NextHoleBeacon.SetPoints(new Vector3[] { target.Hole, UP });
+    private void LateUpdate()
+    {
+        if (HideChunks && GolfBall != null && ViewDistance > 0)
+        {
+            foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
+            {
+                // Only set the chunks within render distance to be visible
+                chunk.SetVisible((chunk.Bounds.center - GolfBall.transform.position).sqrMagnitude <= ViewDistance * ViewDistance);
             }
         }
     }
@@ -230,11 +213,11 @@ public class TerrainManager : MonoBehaviour
         if (GroundCheck.DoRaycastDown(hole.Start + (UP * 25), out RaycastHit hit, 50))
         {
             spawnPoint = hit.point;
-            Debug.Log("SUCCESSFULLY SPAWNED GOLF BALL PROPERLY");
+            Logger.Log("SUCCESSFULLY SPAWNED GOLF BALL PROPERLY");
         }
         else
         {
-            Debug.Log("FAILED TO SPAWN GOLF BALL PROPERLY");
+            Logger.Log("FAILED TO SPAWN GOLF BALL PROPERLY");
         }
 
         // And move the ball there
