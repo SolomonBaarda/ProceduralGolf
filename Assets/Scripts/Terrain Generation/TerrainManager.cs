@@ -35,13 +35,13 @@ public class TerrainManager : MonoBehaviour
     private void Awake()
     {
         OnCourseStarted += StartCourse;
-        OnCourseCompleted += Utils.EMPTY;
+        OnCourseCompleted += CourseCompleted;
     }
 
     private void OnDestroy()
     {
         OnCourseStarted -= StartCourse;
-        OnCourseCompleted -= Utils.EMPTY;
+        OnCourseCompleted -= CourseCompleted;
         Clear();
     }
 
@@ -63,11 +63,8 @@ public class TerrainManager : MonoBehaviour
     private void StartCourse(CourseData course)
     {
         // Update course game object positions
-        NextHoleBeacon.transform.position = course.Hole;
         NextHoleFlag.transform.position = course.Hole;
-
-        // Set the beacon points
-        NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, UP });
+        NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + UP * 100 });
 
         SpawnGolfBall(course);
     }
@@ -187,7 +184,7 @@ public class TerrainManager : MonoBehaviour
         if (GetCourse(0, out CourseData start))
         {
             GolfBall.Progress.Clear();
-            SpawnGolfBall(start);
+            OnCourseStarted.Invoke(start);
         }
         else
         {

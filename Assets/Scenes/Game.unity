@@ -232,7 +232,7 @@ Transform:
   - {fileID: 1208001001}
   - {fileID: 1943703577}
   - {fileID: 1041538520}
-  - {fileID: 110804455658084869}
+  - {fileID: 642023518}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -251,7 +251,7 @@ MonoBehaviour:
   TerrainChunkManager: {fileID: 187293245}
   GolfBall: {fileID: 5612774800490992908}
   NextHoleBeacon: {fileID: 1041538519}
-  NextHoleFlag: {fileID: 110804455658084865}
+  NextHoleFlag: {fileID: 642023517}
   MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
   PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
 --- !u!114 &187293245
@@ -576,6 +576,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0b09e7857660247b1477e93731de29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &642023517
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 642023518}
+  m_Layer: 0
+  m_Name: Next hole flag
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &642023518
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 642023517}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 110804455658084869}
+  m_Father: {fileID: 187293243}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &711464131
 GameObject:
   m_ObjectHideFlags: 3
@@ -961,7 +992,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1041538518}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.5321784, y: -1.6715319, z: 0.9455284}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 187293243}
@@ -1058,7 +1089,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056162044}
-  m_LocalRotation: {x: -0.30394998, y: 0.65598935, z: 0.55819094, w: 0.40708137}
+  m_LocalRotation: {x: 0.15768354, y: 0.67937136, z: -0.157249, w: 0.69918764}
   m_LocalPosition: {x: 6.721324, y: 7.6876383, z: -0.41045666}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -1639,8 +1670,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1943703576}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.5321784, y: -1.6715319, z: 0.9455284}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 187293243}
@@ -1658,7 +1689,7 @@ GameObject:
   - component: {fileID: 110804455658084870}
   - component: {fileID: 110804455658084871}
   m_Layer: 0
-  m_Name: Next hole flag
+  m_Name: Next hole flag model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1672,11 +1703,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 110804455658084865}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.5321784, y: -1.6715319, z: 0.9455284}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 0.1, y: 1, z: 0.1}
   m_Children: []
-  m_Father: {fileID: 187293243}
-  m_RootOrder: 4
+  m_Father: {fileID: 642023518}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &110804455658084870
 MeshFilter:
@@ -1735,7 +1766,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4213627501115095112}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.5321784, y: 98.32847, z: 0.9455284}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 187293243}
