@@ -283,8 +283,10 @@ public class GameManager : MonoBehaviour
 
     private void ResetGame()
     {
-        TerrainManager.Restart();
-        
+        if(Gamerules.UseGolfBall)
+        {
+            TerrainManager.Restart();
+        }
         if (Gamerules.UseHUD)
         {
             UpdateHUDShotCounter();

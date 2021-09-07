@@ -112,13 +112,22 @@ public class TerrainGenerator : MonoBehaviour
                         // Update the min and max for each of the layers
                         for (int i = 0; i < Settings.TerrainLayers.Count; i++)
                         {
-                            if (map.Layers[i].Min < terrainLayerHeightsMinMax[i].Item1)
+                            // If this layer shares noise, just set min max to 0
+                            if (Settings.TerrainLayers[i].ShareOtherLayerNoise)
                             {
-                                terrainLayerHeightsMinMax[i] = (map.Layers[i].Min, terrainLayerHeightsMinMax[i].Item2);
+                                terrainLayerHeightsMinMax[i] = (0, 0);
                             }
-                            if (map.Layers[i].Max > terrainLayerHeightsMinMax[i].Item2)
+                            // Only check the min max if this layer has its own noise
+                            else
                             {
-                                terrainLayerHeightsMinMax[i] = (terrainLayerHeightsMinMax[i].Item1, map.Layers[i].Max);
+                                if (map.Layers[i].Min < terrainLayerHeightsMinMax[i].Item1)
+                                {
+                                    terrainLayerHeightsMinMax[i] = (map.Layers[i].Min, terrainLayerHeightsMinMax[i].Item2);
+                                }
+                                if (map.Layers[i].Max > terrainLayerHeightsMinMax[i].Item2)
+                                {
+                                    terrainLayerHeightsMinMax[i] = (terrainLayerHeightsMinMax[i].Item1, map.Layers[i].Max);
+                                }
                             }
                         }
                     }
@@ -153,6 +162,13 @@ public class TerrainGenerator : MonoBehaviour
                         {
                             TerrainSettings.Layer s = Settings.TerrainLayers[i];
                             TerrainMap.Layer m = map.Layers[i];
+
+                            // Set the reference to be another layer if we are sharing noise
+                            if(s.ShareOtherLayerNoise)
+                            {
+                                m = map.Layers[s.LayerIndexShareNoise];
+                            }
+
                             if (s.Apply && m.Noise[index] >= s.NoiseThresholdMin && m.Noise[index] <= s.NoiseThresholdMax)
                             {
                                 // Check that the mask is valid if we are using it 
@@ -203,12 +219,25 @@ public class TerrainGenerator : MonoBehaviour
                                             map.Heights[index] = value;
                                             break;
                                     }
+
+                                    // Clamp height to zero after this layer has been applied
+                                    if(s.ClampHeightToZero && map.Heights[index] < 0)
+                                    {
+                                        map.Heights[index] = 0;
+                                    }
                                 }
                             }
                         }
 
-                        // Set the green
+                        // Ensure height map can't go below 0
+                        if (Settings.ForceMinHeightZero && map.Heights[index] < 0)
+                        {
+                            map.Heights[index] = 0;
+                        }
+
                         map.Greens[index] = false;
+
+                        // Set the green boolean flood array
                         foreach (TerrainSettings.Green g in Settings.Greens)
                         {
                             if (g.Do && g.RequiredBiomes.Contains(map.Biomes[index]))
@@ -623,8 +652,12 @@ public class TerrainGenerator : MonoBehaviour
             TerrainSettings.Layer settingsLayer = Settings.TerrainLayers[i];
             TerrainMap.Layer terrainLayer = new TerrainMap.Layer();
 
-            terrainLayer.Noise = Noise.GetNoise(settingsLayer.Settings, prevSeed, chunkBounds.min, in localVertexPositions, width, height, ref terrainLayer.Min, ref terrainLayer.Max);
-            prevSeed = prevSeed.ToString().GetHashCode();
+            // Only generate the noise if this layer uses it
+            if (!settingsLayer.ShareOtherLayerNoise)
+            {
+                terrainLayer.Noise = Noise.GetNoise(settingsLayer.Settings, prevSeed, chunkBounds.min, in localVertexPositions, width, height, ref terrainLayer.Min, ref terrainLayer.Max);
+                prevSeed = prevSeed.ToString().GetHashCode();
+            }
 
             map.Layers.Add(terrainLayer);
         }

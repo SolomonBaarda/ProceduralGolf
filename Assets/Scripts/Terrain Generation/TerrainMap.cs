@@ -48,7 +48,12 @@ public class TerrainMap
         for (int i = 0; i < minMax.Count; i++)
         {
             //Logger.Log("layer " + i+" with min: " + minMax[i].Item1 +" max: " + minMax[i].Item2);
-            Noise.NormaliseNoise(ref Layers[i].Noise, minMax[i].Item1, minMax[i].Item2);
+
+            // Ensure noise is not null as this layer could be sharing noise with another layer
+            if(Layers[i].Noise != null)
+            {
+                Noise.NormaliseNoise(ref Layers[i].Noise, minMax[i].Item1, minMax[i].Item2);
+            }
         }
     }
 

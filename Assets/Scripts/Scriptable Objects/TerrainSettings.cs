@@ -10,6 +10,7 @@ public class TerrainSettings : VariablePreset
     public AnimationCurve HeightDistribution;
     public float HeightMultiplier = 1;
     public Biome.Type MainBiome;
+    public bool ForceMinHeightZero = true;
 
     [Header("Terrain Layers")]
     public List<Layer> TerrainLayers = new List<Layer>();
@@ -44,17 +45,24 @@ public class TerrainSettings : VariablePreset
     [Serializable]
     public class Layer
     {
+        [Header("Conditions")]
         public bool Apply = true;
-        public float Multiplier = 1;
-        public Biome.Type Biome;
+        public NoiseSettings Settings;
         public float NoiseThresholdMin = 0;
         public float NoiseThresholdMax = 1;
 
+        [Header("Output")]
+        public float Multiplier = 1;
+        public Biome.Type Biome;
+        public bool ClampHeightToZero = true;
         public Mode CombinationMode;
         public enum Mode { Add, Subtract, Divide, Multiply, Modulus, Set };
 
-        public NoiseSettings Settings;
-        [Space]
+        [Header("Share another layer's noise")]
+        public bool ShareOtherLayerNoise = false;
+        public int LayerIndexShareNoise = 0;
+
+        [Header("Use layer as mask")]
         public bool UseMask = false;
         [Header("List of layer indexes to use as mask")]
         public List<Mask> Masks;

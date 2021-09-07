@@ -39,14 +39,18 @@ MonoBehaviour:
     m_RotationOrder: 4
   HeightMultiplier: 20
   MainBiome: 1
+  ForceMinHeightZero: 0
   TerrainLayers:
   - Apply: 1
     Multiplier: 1
     Biome: 0
     NoiseThresholdMin: 0
     NoiseThresholdMax: 1
+    ClampHeightToZero: 1
     CombinationMode: 0
     Settings: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3, type: 2}
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
     UseMask: 0
     Masks: []
   - Apply: 1
@@ -54,8 +58,11 @@ MonoBehaviour:
     Biome: 2
     NoiseThresholdMin: 0.7
     NoiseThresholdMax: 1
+    ClampHeightToZero: 1
     CombinationMode: 1
     Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
     UseMask: 0
     Masks: []
   - Apply: 1
@@ -63,8 +70,11 @@ MonoBehaviour:
     Biome: 4
     NoiseThresholdMin: 0.75
     NoiseThresholdMax: 1
+    ClampHeightToZero: 1
     CombinationMode: 1
     Settings: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0, type: 2}
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 1
     UseMask: 1
     Masks:
     - LayerIndex: 1
@@ -75,8 +85,23 @@ MonoBehaviour:
     Biome: 5
     NoiseThresholdMin: 0
     NoiseThresholdMax: 0.04
+    ClampHeightToZero: 0
     CombinationMode: 5
     Settings: {fileID: 11400000, guid: b2258d188ca865c43ad49f7b2b3bf462, type: 2}
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
+    UseMask: 0
+    Masks: []
+  - Apply: 1
+    Multiplier: 3
+    Biome: 5
+    NoiseThresholdMin: 0
+    NoiseThresholdMax: 0.06
+    ClampHeightToZero: 0
+    CombinationMode: 1
+    Settings: {fileID: 11400000, guid: b2258d188ca865c43ad49f7b2b3bf462, type: 2}
+    ShareOtherLayerNoise: 1
+    LayerIndexShareNoise: 3
     UseMask: 0
     Masks: []
   PoissonSamplingIterations: 5
