@@ -326,6 +326,10 @@ public class TerrainGenerator : MonoBehaviour
                 DateTime a = DateTime.Now;
                 int greensBefore = greens.Count;
 
+                // Seems to fix the green merging inconsistency
+                // No clue why...
+                greens.Sort((x, y) => y.Points.Count.CompareTo(x.Points.Count));
+
                 // Merge greens from seperate chunks
                 foreach (Green original in greens)
                 {
@@ -333,7 +337,7 @@ public class TerrainGenerator : MonoBehaviour
                     {
                         foreach (Green toMerge in greens)
                         {
-                            if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && toMerge.PointsOnEdge.Count > 0 && ContainsAnySharedPoints(original, toMerge))
+                            if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && toMerge.PointsOnEdge.Count > 0 && ShouldMergeGreens(original, toMerge))
                             {
                                 toMerge.ToBeDeleted = true;
 
@@ -342,7 +346,7 @@ public class TerrainGenerator : MonoBehaviour
                                 original.PointsOnEdge.AddRange(toMerge.PointsOnEdge);
                             }
 
-                            bool ContainsAnySharedPoints(Green a, Green b)
+                            bool ShouldMergeGreens(Green a, Green b)
                             {
                                 int total = 0;
 
