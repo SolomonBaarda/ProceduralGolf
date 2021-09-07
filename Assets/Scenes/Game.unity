@@ -1441,7 +1441,7 @@ MonoBehaviour:
   - {fileID: 1208001000}
   - {fileID: 295252888}
   CameraStates: {fileID: 950426080}
-  TerrainMode: 0
+  TerrainMode: 1
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
 --- !u!114 &1510809347
 MonoBehaviour:

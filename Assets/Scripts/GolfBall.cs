@@ -55,11 +55,27 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
     public Vector3 Position => transform.position;
 
     // Settings
-    public const float FullPower = 25;
+    /// <summary>
+    /// Maximum possible force applied to the ball when shot.
+    /// </summary>
+    public const float FullPower = 40;
+    /// <summary>
+    /// Velocity magnitude to determine when the ball should stop rolling.
+    /// </summary>
     public const float SpeedCutoffThreshold = 0.5f;
+    private const float SqrSpeedCutoffThreshold = SpeedCutoffThreshold * SpeedCutoffThreshold;
+    /// <summary>
+    /// Number of seconds in which the ball has to remain below the threshold for it to be stopped.
+    /// </summary>
     public const float SecondsRequiredBelowSpeedThreshold = 1f;
     private float stopRollingTimer;
 
+    /// <summary>
+    /// Number of physics frames (FixedUpdate calls) before drag applies.
+    /// </summary>
+    /// <note>
+    /// Used to prevent drag being applied to the ball when making a shot, or if the ball bounces.
+    /// </note>
     private const int NumPhysicsFramesBeforeDragAplies = 5;
 
     [Header("Control settings")]
@@ -135,8 +151,8 @@ public class GolfBall : MonoBehaviour, ICanBeFollowed
 
         if (IsOnGround)
         {
-                        // Speed is below the threshold
-            if (rigid.velocity.magnitude < SpeedCutoffThreshold)
+            // Speed is below the threshold
+            if (rigid.velocity.sqrMagnitude < SqrSpeedCutoffThreshold)
             {
                 stopRollingTimer += Time.fixedDeltaTime;
                 if (stopRollingTimer >= SecondsRequiredBelowSpeedThreshold)

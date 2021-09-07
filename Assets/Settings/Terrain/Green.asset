@@ -74,7 +74,7 @@ MonoBehaviour:
     Multiplier: 0
     Biome: 5
     NoiseThresholdMin: 0
-    NoiseThresholdMax: 0.05
+    NoiseThresholdMax: 0.04
     CombinationMode: 5
     Settings: {fileID: 11400000, guid: b2258d188ca865c43ad49f7b2b3bf462, type: 2}
     UseMask: 0
