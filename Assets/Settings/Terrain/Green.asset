@@ -42,37 +42,49 @@ MonoBehaviour:
   ForceMinHeightZero: 0
   TerrainLayers:
   - Apply: 1
-    Multiplier: 1
-    Biome: 0
+    Settings: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3, type: 2}
     NoiseThresholdMin: 0
     NoiseThresholdMax: 1
+    Multiplier: 1
+    Biome: 0
     ClampHeightToZero: 1
     CombinationMode: 0
-    Settings: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3, type: 2}
     ShareOtherLayerNoise: 0
     LayerIndexShareNoise: 0
     UseMask: 0
     Masks: []
   - Apply: 1
-    Multiplier: 0.1
+    Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
+    NoiseThresholdMin: 0.5
+    NoiseThresholdMax: 1
+    Multiplier: 0
     Biome: 2
+    ClampHeightToZero: 1
+    CombinationMode: 1
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
+    UseMask: 0
+    Masks: []
+  - Apply: 1
+    Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
     NoiseThresholdMin: 0.7
     NoiseThresholdMax: 1
+    Multiplier: 0.1
+    Biome: 3
     ClampHeightToZero: 1
     CombinationMode: 1
-    Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
-    ShareOtherLayerNoise: 0
-    LayerIndexShareNoise: 0
+    ShareOtherLayerNoise: 1
+    LayerIndexShareNoise: 1
     UseMask: 0
     Masks: []
   - Apply: 1
-    Multiplier: 0.25
-    Biome: 4
+    Settings: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0, type: 2}
     NoiseThresholdMin: 0.75
     NoiseThresholdMax: 1
+    Multiplier: 0.25
+    Biome: 4
     ClampHeightToZero: 1
     CombinationMode: 1
-    Settings: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0, type: 2}
     ShareOtherLayerNoise: 0
     LayerIndexShareNoise: 1
     UseMask: 1
@@ -80,53 +92,30 @@ MonoBehaviour:
     - LayerIndex: 1
       NoiseThresholdMin: 0.6
       NoiseThresholdMax: 1
-  - Apply: 1
-    Multiplier: 0
-    Biome: 5
-    NoiseThresholdMin: 0
-    NoiseThresholdMax: 0.04
-    ClampHeightToZero: 0
-    CombinationMode: 5
-    Settings: {fileID: 11400000, guid: b2258d188ca865c43ad49f7b2b3bf462, type: 2}
-    ShareOtherLayerNoise: 0
-    LayerIndexShareNoise: 0
-    UseMask: 0
-    Masks: []
-  - Apply: 1
-    Multiplier: 3
-    Biome: 5
-    NoiseThresholdMin: 0
-    NoiseThresholdMax: 0.06
-    ClampHeightToZero: 0
-    CombinationMode: 1
-    Settings: {fileID: 11400000, guid: b2258d188ca865c43ad49f7b2b3bf462, type: 2}
-    ShareOtherLayerNoise: 1
-    LayerIndexShareNoise: 3
-    UseMask: 0
-    Masks: []
   PoissonSamplingIterations: 5
   PoissonSamplingRadius: 12
   ProceduralObjects:
   - Do: 1
-    RequiredBiomes: 01000000
+    RequiredBiomes: 0200000001000000
     Prefabs:
     - {fileID: 117604, guid: 9469bb1d3aa88ca40aa4079e96a27f8e, type: 3}
     - {fileID: 185286, guid: 8ed1fa325ca228645ad26dd6eff14768, type: 3}
     - {fileID: 152404, guid: 5037d6ea184d2f640bf78dcf9894a269, type: 3}
     - {fileID: 127550, guid: 87a6cef862ce2cb4a88c5ca5d5af5d2b, type: 3}
-    Chance: 0.75
+    Chance: 0.5
     UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0.55
+      NoiseThresholdMin: 0.5
       NoiseThresholdMax: 0.7
   Greens:
   - Do: 1
-    RequiredBiomes: 01000000020000000400000005000000
+    RequiredBiomes: 030000000400000005000000
     UseMask: 1
     Masks:
     - LayerIndex: 1
       NoiseThresholdMin: 0.7
       NoiseThresholdMax: 1
-  MinDistanceBetweenHoles: 200
-  ValidHoleBiomes: 02000000
+  MinDistanceBetweenHoles: 100
+  AreaToCheckValidHoleBiome: 10
+  ValidHoleBiomes: 03000000

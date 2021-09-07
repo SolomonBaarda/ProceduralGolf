@@ -452,15 +452,38 @@ public class TerrainGenerator : MonoBehaviour
                         // Get the closest index for this point
                         if (Utils.GetClosestIndex(world, map.Bounds.min, map.Bounds.max, map.Width, map.Height, out int x, out int y))
                         {
-                            int index = y * map.Width + x;
-                            Biome.Type t = map.Biomes[index];
+                            bool isValidPoint = true;
 
-                            // Set the correct height
-                            world.y = pointChunkData.MeshData.Vertices[index].y;
-
-                            // Then check biome is correct for this point
-                            if (Settings.ValidHoleBiomes.Contains(t))
+                            // Check if the point is far away enough from invalid biomes
+                            for (int yOffset = -Settings.AreaToCheckValidHoleBiome; yOffset <= Settings.AreaToCheckValidHoleBiome; yOffset++)
                             {
+                                for (int xOffset = -Settings.AreaToCheckValidHoleBiome; xOffset <= Settings.AreaToCheckValidHoleBiome; xOffset++)
+                                {
+                                    int newY = y + yOffset, newX = x + xOffset;
+
+                                    if(newY >= 0 && newX >= 0 && newY < height && newX < width)
+                                    {
+                                        Biome.Type t = map.Biomes[newY * map.Width + newX];
+
+                                        // Then check biome is correct for this point
+                                        if (!Settings.ValidHoleBiomes.Contains(t))
+                                        {
+                                            isValidPoint = false;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if(!isValidPoint)
+                                {
+                                    break;
+                                }
+                            }
+
+                            // We have a valid hole
+                            if(isValidPoint)
+                            {
+                                world.y = pointChunkData.MeshData.Vertices[y * map.Width + x].y;
                                 g.PossibleHoles.Add(world);
                             }
                         }
