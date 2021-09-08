@@ -83,7 +83,7 @@ MonoBehaviour:
     NoiseThresholdMax: 1
     Multiplier: 0.25
     Biome: 4
-    ClampHeightToZero: 1
+    ClampHeightToZero: 0
     CombinationMode: 1
     ShareOtherLayerNoise: 0
     LayerIndexShareNoise: 1
