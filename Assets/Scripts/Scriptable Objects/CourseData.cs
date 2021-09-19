@@ -9,11 +9,13 @@ public class CourseData
     public const int NotAssignedHoleNumber = -1;
     public int Number = NotAssignedHoleNumber;
 
+    public Color32 Colour;
 
-    public CourseData(Vector3 start, Vector3 finish)
+    public CourseData(Vector3 start, Vector3 finish, Color32 colour)
     {
         Start = start;
         Hole = finish;
+        Colour = colour;
     }
 
 

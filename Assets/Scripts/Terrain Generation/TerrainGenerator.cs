@@ -284,7 +284,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
 
                     // Calculate the greens 
-                    List<Green> newGreens = new List<Green>();
+                    List<Green> newGreensInChunk = new List<Green>();
                     bool[] checkedFloodFill = new bool[map.Width * map.Height];
 
                     for (int y = 0; y < map.Height; y++)
@@ -294,14 +294,14 @@ public class TerrainGenerator : MonoBehaviour
                             int index = y * map.Width + x;
                             if (!checkedFloodFill[index] && map.Greens[index])
                             {
-                                newGreens.Add(FloodFill(map, ref checkedFloodFill, x, y));
+                                newGreensInChunk.Add(FloodFill(map, ref checkedFloodFill, x, y));
                             }
                         }
                     }
 
                     lock (threadLock)
                     {
-                        greens.AddRange(newGreens);
+                        greens.AddRange(newGreensInChunk);
                     }
 
                     // Now that biomes have been assigned, we can calculate the procedural object positions
@@ -525,13 +525,10 @@ public class TerrainGenerator : MonoBehaviour
                         }
                     }
 
-                    Debug.DrawRay(g.Start, Vector3.up * 100, c, 1000);
-                    Debug.DrawRay(g.Hole, Vector3.up * 100, c, 1000);
-
                     // Create the course data object
                     lock (threadLock)
                     {
-                        courseData.Add(new CourseData(g.Start, g.Hole));
+                        courseData.Add(new CourseData(g.Start, g.Hole, c));
                     }
                 }));
             }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class TerrainChunkManager : MonoBehaviour
 {
-    public const float ChunkSizeWorldUnits = 500;
+    public const float ChunkSizeWorldUnits = 1000;
     public static readonly Vector3 ChunkSize = new Vector3(ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits);
 
     [Header("References")]

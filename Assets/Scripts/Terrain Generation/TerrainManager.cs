@@ -238,17 +238,15 @@ public class TerrainManager : MonoBehaviour
     {
         if (CurrentLoadedTerrain != null)
         {
-            System.Random r = new System.Random(0);
             // Calculate the holes
             foreach (CourseData h in CurrentLoadedTerrain.Courses)
             {
-                Color c = new Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-                Gizmos.color = c;
+                Gizmos.color = h.Colour;
+
                 Gizmos.DrawLine(h.Start, h.Start + Vector3.up * 100);
-                Gizmos.DrawLine(h.Hole, h.Hole + Vector3.up * 500);
+                Gizmos.DrawLine(h.Hole, h.Hole + Vector3.up * 200);
             }
         }
-
     }
 
 }
