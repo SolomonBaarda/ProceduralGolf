@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -28,8 +26,8 @@ public class TerrainGenerator : MonoBehaviour
     private object threadLock = new object();
     private Dictionary<Vector2Int, ChunkData> data = new Dictionary<Vector2Int, ChunkData>();
     private List<(float, float)> terrainLayerHeightsMinMax = new List<(float, float)>();
-    private int width, height;
-    private float minHeight, maxHeight;
+    private int terrainMapWidth, terrainMapHeight;
+    private float minTerrainMapHeightValue, maxTerrainMapHeightValue;
 
     private List<Green> greens = new List<Green>();
     private List<CourseData> courseData = new List<CourseData>();
@@ -47,9 +45,6 @@ public class TerrainGenerator : MonoBehaviour
         terrainChunks.Clear();
     }
 
-
-
-    public UnityEvent<string> OnGenerationStateChanged = new UnityEvent<string>();
 
 
     public void Generate(List<Vector2Int> chunks, GameManager.CourseGenerated callback)
@@ -71,21 +66,15 @@ public class TerrainGenerator : MonoBehaviour
             throw new Exception("Terrain settings must contain at least one layer");
         }
 
-        // Get random seed
-        if (DoRandomSeed)
-        {
-            Seed = Noise.RandomSeed;
-        }
 
-        IsGenerating = true;
 
         StartCoroutine(WaitForGenerate(chunks, callback));
     }
 
     private IEnumerator WaitForGenerate(List<Vector2Int> chunksToGenerate, GameManager.CourseGenerated callback)
     {
-        DateTime before = DateTime.Now;
-        DateTime last = before;
+        DateTime startTimestamp = DateTime.Now, lastTimestamp = startTimestamp;
+        IsGenerating = true;
 
         bool atLeastOneObject = false;
         for (int i = 0; i < Settings.ProceduralObjects.Count; i++)
@@ -97,66 +86,59 @@ public class TerrainGenerator : MonoBehaviour
             }
         }
         if (!atLeastOneObject)
-        {
             Debug.LogError("No procedural objects have been added");
-        }
+
+        // Get random seed
+        if (DoRandomSeed)
+            Seed = Noise.RandomSeed;
 
 
         Vector3[] localVertexPositions = CalculateLocalVertexPointsForChunk(TerrainChunkManager.ChunkSize, Settings.SamplePointFrequency);
-
-
-
-
-
-
-
-        width = Settings.SamplePointFrequency;
-        height = Settings.SamplePointFrequency;
-        minHeight = float.MaxValue;
-        maxHeight = float.MinValue;
-
-
+        terrainMapWidth = Settings.SamplePointFrequency;
+        terrainMapHeight = Settings.SamplePointFrequency;
+        minTerrainMapHeightValue = float.MaxValue;
+        maxTerrainMapHeightValue = float.MinValue;
 
 
         // First PASS
-        Logger.LogTerrainGenerationState(1, "Generating random noise");
+        Logger.LogTerrainGenerationStartPass(1, "Generating random noise");
         FirstPass(chunksToGenerate, localVertexPositions);
         yield return WaitForThreadsToComplete(threads);
-        UpdatePassTimer(ref last, "First");
+        Logger.LogTerrainGenerationFinishPass(1, (DateTime.Now - lastTimestamp).TotalSeconds);
+        lastTimestamp = DateTime.Now;
 
 
         // Second PASS
-        Logger.LogTerrainGenerationState(2, "calculating terrain values");
+        Logger.LogTerrainGenerationStartPass(2, "calculating terrain values");
         SecondPass(atLeastOneObject);
         yield return WaitForThreadsToComplete(threads);
-        UpdatePassTimer(ref last, "Second");
-
+        Logger.LogTerrainGenerationFinishPass(2, (DateTime.Now - lastTimestamp).TotalSeconds);
+        lastTimestamp = DateTime.Now;
 
         // Third PASS
-        Logger.LogTerrainGenerationState(3, "calculate mesh data and merge greens");
-        ThirdPass(localVertexPositions);
+        Logger.LogTerrainGenerationStartPass(3, "calculate mesh data and merge greens");
+        ThirdPassMergeGreens();
+        ThirdPassGenerateMeshData(localVertexPositions);
         yield return WaitForThreadsToComplete(threads);
-        UpdatePassTimer(ref last, "Third");
-
+        Logger.LogTerrainGenerationFinishPass(3, (DateTime.Now - lastTimestamp).TotalSeconds);
+        lastTimestamp = DateTime.Now;
 
         // Fourth PASS
-        Logger.LogTerrainGenerationState(4, "calculate holes and generate texture data");
+        Logger.LogTerrainGenerationStartPass(4, "calculate holes and generate texture data");
         FourthPass();
         yield return WaitForThreadsToComplete(threads);
-        UpdatePassTimer(ref last, "Fourth");
-
         greens.RemoveAll(x => x.ToBeDeleted);
-
+        Logger.LogTerrainGenerationFinishPass(4, (DateTime.Now - lastTimestamp).TotalSeconds);
+        lastTimestamp = DateTime.Now;
 
         // Fifth PASS
-        Logger.LogTerrainGenerationState(5, "constructing meshes");
+        Logger.LogTerrainGenerationStartPass(5, "constructing meshes");
         FifthPass();
         yield return WaitForThreadsToComplete(threads);
-        UpdatePassTimer(ref last, "Fifth");
+        Logger.LogTerrainGenerationFinishPass(5, (DateTime.Now - lastTimestamp).TotalSeconds);
+        lastTimestamp = DateTime.Now;
 
-
-        Logger.LogTerrainGenerationState(6, "constructing meshes");
-
+        Logger.LogTerrainGenerationStartPass(6, "constructing meshes");
 
         // Construct textures and meshes
         // This needs to be done in the main thread
@@ -170,11 +152,13 @@ public class TerrainGenerator : MonoBehaviour
 
             // Generate the texture
             Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.TextureData);
-            terrainChunks.Add(new TerrainChunkData(d.TerrainMap.Chunk.x, d.TerrainMap.Chunk.y, d.TerrainMap.Bounds.center, d.TerrainMap.Biomes, width, height, colourMap, mesh, d.WorldObjects));
+            terrainChunks.Add(new TerrainChunkData(d.TerrainMap.Chunk.x, d.TerrainMap.Chunk.y, d.TerrainMap.Bounds.center, d.TerrainMap.Biomes, terrainMapWidth, terrainMapHeight, colourMap, mesh, d.WorldObjects));
 
             yield return null;
         }
 
+        // TODO in next version
+        // Add map perview before actually generating the course
         //MapData mapData = GenerateMap(data);
         //then Save To Disk as PNG
         //byte[] bytes = mapData.Map.EncodeToPNG();
@@ -186,20 +170,20 @@ public class TerrainGenerator : MonoBehaviour
         terrain.SetData(Seed, terrainChunks, courseData, Settings.name);
 
 
-        // FINISHED GENERATING
-        UpdatePassTimer(ref last, "Sixth");
+        Logger.LogTerrainGenerationFinishPass(6, (DateTime.Now - lastTimestamp).TotalSeconds);
+        lastTimestamp = DateTime.Now;
 
-        double totalTime = (DateTime.Now - before).TotalSeconds;
+
+        double totalTime = (DateTime.Now - startTimestamp).TotalSeconds;
         string message = $"Finished generating terrain. Completed in {totalTime.ToString("0.0")} seconds";
         Logger.Log(message);
-        OnGenerationStateChanged.Invoke(message);
 
         IsGenerating = false;
-        //ClearGenerationData();
 
         // Callback when done
         callback(terrain);
 
+        //ClearGenerationData();
     }
 
 
@@ -207,18 +191,20 @@ public class TerrainGenerator : MonoBehaviour
 
     private void FirstPass(List<Vector2Int> chunksToGenerate, Vector3[] localVertexPositions)
     {
+        // Fill the min/max heeight array with default values
         for (int i = 0; i < Settings.TerrainLayers.Count; i++)
         {
             terrainLayerHeightsMinMax.Add((float.MaxValue, float.MinValue));
         }
 
+        // Now generate the terrain maps for each thread
         foreach (Vector2Int chunk in chunksToGenerate)
         {
             StartThread(threads, "Pass 1 (" + chunk.x + "," + chunk.y + ")", new Thread(() =>
             {
                 Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-                GenerateTerrainMapRawData(chunk, Seed, chunkBounds, width, height, in localVertexPositions, out TerrainMap map);
+                GenerateTerrainMapRawData(chunk, Seed, chunkBounds, terrainMapWidth, terrainMapHeight, in localVertexPositions, out TerrainMap map);
 
                 // Gain access to the critical region once we have calculated the data
                 lock (threadLock)
@@ -385,13 +371,13 @@ public class TerrainGenerator : MonoBehaviour
                     // Get final min max
                     lock (threadLock)
                     {
-                        if (map.Heights[index] < minHeight)
+                        if (map.Heights[index] < minTerrainMapHeightValue)
                         {
-                            minHeight = map.Heights[index];
+                            minTerrainMapHeightValue = map.Heights[index];
                         }
-                        if (map.Heights[index] > maxHeight)
+                        if (map.Heights[index] > maxTerrainMapHeightValue)
                         {
-                            maxHeight = map.Heights[index];
+                            maxTerrainMapHeightValue = map.Heights[index];
                         }
                     }
                 }
@@ -427,7 +413,7 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    private void ThirdPass(Vector3[] localVertexPositions)
+    private void ThirdPassMergeGreens()
     {
         // Do this calculation in a thread so that it is done in the background 
         StartThread(threads, "Pass 3: merge greens", new Thread(() =>
@@ -464,7 +450,7 @@ public class TerrainGenerator : MonoBehaviour
                                 // Removed all shared points from a
                                 // Since a is the green being merged, this will speed up future calls 
                                 // as we will have to compare less elements in the list
-                                total += a.PointsOnEdge.RemoveAll(other => TerrainMap.IsSharedPositionOnBorder(p.Chunk, p.indexX, p.indexY, other.Chunk, other.indexX, other.indexY, width, height));
+                                total += a.PointsOnEdge.RemoveAll(other => TerrainMap.IsSharedPositionOnBorder(p.Chunk, p.indexX, p.indexY, other.Chunk, other.indexX, other.indexY, terrainMapWidth, terrainMapHeight));
                             }
 
                             return total > 0;
@@ -477,8 +463,10 @@ public class TerrainGenerator : MonoBehaviour
 
             Logger.Log($"* Greens: {greensBefore} reduced to {greens.Count} in {(DateTime.Now - a).TotalSeconds.ToString("0.0")} seconds");
         }));
+    }
 
-
+    private void ThirdPassGenerateMeshData(Vector3[] localVertexPositions)
+    {
         foreach (ChunkData d in data.Values)
         {
             // Use height curve to calculate new height distribution
@@ -489,7 +477,7 @@ public class TerrainGenerator : MonoBehaviour
                 TerrainMap map = d.TerrainMap;
 
                 // Normalise each of the noise layers
-                map.NormaliseHeights(minHeight, maxHeight);
+                map.NormaliseHeights(minTerrainMapHeightValue, maxTerrainMapHeightValue);
 
                 // Now calculate the final height for the vertex
                 for (int index = 0; index < map.Heights.Length; index++)
@@ -571,7 +559,7 @@ public class TerrainGenerator : MonoBehaviour
                             {
                                 int newY = y + yOffset, newX = x + xOffset;
 
-                                if (newY >= 0 && newX >= 0 && newY < height && newX < width)
+                                if (newY >= 0 && newX >= 0 && newY < terrainMapHeight && newX < terrainMapWidth)
                                 {
                                     Biome.Type t = map.Biomes[newY * map.Width + newX];
 
@@ -685,8 +673,6 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-
-
     private static IEnumerator WaitForThreadsToComplete(List<Thread> threads)
     {
         // Wait for threads to complete
@@ -695,12 +681,6 @@ public class TerrainGenerator : MonoBehaviour
             threads.RemoveAll((x) => !x.IsAlive);
             yield return null;
         }
-    }
-
-    private static void UpdatePassTimer(ref DateTime last, string passName)
-    {
-        Logger.Log($"* {passName} pass: { (DateTime.Now - last).TotalSeconds.ToString("0.0") } seconds.");
-        last = DateTime.Now;
     }
 
     private static void StartThread(List<Thread> threads, string name, Thread thread)
