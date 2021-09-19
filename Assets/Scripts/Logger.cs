@@ -14,6 +14,11 @@ public class Logger : MonoBehaviour
         messages.Enqueue(message);
     }
 
+    public static void LogTerrainGenerationState(int pass, string message)
+    {
+
+    }
+
     private void Update()
     {
         // Handle messages in the main thread
