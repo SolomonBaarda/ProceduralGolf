@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 public class HUD : MonoBehaviour
 {
-    public const string SceneName = "HUD";
     public static UnityAction OnHudLoaded;
 
     public UnityAction OnShootPressed;
@@ -52,6 +51,7 @@ public class HUD : MonoBehaviour
     private void Awake()
     {
         Instance = FindObjectOfType<HUD>();
+        Active(false);
     }
 
 

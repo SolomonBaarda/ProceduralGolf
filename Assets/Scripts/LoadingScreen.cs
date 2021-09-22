@@ -14,6 +14,7 @@ public class LoadingScreen : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        Active(false);
     }
 
     public static void Active(bool visible)

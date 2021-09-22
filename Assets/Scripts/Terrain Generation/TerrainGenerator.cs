@@ -10,14 +10,12 @@ public class TerrainGenerator : MonoBehaviour
     [Header("Settings")]
     public MeshSettings MeshSettings;
     [Space]
-    public TerrainSettings Settings;
+    public TerrainSettings TerrainSettings;
     [Space]
     public TextureSettings TextureSettings;
 
     [Space]
-    public int Seed = 0;
-    public bool DoRandomSeed = false;
-
+    public GenerationSettings CurrentSettings;
 
     public bool IsGenerating { get; private set; } = false;
 
@@ -47,7 +45,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    public void Generate(List<Vector2Int> chunks, GameManager.CourseGenerated callback)
+    public void Generate(GenerationSettings settings, List<Vector2Int> chunks, GameManager.CourseGenerated callback)
     {
         if (IsGenerating)
         {
@@ -55,17 +53,18 @@ public class TerrainGenerator : MonoBehaviour
             return;
         }
 
-        Settings.ValidateValues();
+        TerrainSettings.ValidateValues();
         TextureSettings.ValidateValues();
         MeshSettings.ValidateValues();
         TextureSettings.AddColoursToDictionary();
         ClearGenerationData();
 
-        if (Settings.TerrainLayers.Count < 1)
+        if (TerrainSettings.TerrainLayers.Count < 1)
         {
             throw new Exception("Terrain settings must contain at least one layer");
         }
 
+        CurrentSettings = settings;
 
 
         StartCoroutine(WaitForGenerate(chunks, callback));
@@ -77,9 +76,9 @@ public class TerrainGenerator : MonoBehaviour
         IsGenerating = true;
 
         bool atLeastOneObject = false;
-        for (int i = 0; i < Settings.ProceduralObjects.Count; i++)
+        for (int i = 0; i < TerrainSettings.ProceduralObjects.Count; i++)
         {
-            if (Settings.ProceduralObjects[i].Do)
+            if (TerrainSettings.ProceduralObjects[i].Do)
             {
                 atLeastOneObject = true;
                 break;
@@ -88,14 +87,10 @@ public class TerrainGenerator : MonoBehaviour
         if (!atLeastOneObject)
             Debug.LogError("No procedural objects have been added");
 
-        // Get random seed
-        if (DoRandomSeed)
-            Seed = Noise.RandomSeed;
 
-
-        Vector3[] localVertexPositions = CalculateLocalVertexPointsForChunk(TerrainChunkManager.ChunkSize, Settings.SamplePointFrequency);
-        terrainMapWidth = Settings.SamplePointFrequency;
-        terrainMapHeight = Settings.SamplePointFrequency;
+        Vector3[] localVertexPositions = CalculateLocalVertexPointsForChunk(TerrainChunkManager.ChunkSize, TerrainSettings.SamplePointFrequency);
+        terrainMapWidth = TerrainSettings.SamplePointFrequency;
+        terrainMapHeight = TerrainSettings.SamplePointFrequency;
         minTerrainMapHeightValue = float.MaxValue;
         maxTerrainMapHeightValue = float.MinValue;
 
@@ -167,7 +162,7 @@ public class TerrainGenerator : MonoBehaviour
 
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(Seed, terrainChunks, courseData, Settings.name);
+        terrain.SetData(CurrentSettings.Seed, terrainChunks, courseData, TerrainSettings.name);
 
 
         Logger.LogTerrainGenerationFinishPass(6, (DateTime.Now - lastTimestamp).TotalSeconds);
@@ -192,7 +187,7 @@ public class TerrainGenerator : MonoBehaviour
     private void FirstPass(List<Vector2Int> chunksToGenerate, Vector3[] localVertexPositions)
     {
         // Fill the min/max heeight array with default values
-        for (int i = 0; i < Settings.TerrainLayers.Count; i++)
+        for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
         {
             terrainLayerHeightsMinMax.Add((float.MaxValue, float.MinValue));
         }
@@ -204,7 +199,7 @@ public class TerrainGenerator : MonoBehaviour
             {
                 Bounds chunkBounds = TerrainChunkManager.CalculateTerrainChunkBounds(chunk);
 
-                GenerateTerrainMapRawData(chunk, Seed, chunkBounds, terrainMapWidth, terrainMapHeight, in localVertexPositions, out TerrainMap map);
+                GenerateTerrainMapRawData(chunk, CurrentSettings.Seed, chunkBounds, terrainMapWidth, terrainMapHeight, in localVertexPositions, out TerrainMap map);
 
                 // Gain access to the critical region once we have calculated the data
                 lock (threadLock)
@@ -212,10 +207,10 @@ public class TerrainGenerator : MonoBehaviour
                     data.Add(chunk, new ChunkData() { TerrainMap = map });
 
                     // Update the min and max for each of the layers
-                    for (int i = 0; i < Settings.TerrainLayers.Count; i++)
+                    for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
                     {
                         // If this layer shares noise, just set min max to 0
-                        if (Settings.TerrainLayers[i].ShareOtherLayerNoise)
+                        if (TerrainSettings.TerrainLayers[i].ShareOtherLayerNoise)
                         {
                             terrainLayerHeightsMinMax[i] = (0, 0);
                         }
@@ -253,13 +248,13 @@ public class TerrainGenerator : MonoBehaviour
                 for (int index = 0; index < map.Heights.Length; index++)
                 {
                     // Set the default biome 
-                    map.Biomes[index] = Settings.MainBiome;
+                    map.Biomes[index] = TerrainSettings.MainBiome;
 
                     // Set the height and update biomes
                     map.Heights[index] = 0;
                     for (int i = 0; i < map.Layers.Count; i++)
                     {
-                        TerrainSettings.Layer s = Settings.TerrainLayers[i];
+                        TerrainSettings.Layer s = TerrainSettings.TerrainLayers[i];
                         TerrainMap.Layer m = map.Layers[i];
 
                         // Set the reference to be another layer if we are sharing noise
@@ -276,7 +271,7 @@ public class TerrainGenerator : MonoBehaviour
                             {
                                 for (int j = 0; j < s.Masks.Count; j++)
                                 {
-                                    TerrainSettings.Layer mask = Settings.TerrainLayers[s.Masks[j].LayerIndex];
+                                    TerrainSettings.Layer mask = TerrainSettings.TerrainLayers[s.Masks[j].LayerIndex];
                                     TerrainMap.Layer maskValues = map.Layers[s.Masks[j].LayerIndex];
                                     // Mask is not valid here
                                     if (!(maskValues.Noise[index] >= s.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= s.Masks[j].NoiseThresholdMax))
@@ -329,7 +324,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
 
                     // Ensure height map can't go below 0
-                    if (Settings.ForceMinHeightZero && map.Heights[index] < 0)
+                    if (TerrainSettings.ForceMinHeightZero && map.Heights[index] < 0)
                     {
                         map.Heights[index] = 0;
                     }
@@ -337,7 +332,7 @@ public class TerrainGenerator : MonoBehaviour
                     map.Greens[index] = false;
 
                     // Set the green boolean flood array
-                    foreach (TerrainSettings.Green g in Settings.Greens)
+                    foreach (TerrainSettings.Green g in TerrainSettings.Greens)
                     {
                         if (g.Do && g.RequiredBiomes.Contains(map.Biomes[index]))
                         {
@@ -407,7 +402,7 @@ public class TerrainGenerator : MonoBehaviour
                 map.WorldObjects = new List<TerrainMap.WorldObjectData>();
                 if (atLeastOneObject)
                 {
-                    GenerateTerrainMapProceduralObjects(map, Settings.PoissonSamplingRadius, Settings.PoissonSamplingIterations);
+                    GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations);
                 }
             }));
         }
@@ -459,7 +454,7 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
 
-            greens.RemoveAll(x => x.ToBeDeleted || x.Points.Count < Settings.GreenMinVertexCount);
+            greens.RemoveAll(x => x.ToBeDeleted || x.Points.Count < TerrainSettings.GreenMinVertexCount);
 
             Logger.Log($"* Greens: {greensBefore} reduced to {greens.Count} in {(DateTime.Now - a).TotalSeconds.ToString("0.0")} seconds");
         }));
@@ -470,7 +465,7 @@ public class TerrainGenerator : MonoBehaviour
         foreach (ChunkData d in data.Values)
         {
             // Use height curve to calculate new height distribution
-            AnimationCurve threadSafe = new AnimationCurve(Settings.HeightDistribution.keys);
+            AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
 
             StartThread(threads, "Pass 3 (" + d.TerrainMap.Chunk.x + "," + d.TerrainMap.Chunk.y + ")", new Thread(() =>
             {
@@ -482,12 +477,12 @@ public class TerrainGenerator : MonoBehaviour
                 // Now calculate the final height for the vertex
                 for (int index = 0; index < map.Heights.Length; index++)
                 {
-                    if (Settings.UseCurve)
+                    if (TerrainSettings.UseCurve)
                     {
                         map.Heights[index] = threadSafe.Evaluate(map.Heights[index]);
                     }
 
-                    map.Heights[index] *= Settings.HeightMultiplier;
+                    map.Heights[index] *= TerrainSettings.HeightMultiplier;
                 }
 
                 // Now Calculate the mesh data for the chunk
@@ -534,7 +529,7 @@ public class TerrainGenerator : MonoBehaviour
                 }
                 Vector3 size = max - min;
 
-                List<Vector2> localPoints = PoissonDiscSampling.GenerateLocalPoints(Settings.MinDistanceBetweenHoles, new Vector2(size.x, size.z), Seed);
+                List<Vector2> localPoints = PoissonDiscSampling.GenerateLocalPoints(TerrainSettings.MinDistanceBetweenHoles, new Vector2(size.x, size.z), CurrentSettings.Seed);
 
                 g.PossibleHoles = new List<Vector3>();
                 foreach (Vector2 local in localPoints)
@@ -553,9 +548,9 @@ public class TerrainGenerator : MonoBehaviour
                         bool isValidPoint = true;
 
                         // Check if the point is far away enough from invalid biomes
-                        for (int yOffset = -Settings.AreaToCheckValidHoleBiome; yOffset <= Settings.AreaToCheckValidHoleBiome; yOffset++)
+                        for (int yOffset = -TerrainSettings.AreaToCheckValidHoleBiome; yOffset <= TerrainSettings.AreaToCheckValidHoleBiome; yOffset++)
                         {
-                            for (int xOffset = -Settings.AreaToCheckValidHoleBiome; xOffset <= Settings.AreaToCheckValidHoleBiome; xOffset++)
+                            for (int xOffset = -TerrainSettings.AreaToCheckValidHoleBiome; xOffset <= TerrainSettings.AreaToCheckValidHoleBiome; xOffset++)
                             {
                                 int newY = y + yOffset, newX = x + xOffset;
 
@@ -564,7 +559,7 @@ public class TerrainGenerator : MonoBehaviour
                                     Biome.Type t = map.Biomes[newY * map.Width + newX];
 
                                     // Then check biome is correct for this point
-                                    if (!Settings.ValidHoleBiomes.Contains(t))
+                                    if (!TerrainSettings.ValidHoleBiomes.Contains(t))
                                     {
                                         isValidPoint = false;
                                         break;
@@ -701,9 +696,9 @@ public class TerrainGenerator : MonoBehaviour
 
         // Get all the noise layers
         int prevSeed = seed;
-        for (int i = 0; i < Settings.TerrainLayers.Count; i++)
+        for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
         {
-            TerrainSettings.Layer settingsLayer = Settings.TerrainLayers[i];
+            TerrainSettings.Layer settingsLayer = TerrainSettings.TerrainLayers[i];
             TerrainMap.Layer terrainLayer = new TerrainMap.Layer();
 
             // Only generate the noise if this layer uses it
@@ -728,7 +723,7 @@ public class TerrainGenerator : MonoBehaviour
         // Loop through each position
         foreach (Vector2 pos in localPositions)
         {
-            TerrainSettings.ProceduralObject attempt = Settings.ProceduralObjects[r.Next(0, Settings.ProceduralObjects.Count)];
+            TerrainSettings.ProceduralObject attempt = TerrainSettings.ProceduralObjects[r.Next(0, TerrainSettings.ProceduralObjects.Count)];
 
             if (attempt.Do && r.NextDouble() <= attempt.Chance)
             {
@@ -938,5 +933,10 @@ public class TerrainGenerator : MonoBehaviour
         public List<WorldObjectData> WorldObjects;
     }
 
+    [Serializable]
+    public class GenerationSettings
+    {
+        public int Seed = 0;
+    }
 
 }

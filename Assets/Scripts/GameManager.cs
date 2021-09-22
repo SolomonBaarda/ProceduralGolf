@@ -4,15 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
+    public static UnityEvent<TerrainGenerator.GenerationSettings> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings>();
+
     [Header("Managers")]
     public TerrainGenerator TerrainGenerator;
     public TerrainManager TerrainManager;
     [HideInInspector]
     public HUD HUD;
-    private bool HUDHasLoaded;
+    private bool HUDHasLoaded = false;
 
     [Header("Golf Ball")]
     public ShotPreview GolfBallShotPreview;
@@ -41,25 +44,45 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         HUD.OnHudLoaded += OnHUDLoaded;
+        OnRequestStartGenerating.AddListener(StartGeneration);
+
         SceneManager.LoadScene(LoadingScreen.SceneName, LoadSceneMode.Additive);
-        HUDHasLoaded = false;
 
         RenderSettings.skybox = Skybox;
     }
 
     private void Start()
     {
-        LoadGame();
+        foreach (GameObject g in ObjectsToDisableWhileLoading)
+        {
+            g.SetActive(false);
+        }
     }
 
-    private void LoadGame()
+    private void ResetGame()
     {
+        if (Gamerules.UseGolfBall)
+        {
+            TerrainManager.Restart();
+        }
+        if (Gamerules.UseHUD)
+        {
+            UpdateHUDShotCounter();
+        }
+    }
+
+    public void StartGeneration(TerrainGenerator.GenerationSettings settings)
+    {
+        if (TerrainGenerator.IsGenerating) return;
+
         LoadingScreen.Active(true);
 
         foreach (GameObject g in ObjectsToDisableWhileLoading)
         {
             g.SetActive(false);
         }
+
+        Clear();
 
         Logger.OnLogMessage.AddListener(message => { LoadingScreen.Instance.Info.text = message; });
 
@@ -76,7 +99,7 @@ public class GameManager : MonoBehaviour
 
         // Now generate the terraub
         List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();
-        TerrainGenerator.Generate(l, LoadTerrain);
+        TerrainGenerator.Generate(settings, l, LoadTerrain);
     }
 
     private void LoadTerrain(TerrainData data)
@@ -103,9 +126,7 @@ public class GameManager : MonoBehaviour
         // Load the HUD if we need it
         if (Gamerules.UseHUD)
         {
-            SceneManager.LoadSceneAsync(HUD.SceneName, LoadSceneMode.Additive);
-            while (!HUDHasLoaded) yield return null;
-            HUD.Active(false);
+            SceneManager.LoadSceneAsync(Scenes.HUDSceneName, LoadSceneMode.Additive);
         }
 
         if (Gamerules.UseGolfBall)
@@ -120,6 +141,8 @@ public class GameManager : MonoBehaviour
 
         // Disable the golf ball if we dont need it
         TerrainManager.GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
+
+        while (Gamerules.UseHUD && !HUDHasLoaded) yield return null;
 
         // Start the game
         ResetGame();
@@ -237,19 +260,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-    public void GenerateAgain()
-    {
-        Clear();
-        LoadGame();
-    }
-
     public void Clear()
     {
         TerrainManager.Clear();
 
-        if (HUD)
-            HUD.Clear();
+        if (HUD) HUD.Clear();
     }
 
     private void OnHUDLoaded()
@@ -281,17 +296,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void ResetGame()
-    {
-        if(Gamerules.UseGolfBall)
-        {
-            TerrainManager.Restart();
-        }
-        if (Gamerules.UseHUD)
-        {
-            UpdateHUDShotCounter();
-        }
-    }
+
 
     private void UpdateHUDShotCounter<T>(T t)
     {
