@@ -23,9 +23,14 @@ public class MainMenu : MonoBehaviour
 
     public void StartGame()
     {
-        Settings.Seed = int.Parse(SeedInput.text);
-
-        GameManager.OnRequestStartGenerating.Invoke(Settings);
+        try
+        {
+            Settings.Seed = int.Parse(SeedInput.text);
+            GameManager.OnRequestStartGenerating.Invoke(Settings);
+        }
+        catch (System.Exception e)
+        {
+        }
     }
 
 
