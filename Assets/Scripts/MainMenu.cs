@@ -1,13 +1,19 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class MainMenu : MonoBehaviour
 {
     public TerrainGenerator.GenerationSettings Settings = new TerrainGenerator.GenerationSettings();
 
+    public TMP_InputField SeedInput;
+
+
     private void Start()
     {
         SceneManager.LoadSceneAsync(Scenes.GameSceneName, LoadSceneMode.Additive);
+
+        GenerateRandomSeed();
     }
 
     public void QuitGame()
@@ -17,10 +23,15 @@ public class MainMenu : MonoBehaviour
 
     public void StartGame()
     {
+        Settings.Seed = int.Parse(SeedInput.text);
+
         GameManager.OnRequestStartGenerating.Invoke(Settings);
     }
 
 
-
+    public void GenerateRandomSeed()
+    {
+        SeedInput.text = Noise.RandomSeed.ToString();
+    }
 
 }
