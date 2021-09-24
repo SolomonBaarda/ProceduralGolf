@@ -1,24 +1,26 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.Events;
 
-public class MainMenu : MonoBehaviour
+public class MainMenu : MonoBehaviour, IManager
 {
     public TerrainGenerator.GenerationSettings Settings = new TerrainGenerator.GenerationSettings();
 
     public TMP_InputField SeedInput;
 
 
+    public UnityEvent<TerrainGenerator.GenerationSettings> OnPressStartGame = new UnityEvent<TerrainGenerator.GenerationSettings>();
+    public UnityEvent OnPressQuit = new UnityEvent();
+
+
     private void Start()
     {
-        SceneManager.LoadSceneAsync(Scenes.GameSceneName, LoadSceneMode.Additive);
-
         GenerateRandomSeed();
     }
 
     public void QuitGame()
     {
-        Application.Quit();
+        OnPressQuit.Invoke();
     }
 
     public void StartGame()
@@ -26,9 +28,9 @@ public class MainMenu : MonoBehaviour
         try
         {
             Settings.Seed = int.Parse(SeedInput.text);
-            GameManager.OnRequestStartGenerating.Invoke(Settings);
+            OnPressStartGame.Invoke(Settings);
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
         }
     }
@@ -39,4 +41,13 @@ public class MainMenu : MonoBehaviour
         SeedInput.text = Noise.RandomSeed.ToString();
     }
 
+    public void Clear()
+    {
+        
+    }
+
+    public void SetVisible(bool visible)
+    {
+        gameObject.SetActive(visible);
+    }
 }

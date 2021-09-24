@@ -1,24 +1,30 @@
 ﻿using UnityEngine;
 using TMPro;
 
-public class LoadingScreen : MonoBehaviour
+public class LoadingScreen : MonoBehaviour, IManager
 {
     public const string SceneName = "LoadingScreen";
 
     public static LoadingScreen Instance;
 
     public Transform Parent;
-    public TMP_Text Info; 
+    public TMP_Text Info;
 
 
     void Awake()
     {
         Instance = this;
-        Active(false);
+        SetVisible(false);
     }
 
-    public static void Active(bool visible)
+    public void Clear()
+    {
+
+    }
+
+    public void SetVisible(bool visible)
     {
         Instance.Parent.gameObject.SetActive(visible);
     }
+
 }

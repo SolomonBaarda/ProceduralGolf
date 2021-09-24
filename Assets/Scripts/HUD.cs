@@ -4,13 +4,11 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class HUD : MonoBehaviour
+public class HUD : MonoBehaviour, IManager
 {
-    public static UnityAction OnHudLoaded;
-
-    public UnityAction OnShootPressed;
-    public UnityAction OnRestartPressed;
-    public UnityAction OnQuitPressed;
+    public UnityEvent OnShootPressed;
+    public UnityEvent OnRestartPressed;
+    public UnityEvent OnQuitToMenuPressed;
 
     public Canvas CanvasInteraction;
     public Canvas CanvasScoreboard;
@@ -51,38 +49,7 @@ public class HUD : MonoBehaviour
     private void Awake()
     {
         Instance = FindObjectOfType<HUD>();
-        Active(false);
     }
-
-
-
-    public void Active(bool visible)
-    {
-        CanvasInteraction.gameObject.SetActive(visible);
-        HideAllMenus();
-    }
-
-    private void HideAllMenus()
-    {
-        CanvasScoreboard.gameObject.SetActive(false);
-        CanvasOptions.gameObject.SetActive(false);
-    }
-
-
-
-
-    private void Start()
-    {
-        OnHudLoaded.Invoke();
-    }
-
-
-
-
-    public void ShootPressed() { OnShootPressed.Invoke(); HideAllMenus(); }
-    public void RestartPressed() { OnRestartPressed.Invoke(); Clear(); HideAllMenus(); }
-    public void QuitPressed() { OnQuitPressed.Invoke(); HideAllMenus(); }
-
 
     public void Clear()
     {
@@ -92,5 +59,23 @@ public class HUD : MonoBehaviour
         }
         ScoreboardRows.Clear();
     }
+
+    public void SetVisible(bool visible)
+    {
+        gameObject.SetActive(visible);
+        HideAllMenus();
+    }
+
+    private void HideAllMenus()
+    {
+        CanvasScoreboard.gameObject.SetActive(false);
+        CanvasOptions.gameObject.SetActive(false);
+    }
+
+    public void ShootPressed() { OnShootPressed.Invoke(); HideAllMenus(); }
+    public void RestartPressed() { OnRestartPressed.Invoke(); Clear(); HideAllMenus(); }
+    public void QuitToMenuPressed() { OnQuitToMenuPressed.Invoke(); HideAllMenus(); }
+
+
 
 }

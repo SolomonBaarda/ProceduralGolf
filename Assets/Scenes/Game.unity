@@ -1500,7 +1500,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TerrainGenerator: {fileID: 1510809347}
   TerrainManager: {fileID: 187293244}
-  HUD: {fileID: 0}
   GolfBallShotPreview: {fileID: 1208001002}
   ObjectsToDisableWhileLoading:
   - {fileID: 4213627501115095112}

@@ -6,16 +6,15 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour, IManager
 {
     public static UnityEvent<TerrainGenerator.GenerationSettings> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings>();
 
     [Header("Managers")]
     public TerrainGenerator TerrainGenerator;
     public TerrainManager TerrainManager;
-    [HideInInspector]
-    public HUD HUD;
-    private bool HUDHasLoaded = false;
+
+    private HUD HUD;
 
     [Header("Golf Ball")]
     public ShotPreview GolfBallShotPreview;
@@ -43,7 +42,6 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        HUD.OnHudLoaded += OnHUDLoaded;
         OnRequestStartGenerating.AddListener(StartGeneration);
 
         SceneManager.LoadScene(LoadingScreen.SceneName, LoadSceneMode.Additive);
@@ -53,13 +51,26 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        Clear();
+
         foreach (GameObject g in ObjectsToDisableWhileLoading)
         {
             g.SetActive(false);
         }
     }
 
-    private void ResetGame()
+    public void SetVisible(bool visible)
+    {
+        foreach (GameObject g in ObjectsToDisableWhileLoading)
+        {
+            g.SetActive(visible);
+        }
+
+        TerrainManager.SetVisible(visible);
+        TerrainGenerator.SetVisible(visible);
+    }
+
+    public void RestartGame()
     {
         if (Gamerules.UseGolfBall)
         {
@@ -75,7 +86,7 @@ public class GameManager : MonoBehaviour
     {
         if (TerrainGenerator.IsGenerating) return;
 
-        LoadingScreen.Active(true);
+        LoadingScreen.Instance.SetVisible(true);
 
         foreach (GameObject g in ObjectsToDisableWhileLoading)
         {
@@ -126,7 +137,7 @@ public class GameManager : MonoBehaviour
         // Load the HUD if we need it
         if (Gamerules.UseHUD)
         {
-            SceneManager.LoadSceneAsync(Scenes.HUDSceneName, LoadSceneMode.Additive);
+            
         }
 
         if (Gamerules.UseGolfBall)
@@ -142,18 +153,16 @@ public class GameManager : MonoBehaviour
         // Disable the golf ball if we dont need it
         TerrainManager.GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
 
-        while (Gamerules.UseHUD && !HUDHasLoaded) yield return null;
-
         // Start the game
-        ResetGame();
+        RestartGame();
 
         if (Gamerules.UseHUD)
         {
             HUD.Compass.Following = TerrainManager.GolfBall.transform;
-            HUD.Active(true);
+            HUD.SetVisible(true);
         }
 
-        LoadingScreen.Active(false);
+        LoadingScreen.Instance.SetVisible(false);
 
         Logger.Log("Game has started. There are " + TerrainManager.CurrentLoadedTerrain.Courses.Count + " courses.");
     }
@@ -263,40 +272,20 @@ public class GameManager : MonoBehaviour
     public void Clear()
     {
         TerrainManager.Clear();
+        TerrainGenerator.Clear();
 
         if (HUD) HUD.Clear();
     }
 
-    private void OnHUDLoaded()
+    public void SetHUD(HUD instance)
     {
-        HUD = HUD.Instance;
+        HUD = instance;
 
-        HUD.OnShootPressed += TerrainManager.GolfBall.Shoot;
-        HUD.OnShootPressed += UpdateHUDShotCounter;
+        HUD.OnShootPressed.AddListener(TerrainManager.GolfBall.Shoot);
+        HUD.OnShootPressed.AddListener(UpdateHUDShotCounter);
 
         TerrainManager.OnCourseCompleted += UpdateHUDShotCounter;
-
-        HUD.OnRestartPressed += ResetGame;
-        HUD.OnQuitPressed += Application.Quit;
-
-        HUDHasLoaded = true;
     }
-
-    private void OnDestroy()
-    {
-        if (HUD != null)
-        {
-            HUD.OnShootPressed -= TerrainManager.GolfBall.Shoot;
-            HUD.OnShootPressed -= UpdateHUDShotCounter;
-
-            TerrainManager.OnCourseCompleted -= UpdateHUDShotCounter;
-
-            HUD.OnRestartPressed -= ResetGame;
-            HUD.OnQuitPressed -= Application.Quit;
-        }
-    }
-
-
 
     private void UpdateHUDShotCounter<T>(T t)
     {

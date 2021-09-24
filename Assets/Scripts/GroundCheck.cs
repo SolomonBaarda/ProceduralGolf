@@ -21,7 +21,7 @@ public static class GroundCheck
 
     public static bool DoRaycast(Vector3 worldPosition, Vector3 direction, out RaycastHit hit, float maxRaycastDistance = DEFAULT_RAYCAST_DISTANCE)
     {
-        //Debug.DrawLine(worldPosition, worldPosition + -TerrainManager.UP * maxRaycastDistance, Color.white, 10);
+        Debug.DrawLine(worldPosition, worldPosition + direction * maxRaycastDistance, Color.white, 100);
         return Physics.Raycast(worldPosition, direction, out hit, maxRaycastDistance, GroundMask);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class TerrainChunkManager : MonoBehaviour
+public class TerrainChunkManager : MonoBehaviour, IManager
 {
     public const float ChunkSizeWorldUnits = 1000;
     public static readonly Vector3 ChunkSize = new Vector3(ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits);
@@ -139,5 +139,8 @@ public class TerrainChunkManager : MonoBehaviour
         TerrainChunks.Clear();
     }
 
-
+    public void SetVisible(bool visible)
+    {
+        
+    }
 }

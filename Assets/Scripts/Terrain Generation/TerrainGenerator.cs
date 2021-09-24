@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 
-public class TerrainGenerator : MonoBehaviour
+public class TerrainGenerator : MonoBehaviour, IManager
 {
     [Header("Settings")]
     public MeshSettings MeshSettings;
@@ -921,9 +921,15 @@ public class TerrainGenerator : MonoBehaviour
         return localPositions;
     }
 
+    public void Clear()
+    {
+        
+    }
 
-
-
+    public void SetVisible(bool visible)
+    {
+        
+    }
 
     private class ChunkData
     {

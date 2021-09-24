@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class TerrainManager : MonoBehaviour
+public class TerrainManager : MonoBehaviour, IManager
 {
     public static readonly Vector3 UP = Vector3.up;
     public static readonly Vector3 ORIGIN = Vector3.zero;
@@ -72,9 +72,15 @@ public class TerrainManager : MonoBehaviour
     public void Clear()
     {
         TerrainChunkManager.Clear();
+
         HasTerrain = false;
         CurrentLoadedTerrain = null;
         IsLoading = false;
+    }
+
+    public void SetVisible(bool visible)
+    {
+        TerrainChunkManager.SetVisible(visible);
     }
 
     public void Set(bool hideChunks, float viewDistance)
@@ -207,10 +213,10 @@ public class TerrainManager : MonoBehaviour
     public void SpawnGolfBall(CourseData hole)
     {
         Vector3 spawnPoint = hole.Start;
+
         if (GroundCheck.DoRaycastDown(hole.Start + (UP * 25), out RaycastHit hit, 50))
         {
             spawnPoint = hit.point;
-            Logger.Log("SUCCESSFULLY SPAWNED GOLF BALL PROPERLY");
         }
         else
         {
@@ -218,7 +224,7 @@ public class TerrainManager : MonoBehaviour
         }
 
         // And move the ball there
-        MoveGolfBallAndWaitForNextShot(spawnPoint + (UP * GolfBall.Radius));
+        MoveGolfBallAndWaitForNextShot(spawnPoint + UP * GolfBall.Radius);
     }
 
     private void MoveGolfBallAndWaitForNextShot(Vector3 position)
@@ -248,5 +254,6 @@ public class TerrainManager : MonoBehaviour
             }
         }
     }
+
 
 }
