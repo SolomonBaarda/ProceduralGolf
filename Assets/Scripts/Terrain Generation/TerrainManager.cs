@@ -173,7 +173,7 @@ public class TerrainManager : MonoBehaviour, IManager
         }
     }
 
-    public bool GetCourse(int number, out CourseData hole)
+    private bool GetCourse(int number, out CourseData hole)
     {
         if (number >= 0 && number < CurrentLoadedTerrain.Courses.Count)
         {
@@ -210,11 +210,11 @@ public class TerrainManager : MonoBehaviour, IManager
         }
     }
 
-    public void SpawnGolfBall(CourseData hole)
+    private void SpawnGolfBall(CourseData hole)
     {
         Vector3 spawnPoint = hole.Start;
 
-        if (GroundCheck.DoRaycastDown(hole.Start + (UP * 25), out RaycastHit hit, 50))
+        if (GroundCheck.DoRaycastDown(hole.Start + UP * 25, out RaycastHit hit, 50))
         {
             spawnPoint = hit.point;
         }
