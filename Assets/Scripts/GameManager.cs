@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour, IManager
 {
@@ -108,9 +107,8 @@ public class GameManager : MonoBehaviour, IManager
                 break;
         }
 
-        // Now generate the terraub
-        List<Vector2Int> l = TerrainGenerator.GetAllPossibleNearbyChunks(TerrainManager.ORIGIN, Gamerules.InitialGenerationRadius).ToList();
-        TerrainGenerator.Generate(settings, l, LoadTerrain);
+        // Now generate the terrain
+        TerrainGenerator.Generate(settings, Gamerules.InitialGenerationRadius, LoadTerrain);
     }
 
     private void LoadTerrain(TerrainData data)
@@ -137,7 +135,7 @@ public class GameManager : MonoBehaviour, IManager
         // Load the HUD if we need it
         if (Gamerules.UseHUD)
         {
-            
+
         }
 
         if (Gamerules.UseGolfBall)
@@ -232,12 +230,12 @@ public class GameManager : MonoBehaviour, IManager
 
 
                         // Set the new values
-                        TerrainManager.GolfBall.SetValues(TerrainManager.GolfBall.Rotation + rotationDelta, TerrainManager.GolfBall.Angle + angleDelta, TerrainManager.GolfBall.Power + powerDelta.y / 50f);
+                        TerrainManager.GolfBall.SetValues(TerrainManager.GolfBall.Rotation + rotationDelta, TerrainManager.GolfBall.Angle + angleDelta, TerrainManager.GolfBall.Power + (powerDelta.y / 50f));
 
                         // Update the shot preview
                         Vector3[] positions = TerrainManager.GolfBall.CalculateShotPreviewWorldPositions(1000, 0.1f).ToArray();
                         GolfBallShotPreview.UpdateShotPreview(TerrainManager.GolfBall.Angle.ToString("0") + "°", TerrainManager.GolfBall.Angle, positions, TerrainManager.GolfBall.transform.rotation);
-                        
+
 
                         // Update the HUD to display the correct values
                         HUD.PowerSlider.DisplayValue.text = (TerrainManager.GolfBall.Power * 100).ToString("0") + "%";

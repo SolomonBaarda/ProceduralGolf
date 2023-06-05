@@ -5,7 +5,7 @@ public static class Noise
 {
     public static int RandomSeed => Environment.TickCount.ToString().GetHashCode();
 
-    public static float[] GetNoise(NoiseSettings s, int seed, Vector3 offset, in Vector3[] samplePoints, int width, int height, ref float min, ref float max)
+    public static float[] GetNoise(NoiseSettings s, int seed, in Vector2 offset, in Vector2 distanceBetweenSamples, int width, int height, ref float min, ref float max)
     {
         s.ValidateValues();
         FastNoiseLite n = new FastNoiseLite(seed);
@@ -22,17 +22,17 @@ public static class Noise
         n.SetCellularReturnType(s.ReturnType);
         n.SetCellularJitter(s.Jitter);
 
-        float[] noise = new float[samplePoints.Length];
+        float[] noise = new float[width * height];
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                int index = y * width + x;
+                int index = (y * width) + x;
 
                 // Calculate the position to sample the noise from
-                Vector2 sample = new Vector2(offset.x + samplePoints[index].x, offset.z + samplePoints[index].z);
-                noise[index] = n.GetNoise(sample.x, sample.y);
+                Vector2 samplePoint = offset + new Vector2(x * distanceBetweenSamples.x, y * distanceBetweenSamples.y);
+                noise[index] = n.GetNoise(samplePoint.x, samplePoint.y);
 
                 if (noise[index] < min)
                     min = noise[index];
@@ -69,16 +69,16 @@ public static class Noise
         {
             for (int x = 0; x < width; x++)
             {
-                int index = y * width + x;
+                int index = (y * width) + x;
                 float amplitude = 1, frequency = 1, raw = 0;
 
                 // Loop through each octave
                 for (int octave = 0; octave < s.Octaves; octave++)
                 {
                     // Calculate the position to sample the noise from
-                    Vector2 sample = octaveOffsets[octave] + new Vector2(offset.x + samplePoints[index].x, offset.z + samplePoints[index].z) / s.Frequency * frequency;
+                    Vector2 sample = octaveOffsets[octave] + (new Vector2(offset.x + samplePoints[index].x, offset.z + samplePoints[index].z) / s.Frequency * frequency);
 
-                    // Get perlin in the range -1 to 1
+                    // Get noise in the range -1 to 1
                     raw += n.GetNoise(sample.x, sample.y) * amplitude;
 
                     //amplitude *= s.Persistance;
@@ -127,14 +127,14 @@ public static class Noise
         {
             for (int x = 0; x < width; x++)
             {
-                int index = y * width + x;
+                int index = (y * width) + x;
                 float amplitude = 1, frequency = 1, raw = 0;
 
                 // Loop through each octave
                 for (int octave = 0; octave < s.Octaves; octave++)
                 {
                     // Calculate the position to sample the noise from
-                    Vector2 sample = octaveOffsets[octave] + new Vector2(offset.x + samplePoints[index].x, offset.z + samplePoints[index].z) / s.Frequency * frequency;
+                    Vector2 sample = octaveOffsets[octave] + (new Vector2(offset.x + samplePoints[index].x, offset.z + samplePoints[index].z) / s.Frequency * frequency);
 
                     // Get perlin in the range -1 to 1
                     raw += n.GetNoise(sample.x, sample.y) * amplitude;

@@ -3,9 +3,7 @@ using UnityEngine;
 
 public class TerrainMap
 {
-    public Vector2Int Chunk;
     public int Width, Height;
-    public Bounds Bounds;
 
     /// <summary>
     /// The final height values for this terrain map
@@ -24,12 +22,10 @@ public class TerrainMap
     public List<WorldObjectData> WorldObjects = new List<WorldObjectData>();
 
 
-    public TerrainMap(Vector2Int chunk, int width, int height, Bounds bounds)
+    public TerrainMap(int width, int height)
     {
-        Chunk = chunk;
         Width = width;
         Height = height;
-        Bounds = bounds;
 
         int size = width * height;
         Heights = new float[size];
@@ -43,25 +39,17 @@ public class TerrainMap
         Noise.NormaliseNoise(ref Heights, min, max);
     }
 
-    public void NormaliseLayers(List<(float, float)> minMax)
-    {
-        for (int i = 0; i < minMax.Count; i++)
-        {
-            //Logger.Log("layer " + i+" with min: " + minMax[i].Item1 +" max: " + minMax[i].Item2);
-
-            // Ensure noise is not null as this layer could be sharing noise with another layer
-            if(Layers[i].Noise != null)
-            {
-                Noise.NormaliseNoise(ref Layers[i].Noise, minMax[i].Item1, minMax[i].Item2);
-            }
-        }
-    }
 
     public class Layer
     {
         public float[] Noise;
-        public float Min = float.MaxValue, Max = float.MinValue;
         public Biome.Type Biome;
+
+        public Layer(float[] noise, Biome.Type biome)
+        {
+            Noise = noise;
+            Biome = biome;
+        }
     }
 
 

@@ -9,30 +9,6 @@ public static class MeshGenerator
         m.Optimize();
     }
 
-    public static void UpdateMeshData(ref MeshData data, TerrainMap terrainMap, Vector3[] baseVertices)
-    {
-        // Create the data if we need to 
-        if (data == null)
-        {
-            data = new MeshData(terrainMap.Width, terrainMap.Height);
-        }
-
-        // Loop through each vertex
-        for (int y = 0; y < terrainMap.Height; y++)
-        {
-            for (int x = 0; x < terrainMap.Width; x++)
-            {
-                int index = y * terrainMap.Width + x;
-
-                data.Vertices[index] = baseVertices[index];
-                data.Vertices[index].y += terrainMap.Heights[index];
-            }
-        }
-
-        data.UpdateUVS();
-    }
-
-
     public class MeshData
     {
         public int Width, Height;
@@ -61,7 +37,7 @@ public static class MeshGenerator
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    Vector3 v = Vertices[y * Width + x];
+                    Vector3 v = Vertices[(y * Width) + x];
 
                     if (v.x < min.x) { min.x = v.x; }
                     if (v.x > max.x) { max.x = v.x; }
@@ -78,9 +54,9 @@ public static class MeshGenerator
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    Vector3 point = Vertices[y * Width + x];
+                    Vector3 point = Vertices[(y * Width) + x];
 
-                    UVs[y * Width + x] = (max - new Vector2(point.x, point.z)) / size;
+                    UVs[(y * Width) + x] = (max - new Vector2(point.x, point.z)) / size;
                 }
             }
         }
@@ -90,7 +66,7 @@ public static class MeshGenerator
         public void GenerateMeshLODData(in MeshSettings settings)
         {
             int i = settings.SimplificationIncrement;
-            int newWidth = (Width - 1) / i + 1, newHeight = (Height - 1) / i + 1;
+            int newWidth = ((Width - 1) / i) + 1, newHeight = ((Height - 1) / i) + 1;
 
             Vector3[] newVertices = new Vector3[newWidth * newHeight];
             Vector2[] newUVs = new Vector2[newVertices.Length];
@@ -104,8 +80,8 @@ public static class MeshGenerator
                 for (int x = 0; x < Width; x += i)
                 {
                     int newX = x / i, newY = y / i;
-                    int thisVertexIndex = newY * newWidth + newX;
-                    int oldIndex = y * Width + x;
+                    int thisVertexIndex = (newY * newWidth) + newX;
+                    int oldIndex = (y * Width) + x;
                     // Add the vertex
                     newVertices[thisVertexIndex] = Vertices[oldIndex];
                     // Add the UV
