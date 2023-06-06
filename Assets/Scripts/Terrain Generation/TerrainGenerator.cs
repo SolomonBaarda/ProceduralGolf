@@ -130,6 +130,169 @@ public class TerrainGenerator : MonoBehaviour, IManager
         Vector2 offset = Vector2.zero;
         Vector2 distanceBetweenNoiseSamples = new Vector2(TerrainChunkManager.ChunkSize.x, TerrainChunkManager.ChunkSize.z) / (TerrainSettings.SamplePointFrequency - 1);
 
+
+
+
+        FirstPass(map, offset, distanceBetweenNoiseSamples);
+
+
+        // SEQUENTIAL
+
+        // Calculate the greens 
+        List<Green> greens = new List<Green>();
+        bool[] checkedFloodFill = new bool[map.Width * map.Height];
+
+        for (int y = 0; y < map.Height; y++)
+        {
+            for (int x = 0; x < map.Width; x++)
+            {
+                int index = (y * map.Width) + x;
+                if (!checkedFloodFill[index] && map.Greens[index])
+                {
+                    greens.Add(FloodFill(map, ref checkedFloodFill, x, y));
+                }
+            }
+        }
+
+
+        // SEQUENTIAL
+
+        // Now that biomes have been assigned, we can calculate the procedural object positions
+        map.WorldObjects = !atLeastOneObject ?
+            new List<TerrainMap.WorldObjectData>() :
+            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples.x, map.Height * distanceBetweenNoiseSamples.y));
+
+
+
+        // TEMP TODO Find the min and max heights from the terrain map
+        float minHeight = map.Heights[0];
+        float maxHeight = minHeight;
+        foreach (float height in map.Heights)
+        {
+            if (height > maxHeight) { maxHeight = height; }
+            if (height < minHeight) { minHeight = height; }
+        }
+
+        // SEQUENTIAL
+
+        // Normalise the height map
+        map.NormaliseHeights(minHeight, maxHeight);
+
+        // Use height curve to calculate new height distribution
+        AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
+
+        // Now calculate the final height for the vertex
+        For(0, map.Heights.Length, (int index) =>
+        {
+            if (TerrainSettings.UseCurve)
+            {
+                map.Heights[index] = threadSafe.Evaluate(map.Heights[index]);
+            }
+
+            map.Heights[index] *= TerrainSettings.HeightMultiplier;
+        });
+
+
+
+        // Now subdivide the data into chunks
+        // Now Calculate the mesh data for the chunk
+
+        int chunkSize = TerrainSettings.SamplePointFrequency;
+        for (int chunkY = 0; chunkY < map.Height / chunkSize; chunkY++)
+        {
+            for (int chunkX = 0; chunkX < map.Width / chunkSize; chunkX++)
+            {
+                MeshGenerator.MeshData meshData = new MeshGenerator.MeshData(chunkSize, chunkSize);
+
+                for (int heightY = 0; heightY < chunkSize; heightY++)
+                {
+                    for (int heightX = 0; heightX < chunkSize; heightX++)
+                    {
+                        int chunkRelativeIndex = (heightY * chunkSize) + heightX;
+                        int heightsIndex = (((chunkY * chunkSize) - chunkY + heightY) * map.Width) + (chunkX * chunkSize) - chunkX + heightX;
+
+                        meshData.Vertices[chunkRelativeIndex] = new Vector3(heightX * distanceBetweenNoiseSamples.x, map.Heights[heightsIndex], heightY * distanceBetweenNoiseSamples.y);
+                    }
+                }
+
+                meshData.UpdateUVS();
+                meshData.GenerateMeshLODData(MeshSettings);
+
+                data.Add(new Vector2Int(chunkX, chunkY), new ChunkData() { MeshData = meshData });
+            }
+        }
+
+
+        List<CourseData> courseData = new List<CourseData>();
+
+        // Fourth PASS
+
+        FourthPass(map, greens);
+
+        greens.RemoveAll(x => x.ToBeDeleted);
+
+        // Fifth PASS
+        Logger.LogTerrainGenerationStartPass(5, "constructing meshes");
+
+        FifthPass(map);
+
+
+        List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
+
+        // Construct textures and meshes
+        // This needs to be done in the main thread
+        foreach (KeyValuePair<Vector2Int, ChunkData> d in data)
+        {
+            // Generate the mesh
+            Mesh mesh = null;
+            d.Value.MeshData.ApplyLODTOMesh(ref mesh);
+            // Optimise it
+            MeshGenerator.OptimiseMesh(ref mesh);
+
+            // Generate the texture
+            Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.Value.TextureData);
+            // TODO FIX BIOMES HERE
+            terrainChunks.Add(new TerrainChunkData(d.Key.x, d.Key.y, new Vector3(distanceBetweenNoiseSamples.x * chunkSize * d.Key.x, 0, distanceBetweenNoiseSamples.y * chunkSize * d.Key.y), map.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
+        }
+
+        // TODO in next version
+        // Add map perview before actually generating the course
+        //MapData mapData = GenerateMap(data);
+        //then Save To Disk as PNG
+        //byte[] bytes = mapData.Map.EncodeToPNG();
+        //File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
+
+
+        // Create the object and set the data
+        TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
+        terrain.SetData(CurrentSettings.Seed, terrainChunks, courseData, TerrainSettings.name);
+
+
+        Logger.LogTerrainGenerationFinishPass(6, (DateTime.Now - lastTimestamp).TotalSeconds);
+        lastTimestamp = DateTime.Now;
+
+
+        double totalTime = (DateTime.Now - startTimestamp).TotalSeconds;
+        string message = $"Finished generating terrain. Completed in {totalTime.ToString("0.0")} seconds";
+        Logger.Log(message);
+
+        IsGenerating = false;
+
+        // Callback when done
+        callback(terrain);
+
+        //ClearGenerationData();
+    }
+
+
+    /// <summary>
+    /// Generate raw noise, normalise it, combine noise layers, and construct green flood fill boolean array
+    /// </summary>
+    /// <param name="map"></param>
+    /// <param name="offset"></param>
+    /// <param name="distanceBetweenNoiseSamples"></param>
+    private void FirstPass(TerrainMap map, Vector2 offset, Vector2 distanceBetweenNoiseSamples)
+    {
         // Get all the noise layers for the terrain
         For(0, TerrainSettings.TerrainLayers.Count, (int index) =>
         {
@@ -292,164 +455,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 }
             }
         });
-
-
-
-
-
-
-
-
-        // SEQUENTIAL
-
-        // Calculate the greens 
-        List<Green> greens = new List<Green>();
-        bool[] checkedFloodFill = new bool[map.Width * map.Height];
-
-        for (int y = 0; y < map.Height; y++)
-        {
-            for (int x = 0; x < map.Width; x++)
-            {
-                int index = (y * map.Width) + x;
-                if (!checkedFloodFill[index] && map.Greens[index])
-                {
-                    greens.Add(FloodFill(map, ref checkedFloodFill, x, y));
-                }
-            }
-        }
-
-
-
-
-
-        // SEQUENTIAL
-
-        // Now that biomes have been assigned, we can calculate the procedural object positions
-        map.WorldObjects = !atLeastOneObject ?
-            new List<TerrainMap.WorldObjectData>() :
-            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples.x, map.Height * distanceBetweenNoiseSamples.y));
-
-
-
-        // TEMP TODO Find the min and max heights from the terrain map
-        float minHeight = map.Heights[0];
-        float maxHeight = minHeight;
-        foreach (float height in map.Heights)
-        {
-            if (height > maxHeight) { maxHeight = height; }
-            if (height < minHeight) { minHeight = height; }
-        }
-
-
-        // Normalise the height map
-        map.NormaliseHeights(minHeight, maxHeight);
-
-        // Use height curve to calculate new height distribution
-        AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
-
-        // Now calculate the final height for the vertex
-        For(0, map.Heights.Length, (int index) =>
-        {
-            if (TerrainSettings.UseCurve)
-            {
-                map.Heights[index] = threadSafe.Evaluate(map.Heights[index]);
-            }
-
-            map.Heights[index] *= TerrainSettings.HeightMultiplier;
-        });
-
-        // Now subdivide the data into chunks
-
-
-        // Now Calculate the mesh data for the chunk
-
-        int chunkSize = TerrainSettings.SamplePointFrequency;
-        for (int chunkY = 0; chunkY < map.Height / chunkSize; chunkY++)
-        {
-            for (int chunkX = 0; chunkX < map.Width / chunkSize; chunkX++)
-            {
-                MeshGenerator.MeshData meshData = new MeshGenerator.MeshData(chunkSize, chunkSize);
-
-                for (int heightY = 0; heightY < chunkSize; heightY++)
-                {
-                    for (int heightX = 0; heightX < chunkSize; heightX++)
-                    {
-                        int chunkRelativeIndex = (heightY * chunkSize) + heightX;
-                        int heightsIndex = (((chunkY * chunkSize) - chunkY + heightY) * map.Width) + (chunkX * chunkSize) - chunkX + heightX;
-
-                        meshData.Vertices[chunkRelativeIndex] = new Vector3(heightX * distanceBetweenNoiseSamples.x, map.Heights[heightsIndex], heightY * distanceBetweenNoiseSamples.y);
-                    }
-                }
-
-                meshData.UpdateUVS();
-                meshData.GenerateMeshLODData(MeshSettings);
-
-                data.Add(new Vector2Int(chunkX, chunkY), new ChunkData() { MeshData = meshData });
-            }
-        }
-
-
-        List<CourseData> courseData = new List<CourseData>();
-
-        // Fourth PASS
-
-        FourthPass(map, greens);
-
-        greens.RemoveAll(x => x.ToBeDeleted);
-
-        // Fifth PASS
-        Logger.LogTerrainGenerationStartPass(5, "constructing meshes");
-
-        FifthPass(map);
-
-
-        List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
-
-        // Construct textures and meshes
-        // This needs to be done in the main thread
-        foreach (KeyValuePair<Vector2Int, ChunkData> d in data)
-        {
-            // Generate the mesh
-            Mesh mesh = null;
-            d.Value.MeshData.ApplyLODTOMesh(ref mesh);
-            // Optimise it
-            MeshGenerator.OptimiseMesh(ref mesh);
-
-            // Generate the texture
-            Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.Value.TextureData);
-            // TODO FIX BIOMES HERE
-            terrainChunks.Add(new TerrainChunkData(d.Key.x, d.Key.y, new Vector3(distanceBetweenNoiseSamples.x * chunkSize * d.Key.x, 0, distanceBetweenNoiseSamples.y * chunkSize * d.Key.y), map.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
-        }
-
-        // TODO in next version
-        // Add map perview before actually generating the course
-        //MapData mapData = GenerateMap(data);
-        //then Save To Disk as PNG
-        //byte[] bytes = mapData.Map.EncodeToPNG();
-        //File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
-
-
-        // Create the object and set the data
-        TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(CurrentSettings.Seed, terrainChunks, courseData, TerrainSettings.name);
-
-
-        Logger.LogTerrainGenerationFinishPass(6, (DateTime.Now - lastTimestamp).TotalSeconds);
-        lastTimestamp = DateTime.Now;
-
-
-        double totalTime = (DateTime.Now - startTimestamp).TotalSeconds;
-        string message = $"Finished generating terrain. Completed in {totalTime.ToString("0.0")} seconds";
-        Logger.Log(message);
-
-        IsGenerating = false;
-
-        // Callback when done
-        callback(terrain);
-
-        //ClearGenerationData();
     }
-
 
 
     /*
