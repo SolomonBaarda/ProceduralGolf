@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define GOLF_PARALLEL_ROUTINES
+
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -61,12 +63,15 @@ public class TerrainGenerator : MonoBehaviour, IManager
         WaitForGenerate(initialGenerationRadius, callback);
     }
 
+
+
     private static void For(int fromInclusive, int toExclusive, Action<int> body)
     {
         // Parallel
-#if false
+#if GOLF_PARALLEL_ROUTINES
 
-        Parallel.For(fromInclusive, toExclusive, body);
+        // new System.Threading.Tasks.ParallelOptions() { MaxDegreeOfParallelism = 2 }, 
+        System.Threading.Tasks.Parallel.For(fromInclusive, toExclusive, body);
 
 #else
         // Sequential
@@ -74,6 +79,24 @@ public class TerrainGenerator : MonoBehaviour, IManager
         for (int i = fromInclusive; i < toExclusive; i++)
         {
             body.Invoke(i);
+        }
+
+#endif
+    }
+
+    private static void ForEach<TSource>(IEnumerable<TSource> source, Action<TSource> body)
+    {
+        // Parallel
+#if GOLF_PARALLEL_ROUTINES
+
+        System.Threading.Tasks.Parallel.ForEach(source, body);
+
+#else
+        // Sequential
+
+        foreach (TSource item in source)
+        {
+            body.Invoke(item);
         }
 
 #endif
@@ -113,7 +136,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[index];
 
             // Only generate the noise if this layer uses it
-            if (!layerSettings.ShareOtherLayerNoise)
+            //if (!layerSettings.ShareOtherLayerNoise)
             {
                 int seed = CurrentSettings.Seed;
                 for (int i = 0; i < index; i++)
@@ -124,22 +147,21 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 // Generate the noise for this layer and normalise it
                 float min = float.MaxValue;
                 float max = float.MinValue;
-                terrainLayer.Noise = Noise.GetNoise(layerSettings.Settings, seed, offset, in distanceBetweenNoiseSamples, map.Width, map.Height, ref min, ref max);
-                Noise.NormaliseNoise(ref terrainLayer.Noise, min, max);
+                float[] noise = Noise.GetNoise(layerSettings.Settings, seed, offset, in distanceBetweenNoiseSamples, map.Width, map.Height, ref min, ref max);
+                Noise.NormaliseNoise(ref noise, min, max);
+
+                map.Layers.Add(new TerrainMap.Layer(noise, layerSettings.Biome));
             }
-
-            TerrainMap.Layer terrainLayer = new TerrainMap.Layer();
-
-
-            map.Layers.Add(terrainLayer);
+            //else
+            //{
+            //    map.Layers.Add(new TerrainMap.Layer(new float[] { }, layerSettings.Biome));
+            //}
         });
 
 
-        int wasd = 3;
 
 
         // TERRAIN HEIGHTS
-
 
         // Now calculate the actual heights from the noise and the biomes
 
@@ -149,10 +171,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
             map.Biomes[index] = TerrainSettings.MainBiome;
             map.Heights[index] = 0.0f;
 
-            for (int currentLayerIndex = 0; currentLayerIndex < map.Layers.Count; currentLayerIndex++)
+            for (int layerIndex = 0; layerIndex < map.Layers.Count; layerIndex++)
             {
-                TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[currentLayerIndex];
-                TerrainMap.Layer currentLayer = map.Layers[currentLayerIndex];
+                TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[layerIndex];
+                TerrainMap.Layer currentLayer = map.Layers[layerIndex];
 
                 // Set the reference to be another layer if we are sharing noise
                 if (layerSettings.ShareOtherLayerNoise)
@@ -170,14 +192,14 @@ public class TerrainGenerator : MonoBehaviour, IManager
                     bool maskvalid = true;
                     if (layerSettings.UseMask)
                     {
-                        for (int j = 0; j < layerSettings.Masks.Count; j++)
+                        for (int layerMaskIndex = 0; layerMaskIndex < layerSettings.Masks.Count; layerMaskIndex++)
                         {
-                            TerrainSettings.Layer mask = TerrainSettings.TerrainLayers[layerSettings.Masks[j].LayerIndex];
-                            TerrainMap.Layer maskValues = map.Layers[layerSettings.Masks[j].LayerIndex];
+                            TerrainSettings.Layer mask = TerrainSettings.TerrainLayers[layerSettings.Masks[layerMaskIndex].LayerIndex];
+                            TerrainMap.Layer maskValues = map.Layers[layerSettings.Masks[layerMaskIndex].LayerIndex];
                             // Mask is not valid here
                             if (
-                                !(maskValues.Noise[index] >= layerSettings.Masks[j].NoiseThresholdMin &&
-                                maskValues.Noise[index] <= layerSettings.Masks[j].NoiseThresholdMax)
+                                !(maskValues.Noise[index] >= layerSettings.Masks[layerMaskIndex].NoiseThresholdMin &&
+                                maskValues.Noise[index] <= layerSettings.Masks[layerMaskIndex].NoiseThresholdMax)
                             )
                             {
                                 maskvalid = false;
@@ -272,7 +294,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
         });
 
 
-#if false
+
+
+
+
 
 
         // SEQUENTIAL
@@ -295,37 +320,35 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
 
+
+
         // SEQUENTIAL
 
         // Now that biomes have been assigned, we can calculate the procedural object positions
-        map.WorldObjects = new List<TerrainMap.WorldObjectData>();
-        if (atLeastOneObject)
-        {
-            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations);
-        }
+        map.WorldObjects = !atLeastOneObject ?
+            new List<TerrainMap.WorldObjectData>() :
+            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples.x, map.Height * distanceBetweenNoiseSamples.y));
 
 
 
-
-
-        // Use height curve to calculate new height distribution
-        AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
-
-        // Find the min and max heights from the terrain map
+        // TEMP TODO Find the min and max heights from the terrain map
         float minHeight = map.Heights[0];
         float maxHeight = minHeight;
         foreach (float height in map.Heights)
         {
             if (height > maxHeight) { maxHeight = height; }
-
             if (height < minHeight) { minHeight = height; }
         }
+
 
         // Normalise the height map
         map.NormaliseHeights(minHeight, maxHeight);
 
+        // Use height curve to calculate new height distribution
+        AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
+
         // Now calculate the final height for the vertex
-        for (int index = 0; index < map.Heights.Length; index++)
+        For(0, map.Heights.Length, (int index) =>
         {
             if (TerrainSettings.UseCurve)
             {
@@ -333,8 +356,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             }
 
             map.Heights[index] *= TerrainSettings.HeightMultiplier;
-        }
-
+        });
 
         // Now subdivide the data into chunks
 
@@ -348,9 +370,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
             {
                 MeshGenerator.MeshData meshData = new MeshGenerator.MeshData(chunkSize, chunkSize);
 
-                for (int heightY = 0; heightY < chunkSize; chunkY++)
+                for (int heightY = 0; heightY < chunkSize; heightY++)
                 {
-                    for (int heightX = 0; heightX < chunkSize; chunkX++)
+                    for (int heightX = 0; heightX < chunkSize; heightX++)
                     {
                         int chunkRelativeIndex = (heightY * chunkSize) + heightX;
                         int heightsIndex = (((chunkY * chunkSize) - chunkY + heightY) * map.Width) + (chunkX * chunkSize) - chunkX + heightX;
@@ -367,55 +389,36 @@ public class TerrainGenerator : MonoBehaviour, IManager
         }
 
 
-
-
-
-
-
-
-
-
+        List<CourseData> courseData = new List<CourseData>();
 
         // Fourth PASS
 
         FourthPass(map, greens);
 
-
-
-
-
-
         greens.RemoveAll(x => x.ToBeDeleted);
-
-
-
 
         // Fifth PASS
         Logger.LogTerrainGenerationStartPass(5, "constructing meshes");
 
-        FifthPass();
+        FifthPass(map);
 
-        yield return WaitForThreadsToComplete(threads);
-        Logger.LogTerrainGenerationFinishPass(5, (DateTime.Now - lastTimestamp).TotalSeconds);
-        lastTimestamp = DateTime.Now;
 
-        Logger.LogTerrainGenerationStartPass(6, "constructing meshes");
+        List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
 
         // Construct textures and meshes
         // This needs to be done in the main thread
-        foreach (ChunkData d in data.Values)
+        foreach (KeyValuePair<Vector2Int, ChunkData> d in data)
         {
             // Generate the mesh
             Mesh mesh = null;
-            d.MeshData.ApplyLODTOMesh(ref mesh);
+            d.Value.MeshData.ApplyLODTOMesh(ref mesh);
             // Optimise it
             MeshGenerator.OptimiseMesh(ref mesh);
 
             // Generate the texture
-            Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.TextureData);
-            terrainChunks.Add(new TerrainChunkData(d.TerrainMap.Chunk.x, d.TerrainMap.Chunk.y, d.TerrainMap.Bounds.center, d.TerrainMap.Biomes, terrainMapWidth, terrainMapHeight, colourMap, mesh, d.WorldObjects));
-
-            yield return null;
+            Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.Value.TextureData);
+            // TODO FIX BIOMES HERE
+            terrainChunks.Add(new TerrainChunkData(d.Key.x, d.Key.y, new Vector3(distanceBetweenNoiseSamples.x * chunkSize * d.Key.x, 0, distanceBetweenNoiseSamples.y * chunkSize * d.Key.y), map.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
         }
 
         // TODO in next version
@@ -445,8 +448,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
         callback(terrain);
 
         //ClearGenerationData();
-
-#endif
     }
 
 
@@ -506,13 +507,17 @@ public class TerrainGenerator : MonoBehaviour, IManager
     */
 
 
-#if false
+
 
     private void FourthPass(TerrainMap map, List<Green> greens)
     {
+        // Calculate the hole positions for each course
+
+#if false
+
         System.Random r = new System.Random(0);
 
-        Parallel.ForEach(greens, (Green g) =>
+        ForEach(greens, (Green g) =>
         {
             UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
 
@@ -628,65 +633,70 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         }
         );
+
+#endif
     }
 
 
 
-    private void FifthPass()
+    private void FifthPass(TerrainMap map)
     {
-        foreach (ChunkData d in data.Values)
+        ForEach(data, (KeyValuePair<Vector2Int, ChunkData> d) =>
         {
-            StartThread(threads, $"Pass 5: update world objects", new Thread(() =>
+#if false
+
+            // Update the world object data
+            Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
+            foreach (TerrainMap.WorldObjectData w in d.TerrainMap.WorldObjects)
             {
-                // Update the world object data
-                Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
-                foreach (TerrainMap.WorldObjectData w in d.TerrainMap.WorldObjects)
+                if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3, Vector3)> positions))
                 {
-                    if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3, Vector3)> positions))
-                    {
-                        positions = new List<(Vector3, Vector3)>();
-                    }
-
-                    Vector3 world = d.TerrainMap.Bounds.min + w.LocalPosition;
-                    world.y = d.MeshData.Vertices[(w.ClosestIndexY * d.TerrainMap.Width) + w.ClosestIndexX].y;
-
-                    // Add the new position
-                    positions.Add((world, w.Rotation));
-                    worldObjectDictionary[w.Prefab] = positions;
-                }
-                // Now add the data to the correct objects
-                List<WorldObjectData> worldObjects = new List<WorldObjectData>();
-                foreach (KeyValuePair<GameObject, List<(Vector3, Vector3)>> pair in worldObjectDictionary)
-                {
-                    worldObjects.Add(new WorldObjectData()
-                    {
-                        Prefab = pair.Key,
-                        WorldPositions = pair.Value,
-                    });
+                    positions = new List<(Vector3, Vector3)>();
                 }
 
-                // Generate the texture data
-                TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForTerrainMap(d.TerrainMap, TextureSettings);
+                Vector3 world = d.TerrainMap.Bounds.min + w.LocalPosition;
+                world.y = d.MeshData.Vertices[(w.ClosestIndexY * d.TerrainMap.Width) + w.ClosestIndexX].y;
 
-                lock (threadLock)
+                // Add the new position
+                positions.Add((world, w.Rotation));
+                worldObjectDictionary[w.Prefab] = positions;
+            }
+            // Now add the data to the correct objects
+            List<WorldObjectData> worldObjects = new List<WorldObjectData>();
+            foreach (KeyValuePair<GameObject, List<(Vector3, Vector3)>> pair in worldObjectDictionary)
+            {
+                worldObjects.Add(new WorldObjectData()
                 {
-                    data[d.TerrainMap.Chunk].WorldObjects = worldObjects;
-                    data[d.TerrainMap.Chunk].TextureData = textureData;
-                }
-            }));
-        }
+                    Prefab = pair.Key,
+                    WorldPositions = pair.Value,
+                });
+            }
+
+#endif
+
+            // Generate the texture data
+            TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForTerrainMap(map, TextureSettings);
+
+            lock (data)
+            {
+                //data[d.Key].WorldObjects = worldObjects;
+                data[d.Key].WorldObjects = new List<WorldObjectData>();
+                data[d.Key].TextureData = textureData;
+            }
+
+            //#endif
+        });
+
     }
 
 
-
-
-    private void GenerateTerrainMapProceduralObjects(TerrainMap map, float minRadius, int iterations)
+    private List<TerrainMap.WorldObjectData> GenerateTerrainMapProceduralObjects(TerrainMap map, float minRadius, int iterations, Vector2 worldBoundsSize)
     {
-        int seed = map.Chunk.ToString().GetHashCode();
-        System.Random r = new System.Random(seed);
+        System.Random r = new System.Random(CurrentSettings.Seed);
+        List<TerrainMap.WorldObjectData> worldObjects = new List<TerrainMap.WorldObjectData>();
 
         // Get the local positions
-        List<Vector2> localPositions = PoissonDiscSampling.GenerateLocalPoints(minRadius, new Vector2(map.Bounds.size.x, map.Bounds.size.z), seed, iterations);
+        List<Vector2> localPositions = PoissonDiscSampling.GenerateLocalPoints(minRadius, worldBoundsSize, CurrentSettings.Seed, iterations);
 
         // Loop through each position
         foreach (Vector2 pos in localPositions)
@@ -695,8 +705,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
             if (attempt.Do && r.NextDouble() <= attempt.Chance)
             {
-                Vector3 localPosition = new Vector3(pos.x, 0, pos.y);
-                if (Utils.GetClosestIndex(localPosition, Vector3.zero, map.Bounds.size, map.Width, map.Height, out int x, out int y))
+                if (Utils.GetClosestIndex(pos, Vector2.zero, worldBoundsSize, map.Width, map.Height, out int x, out int y))
                 {
                     Biome.Type biome = map.Biomes[(y * map.Width) + x];
 
@@ -723,9 +732,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
                         if (!attempt.UseMask || maskvalid)
                         {
                             // If we get here then this object must be valid at the position
-                            map.WorldObjects.Add(new TerrainMap.WorldObjectData()
+                            worldObjects.Add(new TerrainMap.WorldObjectData()
                             {
-                                LocalPosition = localPosition,
+                                LocalPosition = new Vector3(pos.x, 0, pos.y),
                                 Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
                                 Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
                                 ClosestIndexX = x,
@@ -734,11 +743,19 @@ public class TerrainGenerator : MonoBehaviour, IManager
                         }
                     }
                 }
+                else
+                {
+                    Debug.LogError("GenerateTerrainMapProceduralObjects: Failed to choose closest terrain map index for position");
+                }
             }
         }
+
+        return worldObjects;
     }
 
 
+
+#if false
 
     /*
     private MapData GenerateMap(Dictionary<Vector2Int, ChunkData> data)
@@ -790,6 +807,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
         }
     }
 
+#endif
+
     private static Green FloodFill(TerrainMap map, ref bool[] checkedFloodFill, int x, int y)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
@@ -821,12 +840,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
         if (!checkedFloodFill[index])
         {
             checkedFloodFill[index] = true;
-            Green.Point p = new Green.Point() { Chunk = map.Chunk, indexX = x, indexY = y };
-            green.Points.Add(p);
-            if (x == 0 || y == 0 || x == map.Width - 1 || y == map.Height - 1)
-            {
-                green.PointsOnEdge.Add(p);
-            }
+
+            green.Points.Add(new Vector2Int(x, y));
 
             // Check north
             int newY = y + 1;
@@ -843,6 +858,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
         }
     }
 
+
+#if false
 
     public static HashSet<Vector2Int> GetAllPossibleNearbyChunks(Vector3 position, int chunks)
     {
