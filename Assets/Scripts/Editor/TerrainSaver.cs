@@ -40,7 +40,7 @@ public static class TerrainSaver
 
         foreach (TerrainChunkData d in data.Chunks)
         {
-            string chunkPath = folder + Chunk(d.X, d.Y);
+            string chunkPath = folder + Chunk(d.Position.x, d.Position.y);
 
             string texturePath = chunkPath + "texture.asset";
             AssetDatabase.CreateAsset(d.BiomeColourMap, texturePath);
@@ -67,7 +67,7 @@ public static class TerrainSaver
         // Assign the texture and mesh
         foreach (TerrainChunkData chunk in data.Chunks)
         {
-            string c = Chunk(chunk.X, chunk.Y);
+            string c = Chunk(chunk.Position.x, chunk.Position.y);
             chunk.BiomeColourMap = AssetDatabase.LoadAssetAtPath<Texture2D>(folderPath + "/" + c + "texture.asset");
             chunk.MainMesh = AssetDatabase.LoadAssetAtPath<Mesh>(folderPath + "/" + c + "mesh.asset");
         }

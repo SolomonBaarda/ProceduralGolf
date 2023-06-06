@@ -1,6 +1,7 @@
 ﻿#define GOLF_PARALLEL_ROUTINES
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,27 +19,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
     public bool IsGenerating { get; private set; } = false;
 
-
-    private Dictionary<Vector2Int, ChunkData> data = new Dictionary<Vector2Int, ChunkData>();
-
-
-    //private List<Green> greens = new List<Green>();
-    //private List<CourseData> courseData = new List<CourseData>();
-    //private List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
-
-
-
-    private void ClearGenerationData()
-    {
-        //threads.Clear();
-        data.Clear();
-        //greens.Clear();
-        //courseData.Clear();
-        //terrainChunks.Clear();
-    }
-
-
-
     public void Generate(GenerationSettings settings, int initialGenerationRadius, GameManager.CourseGenerated callback)
     {
         if (IsGenerating)
@@ -51,7 +31,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
         TextureSettings.ValidateValues();
         MeshSettings.ValidateValues();
         TextureSettings.AddColoursToDictionary();
-        ClearGenerationData();
 
         if (TerrainSettings.TerrainLayers.Count < 1)
         {
@@ -128,7 +107,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         TerrainMap map = new TerrainMap(initialGenerationRadius * 2 * TerrainSettings.SamplePointFrequency, initialGenerationRadius * 2 * TerrainSettings.SamplePointFrequency);
 
         Vector2 offset = Vector2.zero;
-        Vector2 distanceBetweenNoiseSamples = new Vector2(TerrainChunkManager.ChunkSize.x, TerrainChunkManager.ChunkSize.z) / (TerrainSettings.SamplePointFrequency - 1);
+        float distanceBetweenNoiseSamples = TerrainChunkManager.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
 
 
 
@@ -160,7 +139,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         // Now that biomes have been assigned, we can calculate the procedural object positions
         map.WorldObjects = !atLeastOneObject ?
             new List<TerrainMap.WorldObjectData>() :
-            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples.x, map.Height * distanceBetweenNoiseSamples.y));
+            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples, map.Height * distanceBetweenNoiseSamples));
 
 
 
@@ -198,29 +177,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         // Now Calculate the mesh data for the chunk
 
         int chunkSize = TerrainSettings.SamplePointFrequency;
-        for (int chunkY = 0; chunkY < map.Height / chunkSize; chunkY++)
-        {
-            for (int chunkX = 0; chunkX < map.Width / chunkSize; chunkX++)
-            {
-                MeshGenerator.MeshData meshData = new MeshGenerator.MeshData(chunkSize, chunkSize);
 
-                for (int heightY = 0; heightY < chunkSize; heightY++)
-                {
-                    for (int heightX = 0; heightX < chunkSize; heightX++)
-                    {
-                        int chunkRelativeIndex = (heightY * chunkSize) + heightX;
-                        int heightsIndex = (((chunkY * chunkSize) - chunkY + heightY) * map.Width) + (chunkX * chunkSize) - chunkX + heightX;
-
-                        meshData.Vertices[chunkRelativeIndex] = new Vector3(heightX * distanceBetweenNoiseSamples.x, map.Heights[heightsIndex], heightY * distanceBetweenNoiseSamples.y);
-                    }
-                }
-
-                meshData.UpdateUVS();
-                meshData.GenerateMeshLODData(MeshSettings);
-
-                data.Add(new Vector2Int(chunkX, chunkY), new ChunkData() { MeshData = meshData });
-            }
-        }
 
 
         List<CourseData> courseData = new List<CourseData>();
@@ -234,7 +191,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
         // Fifth PASS
         Logger.LogTerrainGenerationStartPass(5, "constructing meshes");
 
-        FifthPass(map);
+
+
+        ConcurrentDictionary<Vector2Int, ChunkData> data = SplitIntoChunks(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
 
         List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
@@ -251,8 +210,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
             // Generate the texture
             Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.Value.TextureData);
-            // TODO FIX BIOMES HERE
-            terrainChunks.Add(new TerrainChunkData(d.Key.x, d.Key.y, new Vector3(distanceBetweenNoiseSamples.x * chunkSize * d.Key.x, 0, distanceBetweenNoiseSamples.y * chunkSize * d.Key.y), map.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
+
+            terrainChunks.Add(new TerrainChunkData(d.Key, d.Value.Bounds, d.Value.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
         }
 
         // TODO in next version
@@ -291,7 +250,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// <param name="map"></param>
     /// <param name="offset"></param>
     /// <param name="distanceBetweenNoiseSamples"></param>
-    private void FirstPass(TerrainMap map, Vector2 offset, Vector2 distanceBetweenNoiseSamples)
+    private void FirstPass(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples)
     {
         // Get all the noise layers for the terrain
         For(0, TerrainSettings.TerrainLayers.Count, (int index) =>
@@ -310,7 +269,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 // Generate the noise for this layer and normalise it
                 float min = float.MaxValue;
                 float max = float.MinValue;
-                float[] noise = Noise.GetNoise(layerSettings.Settings, seed, offset, in distanceBetweenNoiseSamples, map.Width, map.Height, ref min, ref max);
+                float[] noise = Noise.GetNoise(layerSettings.Settings, seed, offset, new Vector2(distanceBetweenNoiseSamples, distanceBetweenNoiseSamples), map.Width, map.Height, ref min, ref max);
                 Noise.NormaliseNoise(ref noise, min, max);
 
                 map.Layers.Add(new TerrainMap.Layer(noise, layerSettings.Biome));
@@ -514,10 +473,13 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
 
-
+    /// <summary>
+    /// Calculate hole positions for each course
+    /// </summary>
+    /// <param name="map"></param>
+    /// <param name="greens"></param>
     private void FourthPass(TerrainMap map, List<Green> greens)
     {
-        // Calculate the hole positions for each course
 
 #if false
 
@@ -644,12 +606,76 @@ public class TerrainGenerator : MonoBehaviour, IManager
     }
 
 
-
-    private void FifthPass(TerrainMap map)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="map"></param>
+    private ConcurrentDictionary<Vector2Int, ChunkData> SplitIntoChunks(TerrainMap map, int chunkSize, Vector2 offset, float distanceBetweenNoiseSamples)
     {
+        ConcurrentDictionary<Vector2Int, ChunkData> data = new ConcurrentDictionary<Vector2Int, ChunkData>();
+
+        For(0, map.Height / chunkSize, (int chunkY) =>
+        {
+            for (int chunkX = 0; chunkX < map.Width / chunkSize; chunkX++)
+            {
+                MeshGenerator.MeshData meshData = new MeshGenerator.MeshData(chunkSize, chunkSize);
+                Biome.Type[] biomes = new Biome.Type[chunkSize * chunkSize];
+
+                for (int heightY = 0; heightY < chunkSize; heightY++)
+                {
+                    for (int heightX = 0; heightX < chunkSize; heightX++)
+                    {
+                        // Calculate the indexes to map between the chunk and terrain map
+                        int localIndex = (heightY * chunkSize) + heightX;
+                        int terrainMapIndex = (((chunkY * chunkSize) - chunkY + heightY) * map.Width) + (chunkX * chunkSize) - chunkX + heightX;
+
+                        // Copy the mesh data
+                        meshData.Vertices[localIndex] = new Vector3(heightX * distanceBetweenNoiseSamples, map.Heights[terrainMapIndex], heightY * distanceBetweenNoiseSamples);
+
+                        // Copy the biome data
+                        biomes[localIndex] = map.Biomes[terrainMapIndex];
+                    }
+                }
+
+                meshData.UpdateUVS();
+                meshData.GenerateMeshLODData(MeshSettings);
+
+                // Compute texture data for chunk
+                TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForChunk(biomes, chunkSize, chunkSize, TextureSettings);
+
+                Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
+
+
+                Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
+
+                data.TryAdd(new Vector2Int(chunkX, chunkY), new ChunkData(meshData, textureData, biomes, chunkSize, chunkSize, new List<WorldObjectData>(), bounds));
+            }
+        });
+
+        // Calculate which chunk each world object belongs to
+
+        // SEQUENTIAL
+
+#if false
+
+        foreach (TerrainMap.WorldObjectData obj in map.WorldObjects)
+        {
+            Vector2Int chunk = new Vector2Int(obj.ClosestIndexX / chunkSize, obj.ClosestIndexY / chunkSize);
+
+            if (data.TryGetValue(chunk, out ChunkData value))
+            {
+
+                value.WorldObjects.Add(obj);
+            }
+            else
+            {
+                Debug.LogError("SplitIntoChunks: Missing dict chunk for world object");
+            }
+        }
+
         ForEach(data, (KeyValuePair<Vector2Int, ChunkData> d) =>
         {
-#if false
+            //#if false
 
             // Update the world object data
             Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
@@ -678,20 +704,14 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 });
             }
 
+
+
+
+        });
+
 #endif
 
-            // Generate the texture data
-            TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForTerrainMap(map, TextureSettings);
-
-            lock (data)
-            {
-                //data[d.Key].WorldObjects = worldObjects;
-                data[d.Key].WorldObjects = new List<WorldObjectData>();
-                data[d.Key].TextureData = textureData;
-            }
-
-            //#endif
-        });
+        return data;
 
     }
 
@@ -931,6 +951,21 @@ public class TerrainGenerator : MonoBehaviour, IManager
         public MeshGenerator.MeshData MeshData;
         public TextureGenerator.TextureData TextureData;
         public List<WorldObjectData> WorldObjects;
+        public Bounds Bounds;
+
+        public Biome.Type[] Biomes;
+        public int BiomesWidth, BiomesHeight;
+
+        public ChunkData(MeshGenerator.MeshData meshData, TextureGenerator.TextureData textureData, Biome.Type[] biomes, int width, int height, List<WorldObjectData> worldObjects, Bounds bounds)
+        {
+            MeshData = meshData;
+            TextureData = textureData;
+            Biomes = biomes;
+            BiomesWidth = width;
+            BiomesHeight = height;
+            WorldObjects = worldObjects;
+            Bounds = bounds;
+        }
     }
 
     [Serializable]

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public static class TextureGenerator
 {
@@ -19,12 +17,12 @@ public static class TextureGenerator
                 {
                     for (int pixelX = 0; pixelX < d.Width; pixelX++)
                     {
-                        int dataX = chunkX * d.Width + pixelX, dataY = chunkY * d.Height + pixelY;
-                        int index = dataY * width + dataX;
+                        int dataX = (chunkX * d.Width) + pixelX, dataY = (chunkY * d.Height) + pixelY;
+                        int index = (dataY * width) + dataX;
 
                         // Add the colours in reverse order - the original colour map is reversed
-                        colours[index] = d.ColourMap[d.ColourMap.Length - (pixelY * d.Width + pixelX) - 1];
-                        
+                        colours[index] = d.ColourMap[d.ColourMap.Length - ((pixelY * d.Width) + pixelX) - 1];
+
                     }
                 }
             }
@@ -33,21 +31,22 @@ public static class TextureGenerator
         return new TextureData(width, height, colours, settings);
     }
 
-    public static TextureData GenerateTextureDataForTerrainMap(in TerrainMap map, in TextureSettings settings)
+    public static TextureData GenerateTextureDataForChunk(in Biome.Type[] biomes, int width, int height, in TextureSettings settings)
     {
-        int width = map.Width * 2 - 2, height = map.Height * 2 - 2;
-        Color32[] colours = new Color32[width * height];
+        int textureWidth = (width * 2) - 2, textureHeight = (height * 2) - 2;
 
-        for (int y = 0; y < map.Height; y++)
+        Color32[] colours = new Color32[textureWidth * textureHeight];
+
+        for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < map.Width; x++)
+            for (int x = 0; x < width; x++)
             {
-                Color32 c = settings.GetColour(map.Biomes[y * map.Width + x]);
+                Color32 c = settings.GetColour(biomes[(y * width) + x]);
 
-                TrySetColour(2 * x, 2 * y, width, height);
-                TrySetColour(2 * x - 1, 2 * y, width, height);
-                TrySetColour(2 * x, 2 * y - 1, width, height);
-                TrySetColour(2 * x - 1, 2 * y - 1, width, height);
+                TrySetColour(2 * x, 2 * y, textureWidth, textureHeight);
+                TrySetColour((2 * x) - 1, 2 * y, textureWidth, textureHeight);
+                TrySetColour(2 * x, (2 * y) - 1, textureWidth, textureHeight);
+                TrySetColour((2 * x) - 1, (2 * y) - 1, textureWidth, textureHeight);
 
                 void TrySetColour(int x, int y, int width, int height)
                 {
@@ -55,13 +54,13 @@ public static class TextureGenerator
                     {
                         // Add the colours in reverse order 
                         // This rotates the texture 180 degrees so it matches with the terrain
-                        colours[colours.Length - (y * width + x) - 1] = c;
+                        colours[colours.Length - ((y * width) + x) - 1] = c;
                     }
                 }
             }
         }
 
-        return new TextureData(width, height, colours, settings);
+        return new TextureData(textureWidth, textureHeight, colours, settings);
     }
 
     public static Texture2D GenerateTextureFromData(in TextureData data)

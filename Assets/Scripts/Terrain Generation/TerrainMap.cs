@@ -17,7 +17,7 @@ public class TerrainMap
     /// </summary>
     public List<Layer> Layers = new List<Layer>();
     /// <summary>
-    /// List of world objects in the chunk
+    /// List of world objects in the map
     /// </summary>
     public List<WorldObjectData> WorldObjects = new List<WorldObjectData>();
 

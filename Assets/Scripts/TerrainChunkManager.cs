@@ -4,7 +4,6 @@ using UnityEngine;
 public class TerrainChunkManager : MonoBehaviour, IManager
 {
     public const float ChunkSizeWorldUnits = 1000;
-    public static readonly Vector3 ChunkSize = new Vector3(ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits);
 
     [Header("References")]
     public Transform ChunkParent;
@@ -14,23 +13,20 @@ public class TerrainChunkManager : MonoBehaviour, IManager
 
     public TerrainChunk TryAddChunk(TerrainChunkData data, Material material, PhysicMaterial physics, int terrainLayer)
     {
-        Vector2Int position = new Vector2Int(data.X, data.Y);
         TerrainChunk chunk;
 
         // Need to create new chunk
-        if (!TerrainChunkExists(position))
+        if (!TerrainChunkExists(data.Position))
         {
-            Bounds bounds = new Bounds(data.Centre, data.BoundsSize);
-
             // Create the chunk
             chunk = new GameObject().AddComponent<TerrainChunk>();
-            chunk.Initialise(position, bounds, data, material, physics, ChunkParent, terrainLayer);
-            TerrainChunks.Add(position, chunk);
+            chunk.Initialise(data.Position, data.Bounds, data, material, physics, ChunkParent, terrainLayer);
+            TerrainChunks.Add(data.Position, chunk);
         }
         // Just need to update some values
         else
         {
-            if (TerrainChunks.TryGetValue(position, out TerrainChunk c))
+            if (TerrainChunks.TryGetValue(data.Position, out TerrainChunk c))
             {
                 // Update the chunk data 
                 c.UpdateChunkData(data);
@@ -41,23 +37,10 @@ public class TerrainChunkManager : MonoBehaviour, IManager
         return chunk;
     }
 
-
-
-
-
-
-    public bool TryGetChunk(Vector2Int pos, out TerrainChunk chunk)
-    {
-        return TerrainChunks.TryGetValue(pos, out chunk);
-    }
-
-
-
     public IEnumerable<TerrainChunk> GetAllChunks()
     {
         return TerrainChunks.Values;
     }
-
 
     public List<TerrainChunk> GetChunks(List<Vector2Int> chunks)
     {
@@ -113,7 +96,7 @@ public class TerrainChunkManager : MonoBehaviour, IManager
     public static Vector3 CalculateTerrainChunkCentreWorld(Vector2Int chunk)
     {
         const float half = ChunkSizeWorldUnits / 2;
-        return new Vector3(chunk.x * ChunkSizeWorldUnits + half, 0, chunk.y * ChunkSizeWorldUnits + half);
+        return new Vector3((chunk.x * ChunkSizeWorldUnits) + half, 0, (chunk.y * ChunkSizeWorldUnits) + half);
     }
 
 
@@ -141,6 +124,6 @@ public class TerrainChunkManager : MonoBehaviour, IManager
 
     public void SetVisible(bool visible)
     {
-        
+
     }
 }
