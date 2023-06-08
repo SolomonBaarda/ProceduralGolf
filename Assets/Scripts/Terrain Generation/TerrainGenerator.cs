@@ -99,6 +99,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 break;
             }
         }
+
         if (!atLeastOneObject)
             Debug.LogError("No procedural objects have been added");
 
@@ -282,27 +283,44 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// <param name="distanceBetweenNoiseSamples"></param>
     private void GenerateNoise(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples)
     {
+        for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
+        {
+            map.Layers.Add(new TerrainMap.Layer(new float[] { }, Biome.Type.None));
+        }
+
         // Get all the noise layers for the terrain
         For(0, TerrainSettings.TerrainLayers.Count, (int index) =>
-        {
-            TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[index];
-
-            // Only generate the noise if this layer uses it
-            //if (!layerSettings.ShareOtherLayerNoise)
             {
-                int seed = CurrentSettings.Seed.GetHashCode() + index.GetHashCode();
+                TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[index];
 
-                // Generate the noise for this layer and normalise it
-                float[] noise = Noise.GetNoise(layerSettings.Settings, seed, offset, new Vector2(distanceBetweenNoiseSamples, distanceBetweenNoiseSamples), map.Width, map.Height, out float min, out float max);
-                Noise.NormaliseNoise(ref noise, min, max);
+                // Only generate the noise if this layer uses it
+                //if (!layerSettings.ShareOtherLayerNoise)
+                {
+                    int seed = CurrentSettings.Seed.GetHashCode() + index.GetHashCode();
 
-                map.Layers.Add(new TerrainMap.Layer(noise, layerSettings.Biome));
-            }
-            //else
-            //{
-            //    map.Layers.Add(new TerrainMap.Layer(new float[] { }, layerSettings.Biome));
-            //}
-        });
+                    // Generate the noise for this layer and normalise it
+                    float[] noise = Noise.GetNoise(layerSettings.Settings, seed, offset, new Vector2(distanceBetweenNoiseSamples, distanceBetweenNoiseSamples), map.Width, map.Height, out float min, out float max);
+                    Noise.NormaliseNoise(ref noise, min, max);
+
+                    map.Layers[index] = new TerrainMap.Layer(noise, layerSettings.Biome);
+                }
+                //else
+                //{
+                //    map.Layers.Add(new TerrainMap.Layer(new float[] { }, layerSettings.Biome));
+                //}
+            });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
