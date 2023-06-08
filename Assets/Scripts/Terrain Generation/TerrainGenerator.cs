@@ -314,17 +314,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
 
-
-
-
-
-
-
-
-
-
-
-
         // TERRAIN HEIGHTS
 
         // Now calculate the actual heights from the noise and the biomes
@@ -433,12 +422,20 @@ public class TerrainGenerator : MonoBehaviour, IManager
                     bool maskvalid = true;
                     if (g.UseMask)
                     {
-                        for (int j = 0; j < g.Masks.Count; j++)
+                        foreach (TerrainSettings.Mask greenLayerMask in g.Masks)
                         {
-                            TerrainMap.Layer maskValues = map.Layers[g.Masks[j].LayerIndex];
+                            TerrainMap.Layer layer = map.Layers[greenLayerMask.LayerIndex];
+
+                            TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[greenLayerMask.LayerIndex];
+
+                            // Set the reference to be another layer if we are sharing noise
+                            if (layerSettings.ShareOtherLayerNoise)
+                            {
+                                layer = map.Layers[layerSettings.LayerIndexShareNoise];
+                            }
 
                             // Mask is not valid here
-                            if (!(maskValues.Noise[index] >= g.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= g.Masks[j].NoiseThresholdMax))
+                            if (!(layer.Noise[index] >= greenLayerMask.NoiseThresholdMin && layer.Noise[index] <= greenLayerMask.NoiseThresholdMax))
                             {
                                 maskvalid = false;
                                 break;

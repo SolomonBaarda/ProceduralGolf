@@ -20,8 +20,6 @@ public static class Noise
         n.SetCellularReturnType(s.ReturnType);
         n.SetCellularJitter(s.Jitter);
 
-        Debug.LogWarning(seed);
-
         float[] noise = new float[width * height];
 
         min = float.MaxValue;
