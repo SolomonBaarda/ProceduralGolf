@@ -114,7 +114,7 @@ MonoBehaviour:
     UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0.75
+      NoiseThresholdMin: 0.55
       NoiseThresholdMax: 1
   MinDistanceBetweenHoles: 100
   AreaToCheckValidHoleBiome: 10

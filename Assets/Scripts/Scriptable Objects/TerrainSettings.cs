@@ -34,7 +34,7 @@ public class TerrainSettings : VariablePreset
     /// </summary>
     public readonly int SamplePointFrequency = 241;
 
-    public readonly int GreenMinVertexCount = 100;
+    public readonly int GreenMinVertexCount = 10000;
 
 
 

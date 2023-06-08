@@ -5,7 +5,7 @@ public static class Noise
 {
     public static int RandomSeed => Environment.TickCount.ToString().GetHashCode();
 
-    public static float[] GetNoise(NoiseSettings s, int seed, in Vector2 offset, in Vector2 distanceBetweenSamples, int width, int height, ref float min, ref float max)
+    public static float[] GetNoise(NoiseSettings s, int seed, in Vector2 offset, in Vector2 distanceBetweenSamples, int width, int height, out float min, out float max)
     {
         s.ValidateValues();
         FastNoiseLite n = new FastNoiseLite(seed);
@@ -23,6 +23,9 @@ public static class Noise
         n.SetCellularJitter(s.Jitter);
 
         float[] noise = new float[width * height];
+
+        min = float.MaxValue;
+        max = float.MinValue;
 
         for (int y = 0; y < height; y++)
         {

@@ -1,8 +1,10 @@
 ﻿#define GOLF_PARALLEL_ROUTINES
+#define DEBUG_FLOOD_FILL
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour, IManager
@@ -83,6 +85,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
     private void WaitForGenerate(int initialGenerationRadius, GameManager.CourseGenerated callback)
     {
+        Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
+
         DateTime startTimestamp = DateTime.Now, lastTimestamp = startTimestamp;
         IsGenerating = true;
 
@@ -176,7 +180,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         lastTimestamp = DateTime.Now;
 
 
-        List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, 100);
+        List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, data, chunkSize, 100, chunkSize / 8);
         List<CourseData> courses = new List<CourseData>();
 
         System.Random r = new System.Random(0);
@@ -286,16 +290,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
             // Only generate the noise if this layer uses it
             //if (!layerSettings.ShareOtherLayerNoise)
             {
-                int seed = CurrentSettings.Seed;
-                for (int i = 0; i < index; i++)
-                {
-                    seed = seed.ToString().GetHashCode();
-                }
+                int seed = CurrentSettings.Seed.GetHashCode() + index.GetHashCode();
 
                 // Generate the noise for this layer and normalise it
-                float min = float.MaxValue;
-                float max = float.MinValue;
-                float[] noise = Noise.GetNoise(layerSettings.Settings, seed, offset, new Vector2(distanceBetweenNoiseSamples, distanceBetweenNoiseSamples), map.Width, map.Height, ref min, ref max);
+                float[] noise = Noise.GetNoise(layerSettings.Settings, seed, offset, new Vector2(distanceBetweenNoiseSamples, distanceBetweenNoiseSamples), map.Width, map.Height, out float min, out float max);
                 Noise.NormaliseNoise(ref noise, min, max);
 
                 map.Layers.Add(new TerrainMap.Layer(noise, layerSettings.Biome));
@@ -443,68 +441,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
     }
 
 
-    /*
-    private void ThirdPassMergeGreens()
-    {
-        // Do this calculation in a thread so that it is done in the background 
-        StartThread(threads, "Pass 3: merge greens", new Thread(() =>
-        {
-            DateTime a = DateTime.Now;
-            int greensBefore = greens.Count;
-
-            // Seems to fix the green merging inconsistency
-            // No clue why...
-            greens.Sort((x, y) => y.Points.Count.CompareTo(x.Points.Count));
-
-            // Merge greens from seperate chunks
-            foreach (Green original in greens)
-            {
-                if (!original.ToBeDeleted && original.PointsOnEdge.Count > 0)
-                {
-                    foreach (Green toMerge in greens)
-                    {
-                        if (!original.Equals(toMerge) && !toMerge.ToBeDeleted && toMerge.PointsOnEdge.Count > 0 && ShouldMergeGreens(original, toMerge))
-                        {
-                            toMerge.ToBeDeleted = true;
-
-                            // Add the vertices
-                            original.Points.AddRange(toMerge.Points);
-                            original.PointsOnEdge.AddRange(toMerge.PointsOnEdge);
-                        }
-
-                        bool ShouldMergeGreens(Green a, Green b)
-                        {
-                            int total = 0;
-
-                            foreach (Green.Point p in b.PointsOnEdge)
-                            {
-                                // Removed all shared points from a
-                                // Since a is the green being merged, this will speed up future calls 
-                                // as we will have to compare less elements in the list
-                                total += a.PointsOnEdge.RemoveAll(other => TerrainMap.IsSharedPositionOnBorder(p.Chunk, p.indexX, p.indexY, other.Chunk, other.indexX, other.indexY, terrainMapWidth, terrainMapHeight));
-                            }
-
-                            return total > 0;
-                        }
-                    }
-                }
-            }
-
-            greens.RemoveAll(x => x.ToBeDeleted || x.Points.Count < TerrainSettings.GreenMinVertexCount);
-
-            Logger.Log($"* Greens: {greensBefore} reduced to {greens.Count} in {(DateTime.Now - a).TotalSeconds.ToString("0.0")} seconds");
-        }));
-    }
-    */
-
-
-
     /// <summary>
     /// Calculate start/hole positions for each golf course
     /// </summary>
     /// <param name="map"></param>
     /// <param name="greens"></param>
-    private List<Tuple<Vector2Int, Vector2Int>> CalculateCourses(TerrainMap map, int seed, int numAttemptsToChooseRandomPositions = 100)
+    private List<Tuple<Vector2Int, Vector2Int>> CalculateCourses(TerrainMap map, int seed, ConcurrentDictionary<Vector2Int, ChunkData> data, int chunkSize, int numAttemptsToChooseRandomPositions = 100, int precisionStep = 1)
     {
         // SEQUENTIAL
 
@@ -513,9 +455,11 @@ public class TerrainGenerator : MonoBehaviour, IManager
         List<List<Vector2Int>> coursePoints = new List<List<Vector2Int>>();
         bool[] checkedFloodFill = new bool[map.Width * map.Height];
 
-        for (int y = 0; y < map.Height; y++)
+        // Increment using the precision step to improve performance 
+        // Unlikely to miss any parts of the course
+        for (int y = 0; y < map.Height; y += precisionStep)
         {
-            for (int x = 0; x < map.Width; x++)
+            for (int x = 0; x < map.Width; x += precisionStep)
             {
                 int index = (y * map.Width) + x;
 
@@ -524,13 +468,48 @@ public class TerrainGenerator : MonoBehaviour, IManager
                     List<Vector2Int> possibleCoursePoints = CalculateCourseFloodFillMain(map, ref checkedFloodFill, x, y);
 
                     // Ensure only valid courses get added
-                    if (possibleCoursePoints.Count > 2)
+                    if (possibleCoursePoints.Count > 2 && possibleCoursePoints.Count > TerrainSettings.GreenMinVertexCount)
                     {
                         coursePoints.Add(possibleCoursePoints);
                     }
                 }
             }
         }
+
+
+#if DEBUG_FLOOD_FILL
+
+        Texture2D t = new Texture2D(map.Width, map.Height);
+
+        System.Random r1 = new System.Random(0);
+
+        UnityEngine.Color32[] c = new Color32[map.Width * map.Height];
+
+        For(0, map.Width * map.Height, (int i) =>
+        {
+            c[i] = TextureSettings.GetColour(map.Biomes[i]);
+        });
+
+        foreach (var list in coursePoints)
+        {
+            UnityEngine.Color32 colour = new UnityEngine.Color32((byte)(r1.NextDouble() * 255), (byte)(r1.NextDouble() * 255), (byte)(r1.NextDouble() * 255), 255);
+
+            ForEach(list, (Vector2Int p) =>
+            {
+                c[(p.y * map.Width) + p.x] = colour;
+            });
+        }
+
+        t.SetPixels32(c);
+        t.Apply();
+
+        byte[] png = t.EncodeToPNG();
+        File.WriteAllBytes(Application.dataPath + "/debug_floodfill.png", png);
+
+        Debug.LogWarning($"Wrote flood fill debug image to \"{Application.dataPath + "/debug_floodfill.png"}\"");
+
+#endif
+
 
         // Initialise to correct size so that we don't need to synchronise between threads
         List<Tuple<Vector2Int, Vector2Int>> courses = new List<Tuple<Vector2Int, Vector2Int>>(coursePoints.Count);
@@ -826,11 +805,13 @@ public class TerrainGenerator : MonoBehaviour, IManager
         {
             (int, int) pos = q.Dequeue();
 
+            // Check towards the west
             for (int west = pos.Item1; west >= 0 && map.Greens[(pos.Item2 * map.Width) + west]; west--)
             {
                 CalculateCourseFloodFillHorizontal(map, ref checkedFloodFill, q, west, pos.Item2, validPoints);
             }
 
+            // Check towards the east
             for (int east = pos.Item1; east < map.Width && map.Greens[(pos.Item2 * map.Width) + east]; east++)
             {
                 CalculateCourseFloodFillHorizontal(map, ref checkedFloodFill, q, east, pos.Item2, validPoints);
@@ -849,18 +830,19 @@ public class TerrainGenerator : MonoBehaviour, IManager
             checkedFloodFill[index] = true;
 
             // Add this point if it could be a valid hole
-            if (map.Greens[index] && TerrainSettings.ValidHoleBiomes.Contains(map.Biomes[index]))
+            if (TerrainSettings.ValidHoleBiomes.Contains(map.Biomes[index]))
             {
                 validPoints.Add(new Vector2Int(x, y));
             }
 
-            // Check north
+            // Check south
             int newY = y + 1;
             if (newY < map.Height && map.Greens[(newY * map.Width) + x] && !q.Contains((x, newY)))
             {
                 q.Enqueue((x, newY));
             }
-            // And south
+
+            // And north
             newY = y - 1;
             if (newY >= 0 && map.Greens[(newY * map.Width) + x] && !q.Contains((x, newY)))
             {
