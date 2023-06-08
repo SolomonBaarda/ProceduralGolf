@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -64,7 +63,7 @@ public class TerrainManager : MonoBehaviour, IManager
     {
         // Update course game object positions
         NextHoleFlag.transform.position = course.Hole;
-        NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + UP * 100 });
+        NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + (UP * 100) });
 
         SpawnGolfBall(course);
     }
@@ -214,7 +213,8 @@ public class TerrainManager : MonoBehaviour, IManager
     {
         Vector3 spawnPoint = hole.Start;
 
-        if (GroundCheck.DoRaycastDown(hole.Start + UP * 25, out RaycastHit hit, 50))
+        /*
+        if (GroundCheck.DoRaycastDown(hole.Start + (UP * 25), out RaycastHit hit, 50))
         {
             spawnPoint = hit.point;
         }
@@ -222,9 +222,10 @@ public class TerrainManager : MonoBehaviour, IManager
         {
             Logger.Log("FAILED TO SPAWN GOLF BALL PROPERLY");
         }
+        */
 
         // And move the ball there
-        MoveGolfBallAndWaitForNextShot(spawnPoint + UP * GolfBall.Radius);
+        MoveGolfBallAndWaitForNextShot(spawnPoint + (UP * GolfBall.Radius));
     }
 
     private void MoveGolfBallAndWaitForNextShot(Vector3 position)
@@ -249,8 +250,8 @@ public class TerrainManager : MonoBehaviour, IManager
             {
                 Gizmos.color = h.Colour;
 
-                Gizmos.DrawLine(h.Start, h.Start + Vector3.up * 100);
-                Gizmos.DrawLine(h.Hole, h.Hole + Vector3.up * 200);
+                Gizmos.DrawLine(h.Start, h.Start + (Vector3.up * 100));
+                Gizmos.DrawLine(h.Hole, h.Hole + (Vector3.up * 200));
             }
         }
     }

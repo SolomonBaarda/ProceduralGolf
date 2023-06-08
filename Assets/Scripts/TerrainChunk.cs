@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class TerrainChunk : MonoBehaviour
 {
@@ -46,7 +45,7 @@ public class TerrainChunk : MonoBehaviour
         // Set an instance of the material
         meshRenderer.material = material;
         // And apply the textures to it
-        
+
         Vector2 textureTiling = new Vector2(data.Width - 1, data.Height - 1);
         TextureSettings.ApplyToMaterial(meshRenderer.material, BiomeColourMap, textureTiling);
     }

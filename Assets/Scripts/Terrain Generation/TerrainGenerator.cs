@@ -1,10 +1,9 @@
 ﻿#define GOLF_PARALLEL_ROUTINES
-#define DEBUG_FLOOD_FILL
+//#define DEBUG_FLOOD_FILL
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour, IManager
@@ -223,8 +222,13 @@ public class TerrainGenerator : MonoBehaviour, IManager
             // Generate the mesh
             Mesh mesh = null;
             d.Value.MeshData.ApplyLODTOMesh(ref mesh);
+
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+            mesh.RecalculateBounds();
+
             // Optimise it
-            MeshGenerator.OptimiseMesh(ref mesh);
+            mesh.Optimize();
 
             // Generate the texture
             Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.Value.TextureData);

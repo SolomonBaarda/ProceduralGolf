@@ -2,13 +2,6 @@
 
 public static class MeshGenerator
 {
-    public static void OptimiseMesh(ref Mesh m)
-    {
-        // Recalculate values
-        m.RecalculateNormals();
-        m.Optimize();
-    }
-
     public class MeshData
     {
         public int Width, Height;
