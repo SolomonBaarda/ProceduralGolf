@@ -112,26 +112,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
 
-        FirstPass(map, offset, distanceBetweenNoiseSamples);
+        GenerateNoise(map, offset, distanceBetweenNoiseSamples);
 
-
-        // SEQUENTIAL
-
-        // Calculate the greens 
-        List<Green> greens = new List<Green>();
-        bool[] checkedFloodFill = new bool[map.Width * map.Height];
-
-        for (int y = 0; y < map.Height; y++)
-        {
-            for (int x = 0; x < map.Width; x++)
-            {
-                int index = (y * map.Width) + x;
-                if (!checkedFloodFill[index] && map.Greens[index])
-                {
-                    greens.Add(FloodFill(map, ref checkedFloodFill, x, y));
-                }
-            }
-        }
+        Logger.Log($"*Noise pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        lastTimestamp = DateTime.Now;
 
 
         // SEQUENTIAL
@@ -141,6 +125,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
             new List<TerrainMap.WorldObjectData>() :
             GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples, map.Height * distanceBetweenNoiseSamples));
 
+
+        Logger.Log($"*SEQ pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        lastTimestamp = DateTime.Now;
 
 
         // TEMP TODO Find the min and max heights from the terrain map
@@ -171,6 +158,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
             map.Heights[index] *= TerrainSettings.HeightMultiplier;
         });
 
+        Logger.Log($"*Renorm pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        lastTimestamp = DateTime.Now;
+
 
 
         // Now subdivide the data into chunks
@@ -179,21 +169,44 @@ public class TerrainGenerator : MonoBehaviour, IManager
         int chunkSize = TerrainSettings.SamplePointFrequency;
 
 
-
-        List<CourseData> courseData = new List<CourseData>();
-
-        // Fourth PASS
-
-        FourthPass(map, greens);
-
-        greens.RemoveAll(x => x.ToBeDeleted);
-
-        // Fifth PASS
-        Logger.LogTerrainGenerationStartPass(5, "constructing meshes");
-
-
-
         ConcurrentDictionary<Vector2Int, ChunkData> data = SplitIntoChunks(map, chunkSize, offset, distanceBetweenNoiseSamples);
+
+
+        Logger.Log($"*Chunking pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        lastTimestamp = DateTime.Now;
+
+
+        List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, 100);
+        List<CourseData> courses = new List<CourseData>();
+
+        System.Random r = new System.Random(0);
+
+        foreach (Tuple<Vector2Int, Vector2Int> startEnd in coursesStartEnd)
+        {
+            UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
+
+            TerrainMapIndexToChunk(chunkSize, startEnd.Item1, out Vector2Int startChunk, out Vector2Int startIndex);
+            TerrainMapIndexToChunk(chunkSize, startEnd.Item2, out Vector2Int endChunk, out Vector2Int endIndex);
+
+            // Get the mesh positions of the start and end pos
+            if (data.TryGetValue(startChunk, out ChunkData startChunkData) && data.TryGetValue(endChunk, out ChunkData endChunkData))
+            {
+                Vector3 start = startChunkData.MeshData.Vertices[(startIndex.y * startChunkData.BiomesWidth) + startIndex.x] + startChunkData.Bounds.min;
+                Vector3 end = endChunkData.MeshData.Vertices[(endIndex.y * endChunkData.BiomesWidth) + endIndex.x] + endChunkData.Bounds.min;
+
+                Debug.DrawLine(start, start + (Vector3.up * 100), c, 120);
+                Debug.DrawLine(end, end + (Vector3.up * 100), c, 120);
+
+                courses.Add(new CourseData(start, end, c));
+            }
+            else
+            {
+                Debug.LogError("Failed to create course as data is missing chunk index");
+            }
+        }
+
+        Logger.Log($"*Course pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        lastTimestamp = DateTime.Now;
 
 
         List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
@@ -214,6 +227,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
             terrainChunks.Add(new TerrainChunkData(d.Key, d.Value.Bounds, d.Value.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
         }
 
+        Logger.Log($"*Create mesh pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        lastTimestamp = DateTime.Now;
+
         // TODO in next version
         // Add map perview before actually generating the course
         //MapData mapData = GenerateMap(data);
@@ -224,11 +240,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(CurrentSettings.Seed, terrainChunks, courseData, TerrainSettings.name);
+        terrain.SetData(CurrentSettings.Seed, terrainChunks, courses, TerrainSettings.name);
 
 
-        Logger.LogTerrainGenerationFinishPass(6, (DateTime.Now - lastTimestamp).TotalSeconds);
+        Logger.Log($"*End pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
         lastTimestamp = DateTime.Now;
+
 
 
         double totalTime = (DateTime.Now - startTimestamp).TotalSeconds;
@@ -244,13 +261,22 @@ public class TerrainGenerator : MonoBehaviour, IManager
     }
 
 
+    static void TerrainMapIndexToChunk(int chunkSize, Vector2Int terrainMapIndex, out Vector2Int chunk, out Vector2Int chunkRelativeIndex)
+    {
+        chunk = terrainMapIndex / chunkSize;
+        chunkRelativeIndex = new Vector2Int(terrainMapIndex.x % chunkSize, terrainMapIndex.y % chunkSize);
+    }
+
+    //static bool ChunkRelativeIndexToTerrainMap(int chunkSize, Vector2Int chunk, Vector2Int chunkRelativeIndex, out Vector2Int terrainMapIndex) { }
+
+
     /// <summary>
     /// Generate raw noise, normalise it, combine noise layers, and construct green flood fill boolean array
     /// </summary>
     /// <param name="map"></param>
     /// <param name="offset"></param>
     /// <param name="distanceBetweenNoiseSamples"></param>
-    private void FirstPass(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples)
+    private void GenerateNoise(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples)
     {
         // Get all the noise layers for the terrain
         For(0, TerrainSettings.TerrainLayers.Count, (int index) =>
@@ -474,135 +500,79 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
     /// <summary>
-    /// Calculate hole positions for each course
+    /// Calculate start/hole positions for each golf course
     /// </summary>
     /// <param name="map"></param>
     /// <param name="greens"></param>
-    private void FourthPass(TerrainMap map, List<Green> greens)
+    private List<Tuple<Vector2Int, Vector2Int>> CalculateCourses(TerrainMap map, int seed, int numAttemptsToChooseRandomPositions = 100)
     {
+        // SEQUENTIAL
 
-#if false
+        // First use flood fill to calculate the courses
 
-        System.Random r = new System.Random(0);
+        List<List<Vector2Int>> coursePoints = new List<List<Vector2Int>>();
+        bool[] checkedFloodFill = new bool[map.Width * map.Height];
 
-        ForEach(greens, (Green g) =>
+        for (int y = 0; y < map.Height; y++)
         {
-            UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-
-            ChunkData d = data[g.Points[0].Chunk];
-            Vector3 min = d.TerrainMap.Bounds.min + d.MeshData.Vertices[(g.Points[0].indexY * d.MeshData.Width) + g.Points[0].indexX], max = min;
-
-            foreach (Green.Point p in g.Points)
+            for (int x = 0; x < map.Width; x++)
             {
-                d = data[p.Chunk];
-                Vector3 pos = d.TerrainMap.Bounds.min + d.MeshData.Vertices[(p.indexY * d.MeshData.Width) + p.indexX];
+                int index = (y * map.Width) + x;
 
-                if (pos.x < min.x)
-                    min.x = pos.x;
-                if (pos.z < min.z)
-                    min.z = pos.z;
-                if (pos.x > max.x)
-                    max.x = pos.x;
-                if (pos.z > max.z)
-                    max.z = pos.z;
-            }
-            Vector3 size = max - min;
-
-            List<Vector2> localPoints = PoissonDiscSampling.GenerateLocalPoints(TerrainSettings.MinDistanceBetweenHoles, new Vector2(size.x, size.z), CurrentSettings.Seed);
-
-            g.PossibleHoles = new List<Vector3>();
-            foreach (Vector2 local in localPoints)
-            {
-                Vector3 world = min + new Vector3(local.x, 0, local.y);
-
-                // Calculate the chunk for this world position
-                Vector2Int chunk = TerrainChunkManager.WorldToChunk(world);
-
-                ChunkData pointChunkData = data[chunk];
-                TerrainMap map = pointChunkData.TerrainMap;
-
-                // Get the closest index for this point
-                if (Utils.GetClosestIndex(world, map.Bounds.min, map.Bounds.max, map.Width, map.Height, out int x, out int y))
+                if (!checkedFloodFill[index] && map.Greens[index])
                 {
-                    bool isValidPoint = true;
+                    List<Vector2Int> possibleCoursePoints = CalculateCourseFloodFillMain(map, ref checkedFloodFill, x, y);
 
-                    // Check if the point is far away enough from invalid biomes
-                    for (int yOffset = -TerrainSettings.AreaToCheckValidHoleBiome; yOffset <= TerrainSettings.AreaToCheckValidHoleBiome; yOffset++)
+                    // Ensure only valid courses get added
+                    if (possibleCoursePoints.Count > 2)
                     {
-                        for (int xOffset = -TerrainSettings.AreaToCheckValidHoleBiome; xOffset <= TerrainSettings.AreaToCheckValidHoleBiome; xOffset++)
-                        {
-                            int newY = y + yOffset, newX = x + xOffset;
-
-                            if (newY >= 0 && newX >= 0 && newY < terrainMapHeight && newX < terrainMapWidth)
-                            {
-                                Biome.Type t = map.Biomes[(newY * map.Width) + newX];
-
-                                // Then check biome is correct for this point
-                                if (!TerrainSettings.ValidHoleBiomes.Contains(t))
-                                {
-                                    isValidPoint = false;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (!isValidPoint)
-                        {
-                            break;
-                        }
-                    }
-
-                    // We have a valid hole
-                    if (isValidPoint)
-                    {
-                        world.y = pointChunkData.MeshData.Vertices[(y * map.Width) + x].y;
-                        g.PossibleHoles.Add(world);
+                        coursePoints.Add(possibleCoursePoints);
                     }
                 }
-                else
-                {
-                    Debug.LogError("Failed to get closest index for a point");
-                }
             }
+        }
 
-            // Ensure there are at least 2 points
-            if (g.PossibleHoles.Count < 2)
-            {
-                g.ToBeDeleted = true;
-                return;
-            }
+        // Initialise to correct size so that we don't need to synchronise between threads
+        List<Tuple<Vector2Int, Vector2Int>> courses = new List<Tuple<Vector2Int, Vector2Int>>(coursePoints.Count);
+        for (int i = 0; i < coursePoints.Count; i++)
+        {
+            courses.Add(new(Vector2Int.zero, Vector2Int.zero));
+        }
+
+        // Calculate the start and end positions for each of those courses
+        For(0, coursePoints.Count, (int index) =>
+        {
+            List<Vector2Int> points = coursePoints[index];
 
             // Find furthest away points for start and finish
-            float curSqrMag = 0;
-            g.Start = g.PossibleHoles[0];
-            g.Hole = g.PossibleHoles[1];
-            foreach (Vector3 first in g.PossibleHoles)
+            int curSqrMag = 0;
+            Vector2Int start = points[0];
+            Vector2Int hole = points[1];
+            System.Random r = new System.Random(seed);
+
+            for (int i = 0; i < numAttemptsToChooseRandomPositions; i++)
             {
-                foreach (Vector3 second in g.PossibleHoles)
+                Vector2Int first = points[r.Next(points.Count)];
+                Vector2Int second = points[r.Next(points.Count)];
+
+                if (!first.Equals(second))
                 {
-                    if (!first.Equals(second))
+                    int sqrMag = (second - first).sqrMagnitude;
+                    if (sqrMag > curSqrMag)
                     {
-                        float sqrMag = (second - first).sqrMagnitude;
-                        if (sqrMag > curSqrMag)
-                        {
-                            curSqrMag = sqrMag;
-                            g.Start = first;
-                            g.Hole = second;
-                        }
+                        curSqrMag = sqrMag;
+                        start = first;
+                        hole = second;
                     }
                 }
             }
 
             // Create the course data object
-            lock (threadLock)
-            {
-                courseData.Add(new CourseData(g.Start, g.Hole, c));
-            }
+            courses[index] = new(start, hole);
+        });
 
-        }
-        );
 
-#endif
+        return courses;
     }
 
 
@@ -835,11 +805,20 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 #endif
 
-    private static Green FloodFill(TerrainMap map, ref bool[] checkedFloodFill, int x, int y)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="map"></param>
+    /// <param name="checkedFloodFill"></param>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns>A list of the valid points within this course (for start/end pos)</returns>
+    private List<Vector2Int> CalculateCourseFloodFillMain(TerrainMap map, ref bool[] checkedFloodFill, int x, int y)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
 
-        Green green = new Green();
+        List<Vector2Int> validPoints = new List<Vector2Int>();
+
         q.Enqueue((x, y));
 
         // Each element n of Q
@@ -849,25 +828,31 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
             for (int west = pos.Item1; west >= 0 && map.Greens[(pos.Item2 * map.Width) + west]; west--)
             {
-                UpdateGreenPositionHorizontal(map, ref checkedFloodFill, green, q, west, pos.Item2);
+                CalculateCourseFloodFillHorizontal(map, ref checkedFloodFill, q, west, pos.Item2, validPoints);
             }
+
             for (int east = pos.Item1; east < map.Width && map.Greens[(pos.Item2 * map.Width) + east]; east++)
             {
-                UpdateGreenPositionHorizontal(map, ref checkedFloodFill, green, q, east, pos.Item2);
+                CalculateCourseFloodFillHorizontal(map, ref checkedFloodFill, q, east, pos.Item2, validPoints);
             }
         }
 
-        return green;
+        return validPoints;
     }
 
-    private static void UpdateGreenPositionHorizontal(TerrainMap map, ref bool[] checkedFloodFill, Green green, Queue<(int, int)> q, int x, int y)
+    private void CalculateCourseFloodFillHorizontal(TerrainMap map, ref bool[] checkedFloodFill, Queue<(int, int)> q, int x, int y, List<Vector2Int> validPoints)
     {
         int index = (y * map.Width) + x;
+
         if (!checkedFloodFill[index])
         {
             checkedFloodFill[index] = true;
 
-            green.Points.Add(new Vector2Int(x, y));
+            // Add this point if it could be a valid hole
+            if (map.Greens[index] && TerrainSettings.ValidHoleBiomes.Contains(map.Biomes[index]))
+            {
+                validPoints.Add(new Vector2Int(x, y));
+            }
 
             // Check north
             int newY = y + 1;
