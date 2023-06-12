@@ -60,6 +60,8 @@ public class TerrainChunk : MonoBehaviour
 
         meshFilter.sharedMesh = MainMesh;
         meshCollider.sharedMesh = MainMesh;
+
+        meshCollider.convex = false;
     }
 
 
