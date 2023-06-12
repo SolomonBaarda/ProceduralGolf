@@ -19,39 +19,31 @@ public class TerrainChunk : MonoBehaviour
     public Texture2D BiomeColourMap => Data.BiomeColourMap;
     public Biome.Type[,] Biomes;
 
+    private void Awake()
+    {
+        meshRenderer = gameObject.GetComponent<MeshRenderer>();
+        meshFilter = gameObject.GetComponent<MeshFilter>();
+        meshCollider = gameObject.GetComponent<MeshCollider>();
+    }
 
-
-    public void Initialise(Vector2Int position, Bounds bounds, TerrainChunkData data, Material material, PhysicMaterial physics, Transform parent, int terrainLayer)
+    public void Initialise(Vector2Int position, Bounds bounds, TerrainChunkData data, Transform parent)
     {
         Position = position;
         Bounds = bounds;
 
         // Set the GameObject
         gameObject.name = "Terrain Chunk " + Position.ToString();
-        gameObject.layer = terrainLayer;
         // Terrain chunk must be offset by -chunksize/2 as mesh values need to be offset by a positive value
         gameObject.transform.position = bounds.min;
         gameObject.transform.parent = parent;
 
-        meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        meshFilter = gameObject.AddComponent<MeshFilter>();
-        meshCollider = gameObject.AddComponent<MeshCollider>();
-
-        // Physics material
-        meshCollider.material = physics;
-
         UpdateChunkData(data);
 
         // Set an instance of the material
-        meshRenderer.material = material;
         // And apply the textures to it
-
         Vector2 textureTiling = new Vector2(data.Width - 1, data.Height - 1);
         TextureSettings.ApplyToMaterial(meshRenderer.material, BiomeColourMap, textureTiling);
     }
-
-
-
 
     public void UpdateChunkData(TerrainChunkData data)
     {
@@ -63,11 +55,6 @@ public class TerrainChunk : MonoBehaviour
 
         meshCollider.convex = false;
     }
-
-
-
-
-
 
     public void SetVisible(bool visible)
     {

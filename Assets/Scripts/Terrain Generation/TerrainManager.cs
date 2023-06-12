@@ -21,12 +21,6 @@ public class TerrainManager : MonoBehaviour, IManager
     private bool HideChunks = true;
     private float ViewDistance = 0;
 
-    [Header("Materials")]
-    public Material MaterialGrass;
-
-    [Header("Physics")]
-    public PhysicMaterial PhysicsGrass;
-
     [Header("Events")]
     public UnityAction<CourseData> OnCourseStarted;
     public UnityAction<CourseData> OnCourseCompleted;
@@ -107,7 +101,7 @@ public class TerrainManager : MonoBehaviour, IManager
         foreach (TerrainChunkData chunk in data.Chunks)
         {
             // Instantiate the terrain
-            TerrainChunk c = TerrainChunkManager.TryAddChunk(chunk, MaterialGrass, PhysicsGrass, GroundCheck.GroundLayer);
+            TerrainChunk c = TerrainChunkManager.TryAddChunk(chunk);
 
             // And instantiate all objects
             foreach (WorldObjectData worldObjectData in chunk.WorldObjects)

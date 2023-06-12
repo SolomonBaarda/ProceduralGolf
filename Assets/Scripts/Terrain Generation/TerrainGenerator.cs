@@ -4,7 +4,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class TerrainGenerator : MonoBehaviour, IManager
 {
@@ -222,6 +225,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             // Generate the mesh
             Mesh mesh = null;
             d.Value.MeshData.ApplyLODTOMesh(ref mesh);
+            mesh.name = d.Key.ToString();
 
             mesh.RecalculateNormals();
             mesh.RecalculateTangents();

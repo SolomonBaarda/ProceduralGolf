@@ -7,33 +7,25 @@ public class TerrainChunkManager : MonoBehaviour, IManager
 
     [Header("References")]
     public Transform ChunkParent;
+    public GameObject ChunkPrefab;
+
 
     private Dictionary<Vector2Int, TerrainChunk> TerrainChunks = new Dictionary<Vector2Int, TerrainChunk>();
 
 
-    public TerrainChunk TryAddChunk(TerrainChunkData data, Material material, PhysicMaterial physics, int terrainLayer)
+    public TerrainChunk TryAddChunk(TerrainChunkData data)
     {
-        TerrainChunk chunk;
-
-        // Need to create new chunk
-        if (!TerrainChunkExists(data.Position))
+        if (TerrainChunks.TryGetValue(data.Position, out TerrainChunk c))
         {
-            // Create the chunk
-            chunk = new GameObject().AddComponent<TerrainChunk>();
-            chunk.Initialise(data.Position, data.Bounds, data, material, physics, ChunkParent, terrainLayer);
-            TerrainChunks.Add(data.Position, chunk);
-        }
-        // Just need to update some values
-        else
-        {
-            if (TerrainChunks.TryGetValue(data.Position, out TerrainChunk c))
-            {
-                // Update the chunk data 
-                c.UpdateChunkData(data);
-            }
-            chunk = c;
+            TerrainChunks.Remove(data.Position);
+            Destroy(c.gameObject);
         }
 
+        // Create the chunk
+        TerrainChunk chunk = Instantiate(ChunkPrefab).GetComponent<TerrainChunk>();
+        chunk.Initialise(data.Position, data.Bounds, data, ChunkParent);
+        TerrainChunks.Add(data.Position, chunk);
+        
         return chunk;
     }
 
