@@ -53,7 +53,7 @@ MeshCollider:
   m_Material: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0

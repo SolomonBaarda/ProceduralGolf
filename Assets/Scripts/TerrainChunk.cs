@@ -52,8 +52,6 @@ public class TerrainChunk : MonoBehaviour
 
         meshFilter.sharedMesh = MainMesh;
         meshCollider.sharedMesh = MainMesh;
-
-        meshCollider.convex = false;
     }
 
     public void SetVisible(bool visible)
@@ -65,6 +63,6 @@ public class TerrainChunk : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(Bounds.center, Bounds.size);
+        Gizmos.DrawWireCube(meshCollider.bounds.center, meshCollider.bounds.size);
     }
 }
