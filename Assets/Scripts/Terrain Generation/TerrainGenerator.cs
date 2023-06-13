@@ -616,8 +616,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForChunk(biomes, chunkSize, chunkSize, TextureSettings);
 
                 Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
-
-
                 Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
 
                 data.TryAdd(new Vector2Int(chunkX, chunkY), new ChunkData(meshData, textureData, biomes, chunkSize, chunkSize, new List<WorldObjectData>(), bounds));
@@ -628,16 +626,31 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         // SEQUENTIAL
 
-#if false
+        Dictionary<Vector2Int, Dictionary<GameObject, List<(Vector3, Vector3)>>> objectsForChunk = new Dictionary<Vector2Int, Dictionary<GameObject, List<(Vector3, Vector3)>>>();
 
         foreach (TerrainMap.WorldObjectData obj in map.WorldObjects)
         {
-            Vector2Int chunk = new Vector2Int(obj.ClosestIndexX / chunkSize, obj.ClosestIndexY / chunkSize);
+            TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int relative); 
 
             if (data.TryGetValue(chunk, out ChunkData value))
             {
+                if(!objectsForChunk.ContainsKey(chunk))
+                {
+                    objectsForChunk.Add(chunk, new Dictionary<GameObject, List<(Vector3, Vector3)>>());
+                }
 
-                value.WorldObjects.Add(obj);
+                var chunkObjects = objectsForChunk[chunk];
+
+                if(!chunkObjects.ContainsKey(obj.Prefab))
+                {
+                    chunkObjects.Add(obj.Prefab, new List<(Vector3, Vector3)>());
+                }
+
+                var objects = chunkObjects[obj.Prefab];
+
+                // TODO MESH Y
+
+                objects.Add((obj.LocalPosition, obj.Rotation));
             }
             else
             {
@@ -645,46 +658,23 @@ public class TerrainGenerator : MonoBehaviour, IManager
             }
         }
 
-        ForEach(data, (KeyValuePair<Vector2Int, ChunkData> d) =>
+        foreach(var objects in objectsForChunk)
         {
-            //#if false
-
-            // Update the world object data
-            Dictionary<GameObject, List<(Vector3, Vector3)>> worldObjectDictionary = new Dictionary<GameObject, List<(Vector3, Vector3)>>();
-            foreach (TerrainMap.WorldObjectData w in d.TerrainMap.WorldObjects)
+            if (data.TryGetValue(objects.Key, out ChunkData chunk))
             {
-                if (!worldObjectDictionary.TryGetValue(w.Prefab, out List<(Vector3, Vector3)> positions))
+                foreach(var obj in objects.Value)
                 {
-                    positions = new List<(Vector3, Vector3)>();
+                    chunk.WorldObjects.Add(new WorldObjectData() { Prefab = obj.Key, WorldPositionsAndRotations = obj.Value });
                 }
-
-                Vector3 world = d.TerrainMap.Bounds.min + w.LocalPosition;
-                world.y = d.MeshData.Vertices[(w.ClosestIndexY * d.TerrainMap.Width) + w.ClosestIndexX].y;
-
-                // Add the new position
-                positions.Add((world, w.Rotation));
-                worldObjectDictionary[w.Prefab] = positions;
             }
-            // Now add the data to the correct objects
-            List<WorldObjectData> worldObjects = new List<WorldObjectData>();
-            foreach (KeyValuePair<GameObject, List<(Vector3, Vector3)>> pair in worldObjectDictionary)
+            else
             {
-                worldObjects.Add(new WorldObjectData()
-                {
-                    Prefab = pair.Key,
-                    WorldPositions = pair.Value,
-                });
+                Debug.LogError("ERROR");
             }
-
-
-
-
-        });
-
-#endif
+                
+        }
 
         return data;
-
     }
 
 

@@ -97,6 +97,8 @@ public class TerrainManager : MonoBehaviour, IManager
         Clear();
         IsLoading = true;
 
+        Vector3 worldObjOffset = new Vector3(TerrainChunkManager.ChunkSizeWorldUnits / 2, 0, TerrainChunkManager.ChunkSizeWorldUnits / 2);
+
         // Load terrain
         foreach (TerrainChunkData chunk in data.Chunks)
         {
@@ -106,9 +108,9 @@ public class TerrainManager : MonoBehaviour, IManager
             // And instantiate all objects
             foreach (WorldObjectData worldObjectData in chunk.WorldObjects)
             {
-                foreach ((Vector3, Vector3) worldPosition in worldObjectData.WorldPositions)
+                foreach ((Vector3, Vector3) worldPosition in worldObjectData.WorldPositionsAndRotations)
                 {
-                    Instantiate(worldObjectData.Prefab, worldPosition.Item1, Quaternion.Euler(worldPosition.Item2), c.transform);
+                    Instantiate(worldObjectData.Prefab, worldPosition.Item1 - worldObjOffset, Quaternion.Euler(worldPosition.Item2), c.transform);
                 }
             }
 

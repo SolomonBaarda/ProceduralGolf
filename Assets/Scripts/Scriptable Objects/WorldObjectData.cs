@@ -10,5 +10,5 @@ public class WorldObjectData
     /// <summary>
     /// Position and rotation
     /// </summary>
-    public List<(Vector3, Vector3)> WorldPositions;
+    public List<(Vector3, Vector3)> WorldPositionsAndRotations;
 }

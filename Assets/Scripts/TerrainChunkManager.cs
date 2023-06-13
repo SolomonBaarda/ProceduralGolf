@@ -91,22 +91,6 @@ public class TerrainChunkManager : MonoBehaviour, IManager
         return new Vector3((chunk.x * ChunkSizeWorldUnits) + half, 0, (chunk.y * ChunkSizeWorldUnits) + half);
     }
 
-
-    public static Bounds CalculateTerrainChunkBounds(Vector2Int chunk)
-    {
-        return new Bounds(CalculateTerrainChunkCentreWorld(chunk), new Vector3(ChunkSizeWorldUnits, 0, ChunkSizeWorldUnits));
-    }
-
-    public static Vector2Int WorldToChunk(Vector3 worldPos)
-    {
-        float rawX = worldPos.x / ChunkSizeWorldUnits, rawY = worldPos.z / ChunkSizeWorldUnits;
-
-        // Negative positions must be shifted by -1 chunks direction
-        int chunkX = rawX < 0 ? (int)rawX - 1 : (int)rawX, chunkY = rawY < 0 ? (int)rawY - 1 : (int)rawY;
-        return new Vector2Int(chunkX, chunkY);
-    }
-
-
     public void Clear()
     {
         // Clear all the chunks
