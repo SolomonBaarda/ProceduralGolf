@@ -339,8 +339,6 @@ MonoBehaviour:
   GolfBall: {fileID: 5612774800490992908}
   NextHoleBeacon: {fileID: 1041538519}
   NextHoleFlag: {fileID: 642023517}
-  MaterialGrass: {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
-  PhysicsGrass: {fileID: 13400000, guid: 65093a59255c38043aa10ffdcaeeb2c2, type: 2}
 --- !u!114 &187293245
 MonoBehaviour:
   m_ObjectHideFlags: 0

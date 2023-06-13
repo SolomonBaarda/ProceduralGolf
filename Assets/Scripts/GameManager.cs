@@ -56,6 +56,9 @@ public class GameManager : MonoBehaviour, IManager
         {
             g.SetActive(false);
         }
+
+
+
     }
 
     public void SetVisible(bool visible)

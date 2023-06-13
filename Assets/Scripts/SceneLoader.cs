@@ -11,7 +11,7 @@ public class SceneLoader : MonoBehaviour
 
 
     public GameManager GameManager { get; private set; }
-    public HUD HUD { get; private set; }
+    public HUD HUD { get; set; }
     public MainMenu MainMenu { get; private set; }
 
 
@@ -27,7 +27,7 @@ public class SceneLoader : MonoBehaviour
 
     private IEnumerator WaitForScenesToLoad()
     {
-        LoadSceneParameters p = new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D);
+        LoadSceneParameters p = new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.None);
 
         AsyncOperation game = SceneManager.LoadSceneAsync(GameSceneName, p);
         AsyncOperation hud = SceneManager.LoadSceneAsync(HUDSceneName, p);
