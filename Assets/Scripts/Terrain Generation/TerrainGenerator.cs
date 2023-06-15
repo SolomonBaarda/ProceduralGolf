@@ -125,9 +125,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         GenerateNoise(map, offset, distanceBetweenNoiseSamples, out float minHeight, out float maxHeight);
 
-        Logger.Log($"*Noise pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
-        lastTimestamp = DateTime.Now;
-
 
         // Use height curve to calculate new height distribution
         AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
@@ -150,7 +147,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             map.Heights[index] *= TerrainSettings.HeightMultiplier;
         });
 
-        Logger.Log($"*Renorm pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        Logger.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
 
 
@@ -162,7 +159,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples, map.Height * distanceBetweenNoiseSamples));
 
 
-        Logger.Log($"*Procedural objects: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        Logger.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
 
         // Now subdivide the data into chunks
@@ -172,10 +169,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
         ConcurrentDictionary<Vector2Int, ChunkData> data = SplitIntoChunks(map, chunkSize, offset, distanceBetweenNoiseSamples);
-
-
-        Logger.Log($"*Chunking pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
-        lastTimestamp = DateTime.Now;
 
 
         List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, data, chunkSize, 100, chunkSize / 8);
@@ -207,7 +200,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             }
         }
 
-        Logger.Log($"*Course pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        Logger.Log($"* Generated chunk data in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
 
 
@@ -235,8 +228,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             terrainChunks.Add(new TerrainChunkData(d.Key, d.Value.Bounds, d.Value.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
         }
 
-        Logger.Log($"*Create mesh pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
-        lastTimestamp = DateTime.Now;
+
 
         // TODO in next version
         // Add map perview before actually generating the course
@@ -250,14 +242,11 @@ public class TerrainGenerator : MonoBehaviour, IManager
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
         terrain.SetData(CurrentSettings.Seed, terrainChunks, courses, TerrainSettings.name);
 
-
-        Logger.Log($"*End pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        Logger.Log($"* Generated meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
 
 
-
-        double totalTime = (DateTime.Now - startTimestamp).TotalSeconds;
-        string message = $"Finished generating terrain. Completed in {totalTime.ToString("0.0")} seconds";
+        string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
         Logger.Log(message);
 
         IsGenerating = false;

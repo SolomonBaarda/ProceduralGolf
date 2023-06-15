@@ -14,16 +14,6 @@ public class Logger : MonoBehaviour
         messages.Enqueue(message);
     }
 
-    public static void LogTerrainGenerationStartPass(int pass, string message)
-    {
-
-    }
-
-    public static void LogTerrainGenerationFinishPass(int pass, double totalDurationSeconds)
-    {
-        Log($"* Completed pass {pass} in {totalDurationSeconds:0.0} seconds.");
-    }
-
     private void Update()
     {
         // Handle messages in the main thread
