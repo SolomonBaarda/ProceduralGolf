@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8d50202f2395ee43855d310482cbefb, type: 3}
   m_Name: Woodland
   m_EditorClassIdentifier: 
-  NumChunksToGenerateSize: 5
-  UseCurve: 1
+  NumChunksToGenerateSize: 10
+  UseHeightDistributionCurve: 0
   HeightDistribution:
     serializedVersion: 2
     m_Curve:

@@ -6,8 +6,8 @@ using UnityEngine;
 public class TerrainSettings : VariablePreset
 {
     [Header("Main Settings")]
-    [Range(1, 10)]
-    public int NumChunksToGenerateSize = 5;
+    [Min(1)]
+    public int NumChunksToGenerateSize = 10;
 
     public bool UseHeightDistributionCurve = false;
     public AnimationCurve HeightDistribution;
@@ -35,7 +35,7 @@ public class TerrainSettings : VariablePreset
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
     /// </summary>
-    public readonly int SamplePointFrequency = 241;
+    public readonly int SamplePointFrequency = 121;
 
     public readonly int GreenMinVertexCount = 5000;
 
