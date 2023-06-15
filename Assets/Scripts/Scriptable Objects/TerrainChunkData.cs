@@ -11,6 +11,7 @@ public class TerrainChunkData
 
     [SerializeField] public Texture2D BiomeColourMap;
     [SerializeField] public Mesh MainMesh;
+    public int MainMeshID; // Used for parallel mesh baking
 
 
     public int Width, Height;
@@ -26,6 +27,7 @@ public class TerrainChunkData
 
         BiomeColourMap = colourMap;
         MainMesh = main;
+        MainMeshID = main.GetInstanceID();
 
         Width = biomesWidth;
         Height = biomesHeight;

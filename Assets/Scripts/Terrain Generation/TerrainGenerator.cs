@@ -6,10 +6,12 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 public class TerrainGenerator : MonoBehaviour, IManager
 {
@@ -165,19 +167,14 @@ public class TerrainGenerator : MonoBehaviour, IManager
         lastTimestamp = DateTime.Now;
         yield return null;
 
-
-        // Now subdivide the data into chunks
-        // Now Calculate the mesh data for the chunk
-
+        // Now subdivide the data into chunks and calculate the mesh data
         int chunkSize = TerrainSettings.SamplePointFrequency;
-
-
         ConcurrentDictionary<Vector2Int, ChunkData> data = SplitIntoChunks(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
+        // Partially sequential
+        List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, chunkSize, 100, chunkSize / 8);
 
-        List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, data, chunkSize, 100, chunkSize / 8);
         List<CourseData> courses = new List<CourseData>();
-
         System.Random r = new System.Random(0);
 
         foreach (Tuple<Vector2Int, Vector2Int> startEnd in coursesStartEnd)
@@ -233,6 +230,11 @@ public class TerrainGenerator : MonoBehaviour, IManager
             terrainChunks.Add(new TerrainChunkData(d.Key, d.Value.Bounds, d.Value.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
         }
 
+        // Bake the mesh physics in parallel
+        ForEach(terrainChunks, (chunk) =>
+        {
+            Physics.BakeMesh(chunk.MainMeshID, false);
+        });
 
 
         // TODO in next version
@@ -482,12 +484,11 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// </summary>
     /// <param name="map"></param>
     /// <param name="greens"></param>
-    private List<Tuple<Vector2Int, Vector2Int>> CalculateCourses(TerrainMap map, int seed, ConcurrentDictionary<Vector2Int, ChunkData> data, int chunkSize, int numAttemptsToChooseRandomPositions = 100, int precisionStep = 1)
+    private List<Tuple<Vector2Int, Vector2Int>> CalculateCourses(TerrainMap map, int seed, int chunkSize, int numAttemptsToChooseRandomPositions = 100, int precisionStep = 1)
     {
         // SEQUENTIAL
 
         // First use flood fill to calculate the courses
-
         List<List<Vector2Int>> coursePoints = new List<List<Vector2Int>>();
         bool[] checkedFloodFill = new bool[map.Width * map.Height];
 
@@ -641,6 +642,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         Dictionary<Vector2Int, Dictionary<GameObject, List<(Vector3, Vector3)>>> objectsForChunk = new Dictionary<Vector2Int, Dictionary<GameObject, List<(Vector3, Vector3)>>>();
 
+        // TODO BETTER PERFORMANCE:
         foreach (TerrainMap.WorldObjectData obj in map.WorldObjects)
         {
             TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int relative); 
