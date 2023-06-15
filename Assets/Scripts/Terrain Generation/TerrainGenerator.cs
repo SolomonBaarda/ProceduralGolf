@@ -24,7 +24,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
     public bool IsGenerating { get; private set; } = false;
 
-    public void Generate(GenerationSettings settings, int initialGenerationRadius, GameManager.CourseGenerated callback)
+    public void Generate(GenerationSettings settings, GameManager.CourseGenerated callback)
     {
         if (IsGenerating)
         {
@@ -44,7 +44,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         CurrentSettings = settings;
 
-        WaitForGenerate(initialGenerationRadius, callback);
+        WaitForGenerate(callback);
     }
 
 
@@ -86,7 +86,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 #endif
     }
 
-    private void WaitForGenerate(int initialGenerationRadius, GameManager.CourseGenerated callback)
+    private void WaitForGenerate(GameManager.CourseGenerated callback)
     {
         Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
 
@@ -112,7 +112,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
         // Construct the terrain map for the whole course
-        TerrainMap map = new TerrainMap(initialGenerationRadius * 2 * TerrainSettings.SamplePointFrequency, initialGenerationRadius * 2 * TerrainSettings.SamplePointFrequency);
+        int size = TerrainSettings.NumChunksToGenerateSize * TerrainSettings.SamplePointFrequency;
+        TerrainMap map = new TerrainMap(size, size);
 
         Vector2 offset = Vector2.zero;
         float distanceBetweenNoiseSamples = TerrainChunkManager.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);

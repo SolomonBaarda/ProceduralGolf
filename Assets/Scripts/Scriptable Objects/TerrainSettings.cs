@@ -6,6 +6,7 @@ using UnityEngine;
 public class TerrainSettings : VariablePreset
 {
     [Header("Main Settings")]
+    public int NumChunksToGenerateSize = 5;
     public bool UseCurve = false;
     public AnimationCurve HeightDistribution;
     public float HeightMultiplier = 1;

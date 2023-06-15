@@ -30,8 +30,8 @@ public class GameManager : MonoBehaviour, IManager
     [Header("Terrain settings")]
     public TerrainGenerationMethod TerrainMode;
     private Gamerule Gamerules;
-    private static readonly Gamerule Testing = new Gamerule(false, 3, 0, false, false);
-    private static readonly Gamerule FixedArea = new Gamerule(true, 3, TerrainChunkManager.ChunkSizeWorldUnits * 2, true, true);
+    private static readonly Gamerule Testing = new Gamerule(false, 3, false, false);
+    private static readonly Gamerule FixedArea = new Gamerule(true, 3, true, true);
 
     public delegate void CourseGenerated(TerrainData data);
     public delegate void PreviewGenerated(Texture2D map);
@@ -111,7 +111,7 @@ public class GameManager : MonoBehaviour, IManager
         }
 
         // Now generate the terrain
-        TerrainGenerator.Generate(settings, Gamerules.InitialGenerationRadius, LoadTerrain);
+        TerrainGenerator.Generate(settings, LoadTerrain);
     }
 
     private void LoadTerrain(TerrainData data)
@@ -353,16 +353,14 @@ public class GameManager : MonoBehaviour, IManager
     public struct Gamerule
     {
         public bool HideFarChunks;
-        public int InitialGenerationRadius;
         public float ViewDistanceWorldUnits;
 
         public bool UseHUD;
         public bool UseGolfBall;
 
-        public Gamerule(bool hideFarChunks, int radius, float viewDistance, bool HUD, bool ball)
+        public Gamerule(bool hideFarChunks, float viewDistance, bool HUD, bool ball)
         {
             HideFarChunks = hideFarChunks;
-            InitialGenerationRadius = radius;
             ViewDistanceWorldUnits = viewDistance;
             UseHUD = HUD;
             UseGolfBall = ball;
