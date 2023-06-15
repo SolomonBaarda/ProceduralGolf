@@ -173,7 +173,7 @@ MonoBehaviour:
     - LayerIndex: 1
       NoiseThresholdMin: 0.5
       NoiseThresholdMax: 0.7
-  Greens:
+  Course:
   - Do: 1
     RequiredBiomes: 030000000400000005000000
     UseMask: 1

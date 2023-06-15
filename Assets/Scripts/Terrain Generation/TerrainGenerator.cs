@@ -301,7 +301,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         // Get all the noise layers for the terrain
         For(0, TerrainSettings.TerrainLayers.Count, (int index) =>
             {
-                TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[index];
+                TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[index];
 
                 // Only generate the noise if this layer uses it
                 //if (!layerSettings.ShareOtherLayerNoise)
@@ -341,7 +341,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
             for (int layerIndex = 0; layerIndex < map.Layers.Count; layerIndex++)
             {
-                TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[layerIndex];
+                TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[layerIndex];
                 TerrainMap.Layer currentLayer = map.Layers[layerIndex];
 
                 // Set the reference to be another layer if we are sharing noise
@@ -369,7 +369,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                     {
                         for (int layerMaskIndex = 0; layerMaskIndex < layerSettings.Masks.Count; layerMaskIndex++)
                         {
-                            TerrainSettings.Layer mask = TerrainSettings.TerrainLayers[layerSettings.Masks[layerMaskIndex].LayerIndex];
+                            TerrainSettings.LayerSettings mask = TerrainSettings.TerrainLayers[layerSettings.Masks[layerMaskIndex].LayerIndex];
                             TerrainMap.Layer maskValues = map.Layers[layerSettings.Masks[layerMaskIndex].LayerIndex];
                             // Mask is not valid here
                             if (
@@ -395,22 +395,22 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
                         switch (layerSettings.CombinationMode)
                         {
-                            case TerrainSettings.Layer.Mode.Add:
+                            case TerrainSettings.LayerSettings.Mode.Add:
                                 map.Heights[index] += value;
                                 break;
-                            case TerrainSettings.Layer.Mode.Subtract:
+                            case TerrainSettings.LayerSettings.Mode.Subtract:
                                 map.Heights[index] -= value;
                                 break;
-                            case TerrainSettings.Layer.Mode.Divide:
+                            case TerrainSettings.LayerSettings.Mode.Divide:
                                 map.Heights[index] /= value;
                                 break;
-                            case TerrainSettings.Layer.Mode.Multiply:
+                            case TerrainSettings.LayerSettings.Mode.Multiply:
                                 map.Heights[index] *= value;
                                 break;
-                            case TerrainSettings.Layer.Mode.Modulus:
+                            case TerrainSettings.LayerSettings.Mode.Modulus:
                                 map.Heights[index] %= value;
                                 break;
-                            case TerrainSettings.Layer.Mode.Set:
+                            case TerrainSettings.LayerSettings.Mode.Set:
                                 map.Heights[index] = value;
                                 break;
                         }
@@ -436,7 +436,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             map.Greens[index] = false;
 
             // Set the green boolean flood array
-            foreach (TerrainSettings.Green g in TerrainSettings.Greens)
+            foreach (TerrainSettings.CourseSettings g in TerrainSettings.Course)
             {
                 if (g.Do && g.RequiredBiomes.Contains(map.Biomes[index]))
                 {
@@ -448,7 +448,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                         {
                             TerrainMap.Layer layer = map.Layers[greenLayerMask.LayerIndex];
 
-                            TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[greenLayerMask.LayerIndex];
+                            TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[greenLayerMask.LayerIndex];
 
                             // Set the reference to be another layer if we are sharing noise
                             if (layerSettings.ShareOtherLayerNoise)
@@ -703,7 +703,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         // Loop through each position
         foreach (Vector2 pos in localPositions)
         {
-            TerrainSettings.ProceduralObject attempt = TerrainSettings.ProceduralObjects[r.Next(0, TerrainSettings.ProceduralObjects.Count)];
+            TerrainSettings.ObjectSettings attempt = TerrainSettings.ProceduralObjects[r.Next(0, TerrainSettings.ProceduralObjects.Count)];
 
             if (attempt.Do && r.NextDouble() <= attempt.Chance)
             {

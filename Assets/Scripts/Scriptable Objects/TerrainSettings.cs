@@ -14,16 +14,16 @@ public class TerrainSettings : VariablePreset
     public bool ForceMinHeightZero = true;
 
     [Header("Terrain Layers")]
-    public List<Layer> TerrainLayers = new List<Layer>();
+    public List<LayerSettings> TerrainLayers = new List<LayerSettings>();
 
     [Header("Procedural Objects")]
     [Range(1, 10)]
     public int PoissonSamplingIterations = 5;
     public float PoissonSamplingRadius = 1;
-    public List<ProceduralObject> ProceduralObjects;
+    public List<ObjectSettings> ProceduralObjects;
 
-    [Header("Greens")]
-    public List<Green> Greens;
+    [Header("Course")]
+    public List<CourseSettings> Course;
 
     [Header("Holes")]
     public float MinDistanceBetweenHoles = 100;
@@ -45,7 +45,7 @@ public class TerrainSettings : VariablePreset
 
 
     [Serializable]
-    public class Layer
+    public class LayerSettings
     {
         [Header("Conditions")]
         public bool Apply = true;
@@ -81,7 +81,7 @@ public class TerrainSettings : VariablePreset
     }
 
     [Serializable]
-    public class ProceduralObject
+    public class ObjectSettings
     {
         public bool Do = true;
         public List<Biome.Type> RequiredBiomes;
@@ -95,7 +95,7 @@ public class TerrainSettings : VariablePreset
     }
 
     [Serializable]
-    public class Green
+    public class CourseSettings
     {
         public bool Do = true;
         public List<Biome.Type> RequiredBiomes;
