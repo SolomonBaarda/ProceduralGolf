@@ -24,6 +24,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
     public bool IsGenerating { get; private set; } = false;
 
+    private const float WorldObjectYOffset = 0.2f;
+
     public void Generate(GenerationSettings settings, GameManager.CourseGenerated callback)
     {
         if (IsGenerating)
@@ -127,18 +129,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
         lastTimestamp = DateTime.Now;
 
 
-        // SEQUENTIAL
-
-        // Now that biomes have been assigned, we can calculate the procedural object positions
-        map.WorldObjects = !atLeastOneObject ?
-            new List<TerrainMap.WorldObjectData>() :
-            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples, map.Height * distanceBetweenNoiseSamples));
-
-
-        Logger.Log($"*Procedural objects: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
-        lastTimestamp = DateTime.Now;
-
-
         // Use height curve to calculate new height distribution
         AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
         float maxMinusMin = maxHeight - minHeight;
@@ -164,6 +154,16 @@ public class TerrainGenerator : MonoBehaviour, IManager
         lastTimestamp = DateTime.Now;
 
 
+        // SEQUENTIAL
+
+        // Now that biomes have been assigned, we can calculate the procedural object positions
+        map.WorldObjects = !atLeastOneObject ?
+            new List<TerrainMap.WorldObjectData>() :
+            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples, map.Height * distanceBetweenNoiseSamples));
+
+
+        Logger.Log($"*Procedural objects: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        lastTimestamp = DateTime.Now;
 
         // Now subdivide the data into chunks
         // Now Calculate the mesh data for the chunk
@@ -673,8 +673,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
                 var objects = chunkObjects[obj.Prefab];
 
-                // TODO MESH Y
-
                 objects.Add((obj.LocalPosition, obj.Rotation));
             }
             else
@@ -720,7 +718,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
             {
                 if (Utils.GetClosestIndex(pos, Vector2.zero, worldBoundsSize, map.Width, map.Height, out int x, out int y))
                 {
-                    Biome.Type biome = map.Biomes[(y * map.Width) + x];
+                    int terrainMapIndex = (y * map.Width) + x;
+                    Biome.Type biome = map.Biomes[terrainMapIndex];
 
                     // The biome for this position is valid
                     if (attempt.RequiredBiomes.Contains(biome))
@@ -731,10 +730,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
                         {
                             for (int j = 0; j < attempt.Masks.Count; j++)
                             {
-                                int index = (y * map.Width) + x;
                                 TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
                                 // Mask is not valid here
-                                if (!(maskValues.Noise[index] >= attempt.Masks[j].NoiseThresholdMin && maskValues.Noise[index] <= attempt.Masks[j].NoiseThresholdMax))
+                                if (!(maskValues.Noise[terrainMapIndex] >= attempt.Masks[j].NoiseThresholdMin && 
+                                    maskValues.Noise[terrainMapIndex] <= attempt.Masks[j].NoiseThresholdMax))
                                 {
                                     maskvalid = false;
                                     break;
@@ -747,7 +746,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                             // If we get here then this object must be valid at the position
                             worldObjects.Add(new TerrainMap.WorldObjectData()
                             {
-                                LocalPosition = new Vector3(pos.x, 0, pos.y),
+                                LocalPosition = new Vector3(pos.x, map.Heights[terrainMapIndex] - WorldObjectYOffset, pos.y),
                                 Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
                                 Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
                                 ClosestIndexX = x,
