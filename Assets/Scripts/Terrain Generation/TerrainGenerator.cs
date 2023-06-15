@@ -121,7 +121,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
 
-        GenerateNoise(map, offset, distanceBetweenNoiseSamples);
+        GenerateNoise(map, offset, distanceBetweenNoiseSamples, out float minHeight, out float maxHeight);
 
         Logger.Log($"*Noise pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
         lastTimestamp = DateTime.Now;
@@ -135,35 +135,28 @@ public class TerrainGenerator : MonoBehaviour, IManager
             GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples, map.Height * distanceBetweenNoiseSamples));
 
 
-        Logger.Log($"*SEQ pass: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
+        Logger.Log($"*Procedural objects: {(DateTime.Now - lastTimestamp).TotalSeconds} seconds");
         lastTimestamp = DateTime.Now;
 
 
-        // TEMP TODO Find the min and max heights from the terrain map
-        float minHeight = map.Heights[0];
-        float maxHeight = minHeight;
-        foreach (float height in map.Heights)
-        {
-            if (height > maxHeight) { maxHeight = height; }
-            if (height < minHeight) { minHeight = height; }
-        }
-
-        // SEQUENTIAL
-
-        // Normalise the height map
-        map.NormaliseHeights(minHeight, maxHeight);
-
         // Use height curve to calculate new height distribution
         AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
+        float maxMinusMin = maxHeight - minHeight;
+
 
         // Now calculate the final height for the vertex
         For(0, map.Heights.Length, (int index) =>
         {
-            if (TerrainSettings.UseCurve)
+            // Normalise the height
+            map.Heights[index] = (map.Heights[index] - minHeight) / maxMinusMin;
+
+            // Apply the curve
+            if (TerrainSettings.UseHeightDistributionCurve)
             {
                 map.Heights[index] = threadSafe.Evaluate(map.Heights[index]);
             }
 
+            // And scale by a fixed value
             map.Heights[index] *= TerrainSettings.HeightMultiplier;
         });
 
@@ -291,7 +284,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// <param name="map"></param>
     /// <param name="offset"></param>
     /// <param name="distanceBetweenNoiseSamples"></param>
-    private void GenerateNoise(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples)
+    private void GenerateNoise(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples, out float minHeight, out float maxHeight)
     {
         for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
         {
@@ -475,6 +468,24 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 }
             }
         });
+
+        // TODO PARALLELISE:
+
+        minHeight = map.Heights[0];
+        maxHeight = minHeight;
+
+        foreach(float height in map.Heights) 
+        {
+            if(height < minHeight)
+            {
+                minHeight = height;
+            }
+
+            if(height > maxHeight)
+            {
+                maxHeight = height;
+            }
+        }
     }
 
 

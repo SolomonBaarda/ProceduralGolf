@@ -6,26 +6,28 @@ using UnityEngine;
 public class TerrainSettings : VariablePreset
 {
     [Header("Main Settings")]
+    [Range(1, 10)]
     public int NumChunksToGenerateSize = 5;
-    public bool UseCurve = false;
+
+    public bool UseHeightDistributionCurve = false;
     public AnimationCurve HeightDistribution;
-    public float HeightMultiplier = 1;
+
+    public float HeightMultiplier = 1.0f;
     public Biome.Type MainBiome;
     public bool ForceMinHeightZero = true;
 
-    [Header("Terrain Layers")]
+    [Header("Terrain Layer Settings")]
     public List<LayerSettings> TerrainLayers = new List<LayerSettings>();
 
-    [Header("Procedural Objects")]
+    [Header("Procedural Object Settings")]
     [Range(1, 10)]
     public int PoissonSamplingIterations = 5;
     public float PoissonSamplingRadius = 1;
     public List<ObjectSettings> ProceduralObjects;
 
-    [Header("Course")]
+    [Header("Course Settings")]
     public List<CourseSettings> Course;
 
-    [Header("Holes")]
     public float MinDistanceBetweenHoles = 100;
     public int AreaToCheckValidHoleBiome = 2;
     public List<Biome.Type> ValidHoleBiomes;

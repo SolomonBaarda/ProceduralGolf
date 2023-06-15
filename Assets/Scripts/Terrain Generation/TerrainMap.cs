@@ -33,12 +33,6 @@ public class TerrainMap
         Greens = new bool[size];
     }
 
-    public void NormaliseHeights(float min, float max)
-    {
-        //Logger.Log("final layer with min: " + min + " max: " + max);
-        Noise.NormaliseNoise(ref Heights, min, max);
-    }
-
 
     public class Layer
     {
