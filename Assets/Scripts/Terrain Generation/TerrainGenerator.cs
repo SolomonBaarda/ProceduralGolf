@@ -5,13 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using Unity.Collections;
-using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.XR;
 
 public class TerrainGenerator : MonoBehaviour, IManager
 {
@@ -311,149 +305,159 @@ public class TerrainGenerator : MonoBehaviour, IManager
             });
 
         // Now calculate the actual heights from the noise and the biomes
-        For(0, map.Heights.Length, (int index) =>
+        For(0, map.Height, (int y) =>
         {
-            // Set the default biome and height
-            map.Biomes[index] = TerrainSettings.MainBiome;
-            map.Heights[index] = 0.0f;
-
-            Vector2Int directionToCentre = new Vector2Int(index % map.Width, index / map.Width) - new Vector2Int(map.Width / 2, map.Height / 2);
-            float distanceFalloffRadius = Math.Min(map.Width, map.Height) / 2.0f;
-            // 0 - 1 value 
-            float distanceFromCentreScaled = Math.Clamp(directionToCentre.sqrMagnitude / (distanceFalloffRadius * distanceFalloffRadius), 0.0f, 1.0f);
-
-            for (int layerIndex = 0; layerIndex < map.Layers.Count; layerIndex++)
+            List<AnimationCurve> threadSafeCurves = new List<AnimationCurve>();
+            for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
             {
-                TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[layerIndex];
-                TerrainMap.Layer currentLayer = map.Layers[layerIndex];
-
-                // Set the reference to be another layer if we are sharing noise
-                if (layerSettings.ShareOtherLayerNoise)
-                {
-                    currentLayer = map.Layers[layerSettings.LayerIndexShareNoise];
-                }
-
-                // Scale noise according to the distance from the origin
-                if(layerSettings.UseDistanceFromOriginCurve)
-                {
-                    // TODO maybe use copy of curve?
-                    currentLayer.Noise[index] *= layerSettings.DistanceFromOriginCurve.Evaluate(distanceFromCentreScaled);
-                }
-
-                if (
-                    layerSettings.Apply &&
-                    currentLayer.Noise[index] >= layerSettings.NoiseThresholdMin &&
-                    currentLayer.Noise[index] <= layerSettings.NoiseThresholdMax
-                )
-                {
-                    // Check that the mask is valid if we are using it 
-                    bool maskvalid = true;
-                    if (layerSettings.UseMask)
-                    {
-                        for (int layerMaskIndex = 0; layerMaskIndex < layerSettings.Masks.Count; layerMaskIndex++)
-                        {
-                            TerrainSettings.LayerSettings mask = TerrainSettings.TerrainLayers[layerSettings.Masks[layerMaskIndex].LayerIndex];
-                            TerrainMap.Layer maskValues = map.Layers[layerSettings.Masks[layerMaskIndex].LayerIndex];
-                            // Mask is not valid here
-                            if (
-                                !(maskValues.Noise[index] >= layerSettings.Masks[layerMaskIndex].NoiseThresholdMin &&
-                                maskValues.Noise[index] <= layerSettings.Masks[layerMaskIndex].NoiseThresholdMax)
-                            )
-                            {
-                                maskvalid = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!layerSettings.UseMask || maskvalid)
-                    {
-                        // None biome layer will not effect the final biome
-                        if (layerSettings.Biome != Biome.Type.None)
-                        {
-                            map.Biomes[index] = layerSettings.Biome;
-                        }
-
-                        float value = currentLayer.Noise[index] * layerSettings.Multiplier ;
-
-                        switch (layerSettings.CombinationMode)
-                        {
-                            case TerrainSettings.LayerSettings.Mode.Add:
-                                map.Heights[index] += value;
-                                break;
-                            case TerrainSettings.LayerSettings.Mode.Subtract:
-                                map.Heights[index] -= value;
-                                break;
-                            case TerrainSettings.LayerSettings.Mode.Divide:
-                                map.Heights[index] /= value;
-                                break;
-                            case TerrainSettings.LayerSettings.Mode.Multiply:
-                                map.Heights[index] *= value;
-                                break;
-                            case TerrainSettings.LayerSettings.Mode.Modulus:
-                                map.Heights[index] %= value;
-                                break;
-                            case TerrainSettings.LayerSettings.Mode.Set:
-                                map.Heights[index] = value;
-                                break;
-                        }
-
-                        // Clamp height to zero after this layer has been applied
-                        if (layerSettings.ClampHeightToZero && map.Heights[index] < 0.0f)
-                        {
-                            map.Heights[index] = 0.0f;
-                        }
-                    }
-                }
+                threadSafeCurves.Add(new AnimationCurve(TerrainSettings.TerrainLayers[i].DistanceFromOriginCurve.keys));
             }
 
-            // Ensure height map can't go below 0
-            if (TerrainSettings.ForceMinHeightZero && map.Heights[index] < 0.0f)
+            for (int x = 0; x < map.Width; x++)
             {
-                map.Heights[index] = 0;
-            }
+                int index = y * map.Width + x;
 
+                // Set the default biome and height
+                map.Biomes[index] = TerrainSettings.MainBiome;
+                map.Heights[index] = 0.0f;
 
+                Vector2Int directionToCentre = new Vector2Int(x, y) - new Vector2Int(map.Width / 2, map.Height / 2);
+                float distanceFalloffRadius = Math.Min(map.Width, map.Height) / 2.0f;
+                // 0 - 1 value 
+                float distanceFromCentreScaled = Math.Clamp(directionToCentre.sqrMagnitude / (distanceFalloffRadius * distanceFalloffRadius), 0.0f, 1.0f);
 
-            // Calculate if this point can be a green
-            map.Greens[index] = false;
-
-            // Set the green boolean flood array
-            foreach (TerrainSettings.CourseSettings g in TerrainSettings.Course)
-            {
-                if (g.Do && g.RequiredBiomes.Contains(map.Biomes[index]))
+                for (int layerIndex = 0; layerIndex < map.Layers.Count; layerIndex++)
                 {
-                    // Check that the mask is valid if we are using it 
-                    bool maskvalid = true;
-                    if (g.UseMask)
+                    TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[layerIndex];
+                    TerrainMap.Layer currentLayer = map.Layers[layerIndex];
+
+                    // Set the reference to be another layer if we are sharing noise
+                    if (layerSettings.ShareOtherLayerNoise)
                     {
-                        foreach (TerrainSettings.Mask greenLayerMask in g.Masks)
+                        currentLayer = map.Layers[layerSettings.LayerIndexShareNoise];
+                    }
+
+                    // Scale noise according to the distance from the origin
+                    if (layerSettings.UseDistanceFromOriginCurve)
+                    {
+                        currentLayer.Noise[index] *= threadSafeCurves[layerIndex].Evaluate(distanceFromCentreScaled);
+                    }
+
+                    if (
+                        layerSettings.Apply &&
+                        currentLayer.Noise[index] >= layerSettings.NoiseThresholdMin &&
+                        currentLayer.Noise[index] <= layerSettings.NoiseThresholdMax
+                    )
+                    {
+                        // Check that the mask is valid if we are using it 
+                        bool maskvalid = true;
+                        if (layerSettings.UseMask)
                         {
-                            TerrainMap.Layer layer = map.Layers[greenLayerMask.LayerIndex];
-
-                            TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[greenLayerMask.LayerIndex];
-
-                            // Set the reference to be another layer if we are sharing noise
-                            if (layerSettings.ShareOtherLayerNoise)
+                            for (int layerMaskIndex = 0; layerMaskIndex < layerSettings.Masks.Count; layerMaskIndex++)
                             {
-                                layer = map.Layers[layerSettings.LayerIndexShareNoise];
+                                TerrainSettings.LayerSettings mask = TerrainSettings.TerrainLayers[layerSettings.Masks[layerMaskIndex].LayerIndex];
+                                TerrainMap.Layer maskValues = map.Layers[layerSettings.Masks[layerMaskIndex].LayerIndex];
+                                // Mask is not valid here
+                                if (
+                                    !(maskValues.Noise[index] >= layerSettings.Masks[layerMaskIndex].NoiseThresholdMin &&
+                                    maskValues.Noise[index] <= layerSettings.Masks[layerMaskIndex].NoiseThresholdMax)
+                                )
+                                {
+                                    maskvalid = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!layerSettings.UseMask || maskvalid)
+                        {
+                            // None biome layer will not effect the final biome
+                            if (layerSettings.Biome != Biome.Type.None)
+                            {
+                                map.Biomes[index] = layerSettings.Biome;
                             }
 
-                            // Mask is not valid here
-                            if (!(layer.Noise[index] >= greenLayerMask.NoiseThresholdMin && layer.Noise[index] <= greenLayerMask.NoiseThresholdMax))
+                            float value = currentLayer.Noise[index] * layerSettings.Multiplier;
+
+                            switch (layerSettings.CombinationMode)
                             {
-                                maskvalid = false;
-                                break;
+                                case TerrainSettings.LayerSettings.Mode.Add:
+                                    map.Heights[index] += value;
+                                    break;
+                                case TerrainSettings.LayerSettings.Mode.Subtract:
+                                    map.Heights[index] -= value;
+                                    break;
+                                case TerrainSettings.LayerSettings.Mode.Divide:
+                                    map.Heights[index] /= value;
+                                    break;
+                                case TerrainSettings.LayerSettings.Mode.Multiply:
+                                    map.Heights[index] *= value;
+                                    break;
+                                case TerrainSettings.LayerSettings.Mode.Modulus:
+                                    map.Heights[index] %= value;
+                                    break;
+                                case TerrainSettings.LayerSettings.Mode.Set:
+                                    map.Heights[index] = value;
+                                    break;
+                            }
+
+                            // Clamp height to zero after this layer has been applied
+                            if (layerSettings.ClampHeightToZero && map.Heights[index] < 0.0f)
+                            {
+                                map.Heights[index] = 0.0f;
                             }
                         }
                     }
+                }
 
-                    // Either no mask and will be valid biome, or mask must be valid
-                    map.Greens[index] = !g.UseMask || (g.UseMask && maskvalid);
+                // Ensure height map can't go below 0
+                if (TerrainSettings.ForceMinHeightZero && map.Heights[index] < 0.0f)
+                {
+                    map.Heights[index] = 0;
+                }
 
-                    if (!map.Greens[index])
+
+
+                // Calculate if this point can be a green
+                map.Greens[index] = false;
+
+                // Set the green boolean flood array
+                foreach (TerrainSettings.CourseSettings g in TerrainSettings.Course)
+                {
+                    if (g.Do && g.RequiredBiomes.Contains(map.Biomes[index]))
                     {
-                        break;
+                        // Check that the mask is valid if we are using it 
+                        bool maskvalid = true;
+                        if (g.UseMask)
+                        {
+                            foreach (TerrainSettings.Mask greenLayerMask in g.Masks)
+                            {
+                                TerrainMap.Layer layer = map.Layers[greenLayerMask.LayerIndex];
+
+                                TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[greenLayerMask.LayerIndex];
+
+                                // Set the reference to be another layer if we are sharing noise
+                                if (layerSettings.ShareOtherLayerNoise)
+                                {
+                                    layer = map.Layers[layerSettings.LayerIndexShareNoise];
+                                }
+
+                                // Mask is not valid here
+                                if (!(layer.Noise[index] >= greenLayerMask.NoiseThresholdMin && layer.Noise[index] <= greenLayerMask.NoiseThresholdMax))
+                                {
+                                    maskvalid = false;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Either no mask and will be valid biome, or mask must be valid
+                        map.Greens[index] = !g.UseMask || (g.UseMask && maskvalid);
+
+                        if (!map.Greens[index])
+                        {
+                            break;
+                        }
                     }
                 }
             }
