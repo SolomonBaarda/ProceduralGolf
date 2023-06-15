@@ -43,6 +43,13 @@ MonoBehaviour:
   TerrainLayers:
   - Apply: 1
     Settings: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3, type: 2}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
     NoiseThresholdMin: 0
     NoiseThresholdMax: 1
     Multiplier: 1
@@ -55,6 +62,31 @@ MonoBehaviour:
     Masks: []
   - Apply: 1
     Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
+    UseDistanceFromOriginCurve: 1
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0.84999996
+        value: 1.0000002
+        inSlope: 0.011858886
+        outSlope: 0.011858886
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.64375025
+      - serializedVersion: 3
+        time: 1
+        value: 0.000074748605
+        inSlope: -21.069271
+        outSlope: -21.069271
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.03487467
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
     NoiseThresholdMin: 0.5
     NoiseThresholdMax: 1
     Multiplier: 0
@@ -67,6 +99,31 @@ MonoBehaviour:
     Masks: []
   - Apply: 1
     Settings: {fileID: 11400000, guid: 5d8085f14b55b7449927b72088ec9a0e, type: 2}
+    UseDistanceFromOriginCurve: 1
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0.84999996
+        value: 1.0000002
+        inSlope: 0.011858886
+        outSlope: 0.011858886
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.64375025
+      - serializedVersion: 3
+        time: 1
+        value: 0.000074748605
+        inSlope: -21.069271
+        outSlope: -21.069271
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.03487467
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
     NoiseThresholdMin: 0.7
     NoiseThresholdMax: 1
     Multiplier: 0.1
@@ -79,6 +136,13 @@ MonoBehaviour:
     Masks: []
   - Apply: 1
     Settings: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0, type: 2}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
     NoiseThresholdMin: 0.75
     NoiseThresholdMax: 1
     Multiplier: 0.25

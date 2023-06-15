@@ -34,7 +34,7 @@ public class TerrainSettings : VariablePreset
     /// </summary>
     public readonly int SamplePointFrequency = 241;
 
-    public readonly int GreenMinVertexCount = 10000;
+    public readonly int GreenMinVertexCount = 5000;
 
 
 
@@ -49,11 +49,13 @@ public class TerrainSettings : VariablePreset
         [Header("Conditions")]
         public bool Apply = true;
         public NoiseSettings Settings;
-        public float NoiseThresholdMin = 0;
-        public float NoiseThresholdMax = 1;
+        public bool UseDistanceFromOriginCurve = false;
+        public AnimationCurve DistanceFromOriginCurve;
+        public float NoiseThresholdMin = 0.0f;
+        public float NoiseThresholdMax = 1.0f;
 
         [Header("Output")]
-        public float Multiplier = 1;
+        public float Multiplier = 1.0f;
         public Biome.Type Biome;
         public bool ClampHeightToZero = true;
         public Mode CombinationMode;

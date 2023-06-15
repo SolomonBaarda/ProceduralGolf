@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -332,6 +333,11 @@ public class TerrainGenerator : MonoBehaviour, IManager
             map.Biomes[index] = TerrainSettings.MainBiome;
             map.Heights[index] = 0.0f;
 
+            Vector2Int directionToCentre = new Vector2Int(index % map.Width, index / map.Width) - new Vector2Int(map.Width / 2, map.Height / 2);
+            float distanceFalloffRadius = Math.Min(map.Width, map.Height) / 2.0f;
+            // 0 - 1 value 
+            float distanceFromCentreScaled = Math.Clamp(directionToCentre.sqrMagnitude / (distanceFalloffRadius * distanceFalloffRadius), 0.0f, 1.0f);
+
             for (int layerIndex = 0; layerIndex < map.Layers.Count; layerIndex++)
             {
                 TerrainSettings.Layer layerSettings = TerrainSettings.TerrainLayers[layerIndex];
@@ -341,6 +347,13 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 if (layerSettings.ShareOtherLayerNoise)
                 {
                     currentLayer = map.Layers[layerSettings.LayerIndexShareNoise];
+                }
+
+                // Scale noise according to the distance from the origin
+                if(layerSettings.UseDistanceFromOriginCurve)
+                {
+                    // TODO maybe use copy of curve?
+                    currentLayer.Noise[index] *= layerSettings.DistanceFromOriginCurve.Evaluate(distanceFromCentreScaled);
                 }
 
                 if (
@@ -377,7 +390,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                             map.Biomes[index] = layerSettings.Biome;
                         }
 
-                        float value = currentLayer.Noise[index] * layerSettings.Multiplier;
+                        float value = currentLayer.Noise[index] * layerSettings.Multiplier ;
 
                         switch (layerSettings.CombinationMode)
                         {
