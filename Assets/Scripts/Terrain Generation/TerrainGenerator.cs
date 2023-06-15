@@ -2,6 +2,7 @@
 //#define DEBUG_FLOOD_FILL
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -46,7 +47,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         CurrentSettings = settings;
 
-        WaitForGenerate(callback);
+        StartCoroutine(WaitForGenerate(callback));
     }
 
 
@@ -88,7 +89,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 #endif
     }
 
-    private void WaitForGenerate(GameManager.CourseGenerated callback)
+    private IEnumerator WaitForGenerate(GameManager.CourseGenerated callback)
     {
         Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
 
@@ -108,7 +109,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         if (!atLeastOneObject)
             Debug.LogError("No procedural objects have been added");
 
-
+        yield return null;
 
         // TERRAIN LAYERS
 
@@ -123,7 +124,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
 
-        GenerateNoise(map, offset, distanceBetweenNoiseSamples, out float minHeight, out float maxHeight);
+        GenerateTerrain(map, offset, distanceBetweenNoiseSamples, out float minHeight, out float maxHeight);
 
 
         // Use height curve to calculate new height distribution
@@ -149,6 +150,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         Logger.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
+        yield return null;
 
 
         // SEQUENTIAL
@@ -161,6 +163,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         Logger.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
+        yield return null;
+
 
         // Now subdivide the data into chunks
         // Now Calculate the mesh data for the chunk
@@ -202,6 +206,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         Logger.Log($"* Generated chunk data in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
+        yield return null;
 
 
         List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
@@ -248,6 +253,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
         Logger.Log(message);
+        yield return null;
 
         IsGenerating = false;
 
@@ -273,7 +279,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// <param name="map"></param>
     /// <param name="offset"></param>
     /// <param name="distanceBetweenNoiseSamples"></param>
-    private void GenerateNoise(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples, out float minHeight, out float maxHeight)
+    private void GenerateTerrain(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples, out float minHeight, out float maxHeight)
     {
         for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
         {
@@ -302,14 +308,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 //}
             });
 
-
-
-
-
-        // TERRAIN HEIGHTS
-
         // Now calculate the actual heights from the noise and the biomes
-
         For(0, map.Heights.Length, (int index) =>
         {
             // Set the default biome and height
