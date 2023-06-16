@@ -28,8 +28,6 @@ public class TerrainSettings : VariablePreset
     [Header("Course Settings")]
     public List<CourseSettings> Course;
 
-    public float MinDistanceBetweenHoles = 100;
-    public int AreaToCheckValidHoleBiome = 2;
     public List<Biome.Type> ValidHoleBiomes;
 
     /// <summary>
