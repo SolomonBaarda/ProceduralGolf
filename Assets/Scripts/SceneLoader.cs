@@ -60,7 +60,7 @@ public class SceneLoader : MonoBehaviour
     {
         MainMenu.SetVisible(false);
 
-        GameManager.StartGeneration(settings);
+        GameManager.StartGeneration(settings, false);
     }
 
     private void QuitToMenu()

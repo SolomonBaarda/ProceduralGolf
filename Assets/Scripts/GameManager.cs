@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour, IManager
 {
-    public static UnityEvent<TerrainGenerator.GenerationSettings> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings>();
+    public static UnityEvent<TerrainGenerator.GenerationSettings, bool> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings, bool>();
 
     [Header("Managers")]
     public TerrainGenerator TerrainGenerator;
@@ -28,7 +28,6 @@ public class GameManager : MonoBehaviour, IManager
     private readonly string[] AllCameraTriggers = { CameraAimingTrigger, CameraRollingTrigger, CameraFlyingTrigger };
 
     [Header("Terrain settings")]
-    public TerrainGenerationMethod TerrainMode;
     private Gamerule Gamerules;
     private static readonly Gamerule Testing = new Gamerule(false, 0, false, false);
     private static readonly Gamerule FixedArea = new Gamerule(true, 1000, true, true);
@@ -84,7 +83,7 @@ public class GameManager : MonoBehaviour, IManager
         }
     }
 
-    public void StartGeneration(TerrainGenerator.GenerationSettings settings)
+    public void StartGeneration(TerrainGenerator.GenerationSettings settings, bool testing)
     {
         if (TerrainGenerator.IsGenerating) return;
 
@@ -100,14 +99,15 @@ public class GameManager : MonoBehaviour, IManager
         Logger.OnLogMessage.AddListener(message => { LoadingScreen.Instance.Info.text = message; });
 
         // Set the game rules
-        switch (TerrainMode)
+        if (testing)
         {
-            case TerrainGenerationMethod.FixedArea:
-                Gamerules = FixedArea;
-                break;
-            case TerrainGenerationMethod.Testing:
-                Gamerules = Testing;
-                break;
+            Gamerules = Testing;
+
+        }
+        else
+        {
+            Gamerules = FixedArea;
+
         }
 
         // Now generate the terrain

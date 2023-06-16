@@ -14,7 +14,7 @@ public class GameManagerEditor : Editor
 
         if (GUILayout.Button("Generate"))
         {
-            G.StartGeneration(G.TerrainGenerator.CurrentSettings);
+            G.StartGeneration(G.TerrainGenerator.CurrentSettings, true);
         }
     }
 }
