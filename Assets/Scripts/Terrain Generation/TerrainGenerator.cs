@@ -120,7 +120,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 
 
-        GenerateTerrain(map, offset, distanceBetweenNoiseSamples, out float minHeight, out float maxHeight);
+        GenerateTerrain(map, out float minHeight, out float maxHeight);
 
 
         // Use height curve to calculate new height distribution
@@ -275,7 +275,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// <param name="map"></param>
     /// <param name="offset"></param>
     /// <param name="distanceBetweenNoiseSamples"></param>
-    private void GenerateTerrain(TerrainMap map, Vector2 offset, float distanceBetweenNoiseSamples, out float minHeight, out float maxHeight)
+    private void GenerateTerrain(TerrainMap map, out float minHeight, out float maxHeight)
     {
         for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
         {
@@ -293,7 +293,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                     int seed = CurrentSettings.Seed.GetHashCode() + index.GetHashCode();
 
                     // Generate the noise for this layer and normalise it
-                    float[] noise = Noise.GetNoise(layerSettings.Settings, seed, offset, new Vector2(distanceBetweenNoiseSamples, distanceBetweenNoiseSamples), map.Width, map.Height, out float min, out float max);
+                    float[] noise = Noise.GetNoise(layerSettings.Settings, seed, map.Width, map.Height, out float min, out float max);
                     Noise.NormaliseNoise(ref noise, min, max);
 
                     map.Layers[index] = new TerrainMap.Layer(noise, layerSettings.Biome);
@@ -509,7 +509,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                     List<Vector2Int> possibleCoursePoints = CalculateCourseFloodFillMain(map, ref checkedFloodFill, x, y);
 
                     // Ensure only valid courses get added
-                    if (possibleCoursePoints.Count > 2 && possibleCoursePoints.Count > TerrainSettings.GreenMinVertexCount)
+                    if (possibleCoursePoints.Count > 2 && possibleCoursePoints.Count > TerrainSettings.FairwayMinimumVertexCount)
                     {
                         coursePoints.Add(possibleCoursePoints);
                     }

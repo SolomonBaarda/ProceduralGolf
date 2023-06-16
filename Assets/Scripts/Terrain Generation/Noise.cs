@@ -5,7 +5,7 @@ public static class Noise
 {
     public static int RandomSeed => Environment.TickCount.ToString().GetHashCode();
 
-    public static float[] GetNoise(NoiseSettings s, int seed, in Vector2 offset, in Vector2 distanceBetweenSamples, int width, int height, out float min, out float max)
+    public static float[] GetNoise(NoiseSettings s, int seed, int width, int height, out float min, out float max)
     {
         s.ValidateValues();
         FastNoiseLite n = new FastNoiseLite(seed);
@@ -29,17 +29,13 @@ public static class Noise
         {
             for (int x = 0; x < width; x++)
             {
-                int index = (y * width) + x;
+                float sample = n.GetNoise(x, y);
 
-                // Calculate the position to sample the noise from
-                Vector2 samplePoint = offset + (new Vector2(x, y) * distanceBetweenSamples);
-                noise[index] = n.GetNoise(samplePoint.x, samplePoint.y);
+                if (sample < min) min = sample;
 
-                if (noise[index] < min)
-                    min = noise[index];
+                if (sample > max) max = sample;
 
-                if (noise[index] > max)
-                    max = noise[index];
+                noise[(y * width) + x] = sample;
             }
         }
 

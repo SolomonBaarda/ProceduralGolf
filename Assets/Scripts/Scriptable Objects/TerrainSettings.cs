@@ -37,7 +37,7 @@ public class TerrainSettings : VariablePreset
     /// </summary>
     public readonly int SamplePointFrequency = 121;
 
-    public readonly int GreenMinVertexCount = 5000;
+    public readonly int FairwayMinimumVertexCount = 2500;
 
 
 

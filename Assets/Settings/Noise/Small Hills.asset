@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e3c32715cc46b14f8da824198e36a66, type: 3}
   m_Name: Small Hills
   m_EditorClassIdentifier: 
-  Frequency: 0.0025
+  Frequency: 0.025
   NoiseType: 0
   Offset: {x: 0, y: 0}
   FractalType: 1
