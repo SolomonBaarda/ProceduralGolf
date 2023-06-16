@@ -185,7 +185,9 @@ public class GameManager : MonoBehaviour, IManager
             if (Gamerules.UseHUD && HUD != null)
             {
                 HUD.ShootingMenu.SetActive(isAiming);
-                HUD.Minimap.SetActive(isAiming);
+
+                // TODO
+                HUD.Minimap.SetActive(false);
 
                 // Update the camera angles
                 switch (TerrainManager.GolfBall.State)

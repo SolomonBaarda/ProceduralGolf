@@ -38,7 +38,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  HeightMultiplier: 20
+  HeightMultiplier: 10
   MainBiome: 1
   ForceMinHeightZero: 0
   TerrainLayers:
@@ -53,9 +53,9 @@ MonoBehaviour:
       m_RotationOrder: 4
     NoiseThresholdMin: 0
     NoiseThresholdMax: 1
-    Multiplier: 1
+    Multiplier: 5
     Biome: 0
-    ClampHeightToZero: 1
+    ClampHeightToZero: 0
     CombinationMode: 0
     ShareOtherLayerNoise: 0
     LayerIndexShareNoise: 0
@@ -68,29 +68,29 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.84999996
-        value: 1.0000002
-        inSlope: 0.011858886
-        outSlope: 0.011858886
+        time: 0.75
+        value: 1.0000012
+        inSlope: -0.29141524
+        outSlope: -0.29141524
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.64375025
+        outWeight: 0.50891113
       - serializedVersion: 3
         time: 1
         value: 0.000074748605
-        inSlope: -21.069271
-        outSlope: -21.069271
+        inSlope: -7.1917686
+        outSlope: -7.1917686
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.03487467
+        inWeight: 0.06708336
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
     NoiseThresholdMin: 0.5
     NoiseThresholdMax: 1
-    Multiplier: 0
+    Multiplier: 0.5
     Biome: 2
     ClampHeightToZero: 1
     CombinationMode: 1
@@ -105,29 +105,29 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.84999996
-        value: 1.0000002
-        inSlope: 0.011858886
-        outSlope: 0.011858886
+        time: 0.75
+        value: 1.0000012
+        inSlope: -0.29141524
+        outSlope: -0.29141524
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.64375025
+        outWeight: 0.50891113
       - serializedVersion: 3
         time: 1
         value: 0.000074748605
-        inSlope: -21.069271
-        outSlope: -21.069271
+        inSlope: -7.1917686
+        outSlope: -7.1917686
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.03487467
+        inWeight: 0.06708336
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
     NoiseThresholdMin: 0.7
     NoiseThresholdMax: 1
-    Multiplier: 0.1
+    Multiplier: 0.75
     Biome: 3
     ClampHeightToZero: 1
     CombinationMode: 1
@@ -146,7 +146,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     NoiseThresholdMin: 0.75
     NoiseThresholdMax: 1
-    Multiplier: 0.25
+    Multiplier: 3
     Biome: 4
     ClampHeightToZero: 0
     CombinationMode: 1
@@ -155,7 +155,7 @@ MonoBehaviour:
     UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0.6
+      NoiseThresholdMin: 0.65
       NoiseThresholdMax: 1
   PoissonSamplingIterations: 5
   PoissonSamplingRadius: 12
@@ -167,7 +167,7 @@ MonoBehaviour:
     - {fileID: 185286, guid: 8ed1fa325ca228645ad26dd6eff14768, type: 3}
     - {fileID: 152404, guid: 5037d6ea184d2f640bf78dcf9894a269, type: 3}
     - {fileID: 127550, guid: 87a6cef862ce2cb4a88c5ca5d5af5d2b, type: 3}
-    Chance: 0.5
+    Chance: 0.55
     UseMask: 1
     Masks:
     - LayerIndex: 1
@@ -175,12 +175,17 @@ MonoBehaviour:
       NoiseThresholdMax: 0.7
   Course:
   - Do: 1
-    RequiredBiomes: 030000000400000005000000
+    RequiredBiomes: 03000000040000000500000002000000
     UseMask: 1
     Masks:
     - LayerIndex: 2
-      NoiseThresholdMin: 0.725
+      NoiseThresholdMin: 0.7
       NoiseThresholdMax: 1
-  MinDistanceBetweenHoles: 100
-  AreaToCheckValidHoleBiome: 10
-  ValidHoleBiomes: 03000000
+  Holes:
+  - Do: 1
+    RequiredBiomes: 03000000
+    UseMask: 1
+    Masks:
+    - LayerIndex: 2
+      NoiseThresholdMin: 0.75
+      NoiseThresholdMax: 1

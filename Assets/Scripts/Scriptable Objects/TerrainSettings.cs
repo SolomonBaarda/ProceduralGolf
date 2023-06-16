@@ -28,7 +28,9 @@ public class TerrainSettings : VariablePreset
     [Header("Course Settings")]
     public List<CourseSettings> Course;
 
-    public List<Biome.Type> ValidHoleBiomes;
+    [Header("Hole Settings")]
+    public List<CourseSettings> Holes;
+
 
     /// <summary>
     /// Number of Noise sample points taken in each chunk.

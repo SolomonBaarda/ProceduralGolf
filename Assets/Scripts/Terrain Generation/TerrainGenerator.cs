@@ -23,6 +23,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
     private const float WorldObjectYOffset = 0.2f;
 
+    private const int NumAttemptsToChooseRandomCoursePositions = 100;
+
     public void Generate(GenerationSettings settings, GameManager.CourseGenerated callback)
     {
         if (IsGenerating)
@@ -166,7 +168,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         ConcurrentDictionary<Vector2Int, ChunkData> data = SplitIntoChunks(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
         // Partially sequential
-        List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, chunkSize, 100, chunkSize / 8);
+        List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, chunkSize, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
         List<CourseData> courses = new List<CourseData>();
         System.Random r = new System.Random(0);
@@ -262,8 +264,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
     static void TerrainMapIndexToChunk(int chunkSize, Vector2Int terrainMapIndex, out Vector2Int chunk, out Vector2Int chunkRelativeIndex)
     {
-        chunk = terrainMapIndex / chunkSize;
-        chunkRelativeIndex = new Vector2Int(terrainMapIndex.x % chunkSize, terrainMapIndex.y % chunkSize);
+        int chunkMinusOne = chunkSize - 1;
+
+        chunk = terrainMapIndex / chunkMinusOne;
+        chunkRelativeIndex = new Vector2Int(terrainMapIndex.x % chunkMinusOne, terrainMapIndex.y % chunkMinusOne);
     }
 
     //static bool ChunkRelativeIndexToTerrainMap(int chunkSize, Vector2Int chunk, Vector2Int chunkRelativeIndex, out Vector2Int terrainMapIndex) { }
@@ -649,7 +653,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         // TODO BETTER PERFORMANCE:
         foreach (TerrainMap.WorldObjectData obj in map.WorldObjects)
         {
-            TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int relative); 
+            TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int _); 
 
             if (data.TryGetValue(chunk, out ChunkData value))
             {
@@ -861,9 +865,41 @@ public class TerrainGenerator : MonoBehaviour, IManager
             checkedFloodFill[index] = true;
 
             // Add this point if it could be a valid hole
-            if (TerrainSettings.ValidHoleBiomes.Contains(map.Biomes[index]))
+            foreach (var holeSettings in TerrainSettings.Holes)
             {
-                validPoints.Add(new Vector2Int(x, y));
+                if (holeSettings.Do && holeSettings.RequiredBiomes.Contains(map.Biomes[index]))
+                {
+                    // Check that the mask is valid if we are using it 
+                    bool maskvalid = true;
+                    if (holeSettings.UseMask)
+                    {
+                        foreach (TerrainSettings.Mask greenLayerMask in holeSettings.Masks)
+                        {
+                            TerrainMap.Layer layer = map.Layers[greenLayerMask.LayerIndex];
+
+                            TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[greenLayerMask.LayerIndex];
+
+                            // Set the reference to be another layer if we are sharing noise
+                            if (layerSettings.ShareOtherLayerNoise)
+                            {
+                                layer = map.Layers[layerSettings.LayerIndexShareNoise];
+                            }
+
+                            // Mask is not valid here
+                            if (!(layer.Noise[index] >= greenLayerMask.NoiseThresholdMin && layer.Noise[index] <= greenLayerMask.NoiseThresholdMax))
+                            {
+                                maskvalid = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (maskvalid)
+                    {
+                        validPoints.Add(new Vector2Int(x, y));
+                        break;
+                    }
+                }
             }
 
             // Check south
