@@ -31,13 +31,18 @@ public class TerrainSettings : VariablePreset
     [Header("Hole Settings")]
     public List<CourseSettings> Holes;
 
+    [Min(1)]
+    public float MinimumWorldDistanceBetweenHoles = 250.0f;
 
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
     /// </summary>
     public readonly int SamplePointFrequency = 121;
 
-    public readonly int FairwayMinimumVertexCount = 2500;
+    /// <summary>
+    /// The minimum number of start/end positions allowed for a course. Use this value to exclue smaller courses from being valid
+    /// </summary>
+    public readonly int FairwayMinStartEndVertexCount = 100;
 
 
 

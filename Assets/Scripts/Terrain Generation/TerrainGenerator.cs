@@ -168,12 +168,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
         ConcurrentDictionary<Vector2Int, ChunkData> data = SplitIntoChunks(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
         // Partially sequential
-        List<Tuple<Vector2Int, Vector2Int>> coursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, chunkSize, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
+        List<Tuple<Vector2Int, Vector2Int>> possibleCoursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, chunkSize, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
         List<CourseData> courses = new List<CourseData>();
         System.Random r = new System.Random(0);
 
-        foreach (Tuple<Vector2Int, Vector2Int> startEnd in coursesStartEnd)
+        foreach (Tuple<Vector2Int, Vector2Int> startEnd in possibleCoursesStartEnd)
         {
             UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
 
@@ -185,11 +185,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
             {
                 Vector3 start = startChunkData.MeshData.Vertices[(startIndex.y * startChunkData.BiomesWidth) + startIndex.x] + startChunkData.Bounds.min;
                 Vector3 end = endChunkData.MeshData.Vertices[(endIndex.y * endChunkData.BiomesWidth) + endIndex.x] + endChunkData.Bounds.min;
-
-                Debug.DrawLine(start, start + (Vector3.up * 100), c, 120);
-                Debug.DrawLine(end, end + (Vector3.up * 100), c, 120);
-
-                courses.Add(new CourseData(start, end, c));
+                
+                // Ensure that the holes are far enough away for a decent course
+                if(Vector2.SqrMagnitude(new Vector2(end.x, end.z) - new Vector2(start.x, start.z)) > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
+                {
+                    courses.Add(new CourseData(start, end, c));
+                }
             }
             else
             {
@@ -510,10 +511,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
                 if (!checkedFloodFill[index] && map.Greens[index])
                 {
-                    List<Vector2Int> possibleCoursePoints = CalculateCourseFloodFillMain(map, ref checkedFloodFill, x, y);
+                    FloodFillGolfCourse(map, ref checkedFloodFill, x, y, out List<Vector2Int> possibleCoursePoints);
 
                     // Ensure only valid courses get added
-                    if (possibleCoursePoints.Count > 2 && possibleCoursePoints.Count > TerrainSettings.FairwayMinimumVertexCount)
+                    if (possibleCoursePoints.Count > 2 && possibleCoursePoints.Count > TerrainSettings.FairwayMinStartEndVertexCount)
                     {
                         coursePoints.Add(possibleCoursePoints);
                     }
@@ -819,6 +820,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 #endif
 
+
     /// <summary>
     /// 
     /// </summary>
@@ -826,12 +828,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// <param name="checkedFloodFill"></param>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    /// <returns>A list of the valid points within this course (for start/end pos)</returns>
-    private List<Vector2Int> CalculateCourseFloodFillMain(TerrainMap map, ref bool[] checkedFloodFill, int x, int y)
+    /// <param name="validStartEndPositions"></param>
+    private void FloodFillGolfCourse(TerrainMap map, ref bool[] checkedFloodFill, int x, int y, out List<Vector2Int> validStartEndPositions)
     {
         Queue<(int, int)> q = new Queue<(int, int)>();
 
-        List<Vector2Int> validPoints = new List<Vector2Int>();
+        validStartEndPositions = new List<Vector2Int>();
 
         q.Enqueue((x, y));
 
@@ -843,20 +845,18 @@ public class TerrainGenerator : MonoBehaviour, IManager
             // Check towards the west
             for (int west = pos.Item1; west >= 0 && map.Greens[(pos.Item2 * map.Width) + west]; west--)
             {
-                CalculateCourseFloodFillHorizontal(map, ref checkedFloodFill, q, west, pos.Item2, validPoints);
+                FloodFillGolfCoursePosition(map, ref checkedFloodFill, q, west, pos.Item2, ref validStartEndPositions);
             }
 
             // Check towards the east
             for (int east = pos.Item1; east < map.Width && map.Greens[(pos.Item2 * map.Width) + east]; east++)
             {
-                CalculateCourseFloodFillHorizontal(map, ref checkedFloodFill, q, east, pos.Item2, validPoints);
+                FloodFillGolfCoursePosition(map, ref checkedFloodFill, q, east, pos.Item2, ref validStartEndPositions);
             }
         }
-
-        return validPoints;
     }
 
-    private void CalculateCourseFloodFillHorizontal(TerrainMap map, ref bool[] checkedFloodFill, Queue<(int, int)> q, int x, int y, List<Vector2Int> validPoints)
+    private void FloodFillGolfCoursePosition(TerrainMap map, ref bool[] checkedFloodFill, Queue<(int, int)> q, int x, int y, ref List<Vector2Int> validPoints)
     {
         int index = (y * map.Width) + x;
 

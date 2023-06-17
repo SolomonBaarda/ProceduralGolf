@@ -237,17 +237,16 @@ public class TerrainManager : MonoBehaviour, IManager
     }
 
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         if (CurrentLoadedTerrain != null)
         {
             // Calculate the holes
-            foreach (CourseData h in CurrentLoadedTerrain.Courses)
+            foreach (CourseData c in CurrentLoadedTerrain.Courses)
             {
-                Gizmos.color = h.Colour;
-
-                Gizmos.DrawLine(h.Start, h.Start + (Vector3.up * 100));
-                Gizmos.DrawLine(h.Hole, h.Hole + (Vector3.up * 200));
+                Gizmos.color = c.Colour;
+                Gizmos.DrawLine(c.Start, c.Start + (Vector3.up * 100));
+                Gizmos.DrawLine(c.Hole, c.Hole + (Vector3.up * 200));
             }
         }
     }

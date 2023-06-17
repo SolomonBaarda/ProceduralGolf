@@ -187,5 +187,6 @@ MonoBehaviour:
     UseMask: 1
     Masks:
     - LayerIndex: 2
-      NoiseThresholdMin: 0.75
+      NoiseThresholdMin: 0.9
       NoiseThresholdMax: 1
+  MinimumWorldDistanceBetweenHoles: 250
