@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Outlines
+  m_Name: OutlinesRenderingPassMaterial
   m_Shader: {fileID: -6465566751694194690, guid: 80bb1c13905b7074fa1dfa2943d3db19,
     type: 3}
   m_Parent: {fileID: 0}
@@ -103,7 +103,7 @@ Material:
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _ColourThreshold: 0.31
+    - _ColourThreshold: 1
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
