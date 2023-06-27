@@ -13,7 +13,7 @@ public class TextureSettings : VariablePreset
     public static void ApplyToMaterial(Material m, in Texture2D colourMap, Vector2 maintextureTiling)
     {
         // Add the colour map
-        m.SetTexture("_ColourMap", colourMap);
+        m.SetTexture("_BaseMap", colourMap);
     }
 
     public override void ValidateValues()

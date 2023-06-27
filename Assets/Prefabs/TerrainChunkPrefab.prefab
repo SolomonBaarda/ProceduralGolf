@@ -85,7 +85,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 87d190772acb88d43b6fc361cb3c9946, type: 2}
+  - {fileID: 2100000, guid: 1c96f6a0b933c874495ae9269614a5e7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -126,6 +126,7 @@ MonoBehaviour:
       m_Extent: {x: 0, y: 0, z: 0}
     BiomeColourMap: {fileID: 0}
     MainMesh: {fileID: 0}
+    MainMeshID: 0
     Width: 0
     Height: 0
     Biomes: 
