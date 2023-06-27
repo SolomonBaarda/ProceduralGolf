@@ -37,7 +37,7 @@ public class TerrainSettings : VariablePreset
     /// <summary>
     /// Number of Noise sample points taken in each chunk.
     /// </summary>
-    public readonly int SamplePointFrequency = 121;
+    public readonly int SamplePointFrequency = 61;
 
     /// <summary>
     /// The minimum number of start/end positions allowed for a course. Use this value to exclue smaller courses from being valid

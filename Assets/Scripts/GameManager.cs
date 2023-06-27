@@ -30,7 +30,7 @@ public class GameManager : MonoBehaviour, IManager
     [Header("Terrain settings")]
     private Gamerule Gamerules;
     private static readonly Gamerule Testing = new Gamerule(false, 0, false, false);
-    private static readonly Gamerule FixedArea = new Gamerule(true, 1000, true, true);
+    private static readonly Gamerule FixedArea = new Gamerule(true, 500, true, true);
 
     public delegate void CourseGenerated(TerrainData data);
     public delegate void PreviewGenerated(Texture2D map);

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class TerrainChunkManager : MonoBehaviour, IManager
 {
-    public const float ChunkSizeWorldUnits = 500;
+    public const float ChunkSizeWorldUnits = 250;
 
     [Header("References")]
     public Transform ChunkParent;
@@ -25,7 +25,7 @@ public class TerrainChunkManager : MonoBehaviour, IManager
         TerrainChunk chunk = Instantiate(ChunkPrefab).GetComponent<TerrainChunk>();
         chunk.Initialise(data.Position, data.Bounds, data, ChunkParent);
         TerrainChunks.Add(data.Position, chunk);
-        
+
         return chunk;
     }
 
