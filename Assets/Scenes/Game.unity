@@ -321,7 +321,7 @@ Transform:
   - {fileID: 1041538520}
   - {fileID: 642023518}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &187293244
 MonoBehaviour:
@@ -944,12 +944,12 @@ GameObject:
   - component: {fileID: 974716573}
   - component: {fileID: 974716571}
   m_Layer: 0
-  m_Name: Minimap camera
+  m_Name: Map Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &974716571
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1029,13 +1029,13 @@ Camera:
   far clip plane: 1000
   field of view: 131.8
   orthographic: 1
-  orthographic size: 250
+  orthographic size: 1000
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 8448
+    m_Bits: 10112
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: b9faa8d87ba05b64e892d44a9fe66cde, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -1052,13 +1052,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 974716570}
-  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 100, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1897815564}
-  m_RootOrder: 0
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1041538518
 GameObject:
@@ -1379,7 +1379,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1208001000
 GameObject:
@@ -1545,7 +1545,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1510809344
 MonoBehaviour:
@@ -1578,7 +1578,9 @@ MonoBehaviour:
   - {fileID: 4213627501115095112}
   - {fileID: 1208001000}
   - {fileID: 295252888}
+  - {fileID: 974716570}
   CameraStates: {fileID: 950426080}
+  MapCamera: {fileID: 974716573}
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
 --- !u!114 &1510809347
 MonoBehaviour:
@@ -1843,56 +1845,6 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 1
---- !u!1 &1897815563
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1897815564}
-  - component: {fileID: 1897815565}
-  m_Layer: 0
-  m_Name: Follower MiniMap
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1897815564
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1897815563}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 974716574}
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1897815565
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1897815563}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 591a7628daccb5440babfd685fe5cb85, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Target: {fileID: 4213627501115095108}
-  OffsetFromTarget: {x: 0, y: 100, z: 0}
-  DoOffsetFromTargetFacingDirection: 0
-  FacingDirectionDistance: -150
-  SetRotation: 1
 --- !u!1 &1943703576
 GameObject:
   m_ObjectHideFlags: 0

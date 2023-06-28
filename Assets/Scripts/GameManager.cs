@@ -27,6 +27,9 @@ public class GameManager : MonoBehaviour, IManager
     public const string CameraAimingTrigger = "IsAiming", CameraRollingTrigger = "IsRolling", CameraFlyingTrigger = "IsFlying";
     private readonly string[] AllCameraTriggers = { CameraAimingTrigger, CameraRollingTrigger, CameraFlyingTrigger };
 
+    [Space]
+    public Camera MapCamera;
+
     [Header("Terrain settings")]
     private Gamerule Gamerules;
     private static readonly Gamerule Testing = new Gamerule(false, 0, false, false);
@@ -38,6 +41,10 @@ public class GameManager : MonoBehaviour, IManager
     [Space]
     public Material Skybox;
 
+
+    public const float DefaultMapCameraZoom = 500;
+
+
     private void Awake()
     {
         OnRequestStartGenerating.AddListener(StartGeneration);
@@ -45,6 +52,13 @@ public class GameManager : MonoBehaviour, IManager
         SceneManager.LoadScene(LoadingScreen.SceneName, LoadSceneMode.Additive);
 
         RenderSettings.skybox = Skybox;
+
+        TerrainManager.OnCourseStarted += UpdateMapCamera;
+    }
+
+    private void OnDestroy()
+    {
+        TerrainManager.OnCourseStarted -= UpdateMapCamera;
     }
 
     private void Start()
@@ -58,6 +72,17 @@ public class GameManager : MonoBehaviour, IManager
 
 
 
+    }
+
+    private void UpdateMapCamera(CourseData data)
+    {
+        Vector3 pos = (data.Start + data.Hole) / 2;
+        pos.y = MapCamera.transform.position.y;
+        MapCamera.transform.position = pos;
+
+        MapCamera.orthographicSize = DefaultMapCameraZoom;
+
+        MapCamera.enabled = false;
     }
 
     public void SetVisible(bool visible)
