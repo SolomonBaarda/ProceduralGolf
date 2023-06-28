@@ -179,24 +179,14 @@ public class TerrainGenerator : MonoBehaviour, IManager
         {
             UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
 
-            TerrainMapIndexToChunk(chunkSize, startEnd.Item1, out Vector2Int startChunk, out Vector2Int startIndex);
-            TerrainMapIndexToChunk(chunkSize, startEnd.Item2, out Vector2Int endChunk, out Vector2Int endIndex);
+            Vector3 start = CalculateWorldVertexPositionFromTerrainMapIndex(map, startEnd.Item1.x, startEnd.Item1.y, distanceBetweenNoiseSamples);
+            Vector3 end = CalculateWorldVertexPositionFromTerrainMapIndex(map, startEnd.Item2.x, startEnd.Item2.y, distanceBetweenNoiseSamples);
 
-            // Get the mesh positions of the start and end pos
-            if (data.TryGetValue(startChunk, out TerrainChunkData startChunkData) && data.TryGetValue(endChunk, out TerrainChunkData endChunkData))
+            // Ensure that the holes are far enough away for a decent course
+            Vector2 distance = new Vector2(end.x - start.x, end.z - start.z);
+            if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
             {
-                Vector3 start = CalculateWorldVertexPositionFromTerrainMapIndex(map, startIndex.x, startIndex.y, distanceBetweenNoiseSamples);
-                Vector3 end = CalculateWorldVertexPositionFromTerrainMapIndex(map, endIndex.x, endIndex.y, distanceBetweenNoiseSamples);
-
-                // Ensure that the holes are far enough away for a decent course
-                if (Vector2.SqrMagnitude(new Vector2(end.x, end.z) - new Vector2(start.x, start.z)) > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
-                {
-                    courses.Add(new CourseData(start, end, c));
-                }
-            }
-            else
-            {
-                Debug.LogError("Failed to create course as data is missing chunk index");
+                courses.Add(new CourseData(start, end, c));
             }
         }
 
@@ -530,7 +520,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             int curSqrMag = 0;
             Vector2Int start = points[0];
             Vector2Int hole = points[1];
-            System.Random r = new System.Random(seed);
+            System.Random r = new System.Random(seed + index);
 
             for (int i = 0; i < numAttemptsToChooseRandomPositions; i++)
             {
@@ -942,6 +932,30 @@ public class TerrainGenerator : MonoBehaviour, IManager
         }
     }
 
+    private bool AllMasksValidForPosition(TerrainMap map, IEnumerable<TerrainSettings.Mask> masks, int x, int y)
+    {
+        int index = (y * map.Width) + x;
+
+        foreach (TerrainSettings.Mask mask in masks)
+        {
+            TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[mask.LayerIndex];
+
+            // Get the reference to the noise layer that we are comparing against
+            TerrainMap.Layer noiseLayer = layerSettings.ShareOtherLayerNoise ?
+                map.Layers[layerSettings.LayerIndexShareNoise] :
+                map.Layers[mask.LayerIndex];
+
+            // Check if the mask is valid
+            if (!(noiseLayer.Noise[index] >= mask.NoiseThresholdMin && noiseLayer.Noise[index] <= mask.NoiseThresholdMax))
+            {
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
     private void FloodFillGolfCoursePosition(TerrainMap map, ref bool[] checkedFloodFill, Queue<(int, int)> q, int x, int y, ref List<Vector2Int> validPoints)
     {
         int index = (y * map.Width) + x;
@@ -953,38 +967,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
             // Add this point if it could be a valid hole
             foreach (var holeSettings in TerrainSettings.Holes)
             {
-                if (holeSettings.Do && holeSettings.RequiredBiomes.Contains(map.Biomes[index]))
+                if (holeSettings.Do && holeSettings.RequiredBiomes.Contains(map.Biomes[index]) && AllMasksValidForPosition(map, holeSettings.Masks, x, y))
                 {
-                    // Check that the mask is valid if we are using it 
-                    bool maskvalid = true;
-                    if (holeSettings.UseMask)
-                    {
-                        foreach (TerrainSettings.Mask greenLayerMask in holeSettings.Masks)
-                        {
-                            TerrainMap.Layer layer = map.Layers[greenLayerMask.LayerIndex];
-
-                            TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[greenLayerMask.LayerIndex];
-
-                            // Set the reference to be another layer if we are sharing noise
-                            if (layerSettings.ShareOtherLayerNoise)
-                            {
-                                layer = map.Layers[layerSettings.LayerIndexShareNoise];
-                            }
-
-                            // Mask is not valid here
-                            if (!(layer.Noise[index] >= greenLayerMask.NoiseThresholdMin && layer.Noise[index] <= greenLayerMask.NoiseThresholdMax))
-                            {
-                                maskvalid = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (maskvalid)
-                    {
-                        validPoints.Add(new Vector2Int(x, y));
-                        break;
-                    }
+                    validPoints.Add(new Vector2Int(x, y));
+                    break;
                 }
             }
 
