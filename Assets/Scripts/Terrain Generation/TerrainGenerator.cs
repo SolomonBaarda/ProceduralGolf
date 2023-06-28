@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -166,7 +167,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         // Now subdivide the data into chunks and calculate the mesh data
         int chunkSize = TerrainSettings.SamplePointFrequency;
-        ConcurrentDictionary<Vector2Int, ChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
+        ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
         // Partially sequential
         List<Tuple<Vector2Int, Vector2Int>> possibleCoursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, chunkSize, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
@@ -182,7 +183,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             TerrainMapIndexToChunk(chunkSize, startEnd.Item2, out Vector2Int endChunk, out Vector2Int endIndex);
 
             // Get the mesh positions of the start and end pos
-            if (data.TryGetValue(startChunk, out ChunkData startChunkData) && data.TryGetValue(endChunk, out ChunkData endChunkData))
+            if (data.TryGetValue(startChunk, out TerrainChunkData startChunkData) && data.TryGetValue(endChunk, out TerrainChunkData endChunkData))
             {
                 Vector3 start = CalculateWorldVertexPositionFromTerrainMapIndex(map, startIndex.x, startIndex.y, distanceBetweenNoiseSamples);
                 Vector3 end = CalculateWorldVertexPositionFromTerrainMapIndex(map, endIndex.x, endIndex.y, distanceBetweenNoiseSamples);
@@ -200,33 +201,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
         }
 
 
-        List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
-
-        // Construct textures and meshes
-        // This needs to be done in the main thread
-        foreach (KeyValuePair<Vector2Int, ChunkData> d in data)
-        {
-            terrainChunks.Add(new TerrainChunkData(d.Key, d.Value.Bounds, d.Value.Biomes, chunkSize, chunkSize, d.Value.Mesh, d.Value.WorldObjects));
-        }
-
-        // Bake the mesh physics in parallel
-        ForEach(terrainChunks, (chunk) =>
-        {
-            Physics.BakeMesh(chunk.MainMeshID, false);
-        });
-
-
-        // TODO in next version
-        // Add map perview before actually generating the course
-        //MapData mapData = GenerateMap(data);
-        //then Save To Disk as PNG
-        //byte[] bytes = mapData.Map.EncodeToPNG();
-        //File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
-
-
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(CurrentSettings.Seed, terrainChunks, courses, TerrainSettings.name);
+        terrain.SetData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.name);
 
         Logger.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
@@ -240,8 +217,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         // Callback when done
         callback(terrain);
-
-        //ClearGenerationData();
     }
 
 
@@ -591,9 +566,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// 
     /// </summary>
     /// <param name="map"></param>
-    private ConcurrentDictionary<Vector2Int, ChunkData> SplitIntoChunksAndGenerateMeshData(TerrainMap map, int chunkSize, Vector2 offset, float distanceBetweenNoiseSamples)
+    private ConcurrentDictionary<Vector2Int, TerrainChunkData> SplitIntoChunksAndGenerateMeshData(TerrainMap map, int chunkSize, Vector2 offset, float distanceBetweenNoiseSamples)
     {
-        ConcurrentDictionary<Vector2Int, ChunkData> chunkData = new ConcurrentDictionary<Vector2Int, ChunkData>();
+        ConcurrentDictionary<Vector2Int, TerrainChunkData> chunkData = new ConcurrentDictionary<Vector2Int, TerrainChunkData>();
 
         int numChunksY = map.Height / chunkSize, numChunksX = map.Width / chunkSize;
         int increment = MeshSettings.SimplificationIncrement;
@@ -606,10 +581,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         var writableMeshData = Mesh.AllocateWritableMeshData(numChunksY * numChunksX);
         Mesh[] meshes = new Mesh[numChunksY * numChunksX];
+        int[] meshIDs = new int[numChunksY * numChunksX];
 
         for (int i = 0; i < meshes.Length; i++)
         {
             meshes[i] = new Mesh();
+            meshIDs[i] = meshes[i].GetInstanceID();
         }
 
 
@@ -640,7 +617,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 // Get references to the buffers
                 var positions = data.GetVertexData<Vector3>(stream: 0);
                 var colours = data.GetVertexData<Color32>(stream: 1);
-
                 var triangles = data.GetIndexData<UInt32>();
 
 
@@ -729,13 +705,15 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 data.subMeshCount = 1;
                 data.SetSubMesh(0, new SubMeshDescriptor(0, triangles.Length, MeshTopology.Triangles));
 
-                chunkData.TryAdd(new Vector2Int(chunkX, chunkY), new ChunkData(meshes[meshIndex], biomes, chunkSize, chunkSize, new List<WorldObjectData>(), bounds));
+                Vector2Int chunk = new Vector2Int(chunkX, chunkY);
+                chunkData.TryAdd(chunk, new TerrainChunkData(chunk, bounds, biomes, newChunkSize, newChunkSize, meshes[meshIndex], new List<WorldObjectData>()));
             }
         });
 
         // Now apply the meshdata to the meshes and clean up the memory
         Mesh.ApplyAndDisposeWritableMeshData(writableMeshData, meshes);
 
+        // Recalculate mesh values (SEQUENTIAL)
         foreach (Mesh mesh in meshes)
         {
             mesh.RecalculateNormals();
@@ -745,6 +723,13 @@ public class TerrainGenerator : MonoBehaviour, IManager
             // Optimise it
             mesh.Optimize();
         }
+
+        // Bake the mesh collision data in parallel 
+        ForEach(meshIDs, (id) =>
+        {
+            Physics.BakeMesh(id, false);
+        });
+
 
         // Calculate which chunk each world object belongs to
 
@@ -757,7 +742,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         {
             TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int _);
 
-            if (chunkData.TryGetValue(chunk, out ChunkData value))
+            if (chunkData.TryGetValue(chunk, out TerrainChunkData value))
             {
                 if (!objectsForChunk.ContainsKey(chunk))
                 {
@@ -783,7 +768,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         foreach (var objects in objectsForChunk)
         {
-            if (chunkData.TryGetValue(objects.Key, out ChunkData chunk))
+            if (chunkData.TryGetValue(objects.Key, out TerrainChunkData chunk))
             {
                 foreach (var obj in objects.Value)
                 {
@@ -1081,26 +1066,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
     }
 
-    private class ChunkData
-    {
-        public List<WorldObjectData> WorldObjects;
-        public Bounds Bounds;
-
-        public Biome.Type[] Biomes;
-        public int BiomesWidth, BiomesHeight;
-
-        public Mesh Mesh;
-
-        public ChunkData(Mesh mesh, Biome.Type[] biomes, int width, int height, List<WorldObjectData> worldObjects, Bounds bounds)
-        {
-            Mesh = mesh;
-            Biomes = biomes;
-            BiomesWidth = width;
-            BiomesHeight = height;
-            WorldObjects = worldObjects;
-            Bounds = bounds;
-        }
-    }
 
     [Serializable]
     public class GenerationSettings
