@@ -185,9 +185,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
             {
                 Vector3 start = startChunkData.MeshData.Vertices[(startIndex.y * startChunkData.BiomesWidth) + startIndex.x] + startChunkData.Bounds.min;
                 Vector3 end = endChunkData.MeshData.Vertices[(endIndex.y * endChunkData.BiomesWidth) + endIndex.x] + endChunkData.Bounds.min;
-                
+
                 // Ensure that the holes are far enough away for a decent course
-                if(Vector2.SqrMagnitude(new Vector2(end.x, end.z) - new Vector2(start.x, start.z)) > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
+                if (Vector2.SqrMagnitude(new Vector2(end.x, end.z) - new Vector2(start.x, start.z)) > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
                 {
                     courses.Add(new CourseData(start, end, c));
                 }
@@ -320,7 +320,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
             for (int x = 0; x < map.Width; x++)
             {
-                int index = y * map.Width + x;
+                int index = (y * map.Width) + x;
 
                 // Set the default biome and height
                 map.Biomes[index] = TerrainSettings.MainBiome;
@@ -473,14 +473,14 @@ public class TerrainGenerator : MonoBehaviour, IManager
         minHeight = map.Heights[0];
         maxHeight = minHeight;
 
-        foreach(float height in map.Heights) 
+        foreach (float height in map.Heights)
         {
-            if(height < minHeight)
+            if (height < minHeight)
             {
                 minHeight = height;
             }
 
-            if(height > maxHeight)
+            if (height > maxHeight)
             {
                 maxHeight = height;
             }
@@ -629,6 +629,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
                         // Copy the biome data
                         biomes[localIndex] = map.Biomes[terrainMapIndex];
+
+                        meshData.Colours[localIndex] = TextureSettings.GetColour(biomes[localIndex]);
                     }
                 }
 
@@ -654,18 +656,18 @@ public class TerrainGenerator : MonoBehaviour, IManager
         // TODO BETTER PERFORMANCE:
         foreach (TerrainMap.WorldObjectData obj in map.WorldObjects)
         {
-            TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int _); 
+            TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int _);
 
             if (data.TryGetValue(chunk, out ChunkData value))
             {
-                if(!objectsForChunk.ContainsKey(chunk))
+                if (!objectsForChunk.ContainsKey(chunk))
                 {
                     objectsForChunk.Add(chunk, new Dictionary<GameObject, List<(Vector3, Vector3)>>());
                 }
 
                 var chunkObjects = objectsForChunk[chunk];
 
-                if(!chunkObjects.ContainsKey(obj.Prefab))
+                if (!chunkObjects.ContainsKey(obj.Prefab))
                 {
                     chunkObjects.Add(obj.Prefab, new List<(Vector3, Vector3)>());
                 }
@@ -680,11 +682,11 @@ public class TerrainGenerator : MonoBehaviour, IManager
             }
         }
 
-        foreach(var objects in objectsForChunk)
+        foreach (var objects in objectsForChunk)
         {
             if (data.TryGetValue(objects.Key, out ChunkData chunk))
             {
-                foreach(var obj in objects.Value)
+                foreach (var obj in objects.Value)
                 {
                     chunk.WorldObjects.Add(new WorldObjectData() { Prefab = obj.Key, WorldPositionsAndRotations = obj.Value });
                 }
@@ -693,7 +695,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             {
                 Debug.LogError("ERROR");
             }
-                
+
         }
 
         return data;
@@ -731,7 +733,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
                             {
                                 TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
                                 // Mask is not valid here
-                                if (!(maskValues.Noise[terrainMapIndex] >= attempt.Masks[j].NoiseThresholdMin && 
+                                if (!(maskValues.Noise[terrainMapIndex] >= attempt.Masks[j].NoiseThresholdMin &&
                                     maskValues.Noise[terrainMapIndex] <= attempt.Masks[j].NoiseThresholdMax))
                                 {
                                     maskvalid = false;

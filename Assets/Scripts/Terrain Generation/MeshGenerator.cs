@@ -7,7 +7,7 @@ public static class MeshGenerator
         public int Width, Height;
         public Vector3[] Vertices;
         public Vector2[] UVs;
-        //public Color[] Colours;
+        public Color32[] Colours;
 
         public LOD LODData;
 
@@ -18,7 +18,7 @@ public static class MeshGenerator
             // Assign memory for the arrays
             Vertices = new Vector3[Width * Height];
             UVs = new Vector2[Vertices.Length];
-            //Colours = new Color[Vertices.Length];
+            Colours = new Color32[Vertices.Length];
         }
 
 
@@ -63,7 +63,7 @@ public static class MeshGenerator
 
             Vector3[] newVertices = new Vector3[newWidth * newHeight];
             Vector2[] newUVs = new Vector2[newVertices.Length];
-            //Color[] newColours = new Color[newVertices.Length];
+            Color32[] newColours = new Color32[newVertices.Length];
             int[] newTriangles = new int[newVertices.Length * 6];
 
             int triangleIndex = 0;
@@ -80,7 +80,7 @@ public static class MeshGenerator
                     // Add the UV
                     newUVs[thisVertexIndex] = UVs[oldIndex];
                     // Add the colour
-                    //newColours[thisVertexIndex] = Colours[GetVertexIndex(x, y)];
+                    newColours[thisVertexIndex] = Colours[oldIndex];
 
                     if (newX >= 0 && newX < newWidth - 1 && newY >= 0 && newY < newHeight - 1)
                     {
@@ -116,6 +116,7 @@ public static class MeshGenerator
             LODData.Vertices = newVertices;
             LODData.Triangles = newTriangles;
             LODData.UVs = newUVs;
+            LODData.Colours = newColours;
         }
 
 
@@ -136,6 +137,7 @@ public static class MeshGenerator
             m.vertices = LODData.Vertices;
             m.triangles = LODData.Triangles;
             m.uv = LODData.UVs;
+            m.colors32 = LODData.Colours;
         }
 
 
@@ -148,6 +150,7 @@ public static class MeshGenerator
             public Vector3[] Vertices;
             public Vector2[] UVs;
             public int[] Triangles;
+            public Color32[] Colours;
         }
     }
 
