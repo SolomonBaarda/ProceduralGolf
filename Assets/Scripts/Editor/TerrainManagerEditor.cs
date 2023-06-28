@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 
@@ -14,16 +13,6 @@ public class TerrainManagerEditor : Editor
 
         TerrainManager m = (TerrainManager)target;
 
-
-
-        if (m.CurrentLoadedTerrain != null)
-        {
-            if (GUILayout.Button("Save terrain to file"))
-            {
-                // Save the currently used TerrainData to file
-                TerrainSaver.SaveTerrain(m.CurrentLoadedTerrain);
-            }
-        }
     }
 
 

@@ -9,7 +9,6 @@ public class TerrainChunkData
     public Vector2Int Position;
     public Bounds Bounds;
 
-    [SerializeField] public Texture2D BiomeColourMap;
     [SerializeField] public Mesh MainMesh;
     public int MainMeshID; // Used for parallel mesh baking
 
@@ -20,12 +19,11 @@ public class TerrainChunkData
     [SerializeField] public List<WorldObjectData> WorldObjects;
 
 
-    public TerrainChunkData(Vector2Int position, Bounds bounds, Biome.Type[] biomes, int biomesWidth, int biomesHeight, Texture2D colourMap, Mesh main, List<WorldObjectData> worldObjects)
+    public TerrainChunkData(Vector2Int position, Bounds bounds, Biome.Type[] biomes, int biomesWidth, int biomesHeight, Mesh main, List<WorldObjectData> worldObjects)
     {
         Position = position;
         Bounds = bounds;
 
-        BiomeColourMap = colourMap;
         MainMesh = main;
         MainMeshID = main.GetInstanceID();
 

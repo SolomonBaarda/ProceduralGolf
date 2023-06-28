@@ -16,7 +16,6 @@ public class TerrainChunk : MonoBehaviour
     public TerrainChunkData Data;
 
     public Mesh MainMesh => Data.MainMesh;
-    public Texture2D BiomeColourMap => Data.BiomeColourMap;
     public Biome.Type[,] Biomes;
 
     private void Awake()
@@ -38,12 +37,6 @@ public class TerrainChunk : MonoBehaviour
         gameObject.transform.parent = parent;
 
         UpdateChunkData(data);
-
-        // Set an instance of the material
-        // And apply the textures to it
-        Vector2 textureTiling = new Vector2(data.Width - 1, data.Height - 1);
-
-        //TextureSettings.ApplyToMaterial(meshRenderer.material, BiomeColourMap, textureTiling);
     }
 
     public void UpdateChunkData(TerrainChunkData data)

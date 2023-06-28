@@ -221,10 +221,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             // Optimise it
             mesh.Optimize();
 
-            // Generate the texture
-            Texture2D colourMap = TextureGenerator.GenerateTextureFromData(d.Value.TextureData);
-
-            terrainChunks.Add(new TerrainChunkData(d.Key, d.Value.Bounds, d.Value.Biomes, chunkSize, chunkSize, colourMap, mesh, d.Value.WorldObjects));
+            terrainChunks.Add(new TerrainChunkData(d.Key, d.Value.Bounds, d.Value.Biomes, chunkSize, chunkSize, mesh, d.Value.WorldObjects));
         }
 
         // Bake the mesh physics in parallel
