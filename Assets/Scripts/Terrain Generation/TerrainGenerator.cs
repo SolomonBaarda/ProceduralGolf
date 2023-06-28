@@ -170,26 +170,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
         // Partially sequential
-        List<Tuple<Vector2Int, Vector2Int>> possibleCoursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, chunkSize, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
-
-        List<CourseData> courses = new List<CourseData>();
-        System.Random r = new System.Random(0);
-
-        foreach (Tuple<Vector2Int, Vector2Int> startEnd in possibleCoursesStartEnd)
-        {
-            UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-
-            Vector3 start = CalculateWorldVertexPositionFromTerrainMapIndex(map, startEnd.Item1.x, startEnd.Item1.y, distanceBetweenNoiseSamples);
-            Vector3 end = CalculateWorldVertexPositionFromTerrainMapIndex(map, startEnd.Item2.x, startEnd.Item2.y, distanceBetweenNoiseSamples);
-
-            // Ensure that the holes are far enough away for a decent course
-            Vector2 distance = new Vector2(end.x - start.x, end.z - start.z);
-            if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
-            {
-                courses.Add(new CourseData(start, end, c));
-            }
-        }
-
+        List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
@@ -440,7 +421,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// </summary>
     /// <param name="map"></param>
     /// <param name="greens"></param>
-    private List<Tuple<Vector2Int, Vector2Int>> CalculateCourses(TerrainMap map, int seed, int chunkSize, int numAttemptsToChooseRandomPositions = 100, int precisionStep = 1)
+    private List<CourseData> CalculateCourses(TerrainMap map, int seed, int chunkSize, float distanceBetweenNoiseSamples, int numAttemptsToChooseRandomPositions = 100, int precisionStep = 1)
     {
         // SEQUENTIAL
 
@@ -503,13 +484,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 #endif
 
-
-        // Initialise to correct size so that we don't need to synchronise between threads
-        List<Tuple<Vector2Int, Vector2Int>> courses = new List<Tuple<Vector2Int, Vector2Int>>(coursePoints.Count);
-        for (int i = 0; i < coursePoints.Count; i++)
-        {
-            courses.Add(new(Vector2Int.zero, Vector2Int.zero));
-        }
+        ConcurrentBag<Tuple<Vector3, Vector3>> startFinishCourses = new ConcurrentBag<Tuple<Vector3, Vector3>>();
 
         // Calculate the start and end positions for each of those courses
         For(0, coursePoints.Count, (int index) =>
@@ -522,6 +497,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
             Vector2Int hole = points[1];
             System.Random r = new System.Random(seed + index);
 
+            // Do a certain number of random attempts
             for (int i = 0; i < numAttemptsToChooseRandomPositions; i++)
             {
                 Vector2Int first = points[r.Next(points.Count)];
@@ -539,10 +515,28 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 }
             }
 
-            // Create the course data object
-            courses[index] = new(start, hole);
+            // Calculate the mesh position
+            Vector3 startWorld = CalculateWorldVertexPositionFromTerrainMapIndex(map, start.x, start.y, distanceBetweenNoiseSamples);
+            Vector3 holeWorld = CalculateWorldVertexPositionFromTerrainMapIndex(map, hole.x, hole.y, distanceBetweenNoiseSamples);
+
+            // Ensure that the holes are far enough away for a decent course
+            Vector2 distance = new Vector2(holeWorld.x - startWorld.x, holeWorld.z - startWorld.z);
+            if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
+            {
+                // Create the course data object
+                startFinishCourses.Add(new(startWorld, holeWorld));
+            }
         });
 
+
+        List<CourseData> courses = new List<CourseData>();
+        System.Random r = new System.Random(0);
+
+        foreach (var startEnd in startFinishCourses)
+        {
+            UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
+            courses.Add(new CourseData(startEnd.Item1, startEnd.Item2, c));
+        }
 
         return courses;
     }
