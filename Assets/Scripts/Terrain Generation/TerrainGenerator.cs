@@ -634,13 +634,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 meshData.UpdateUVS();
                 meshData.GenerateMeshLODData(MeshSettings);
 
-                // Compute texture data for chunk
-                TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForChunk(biomes, chunkSize, chunkSize, TextureSettings);
-
                 Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
                 Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
 
-                data.TryAdd(new Vector2Int(chunkX, chunkY), new ChunkData(meshData, textureData, biomes, chunkSize, chunkSize, new List<WorldObjectData>(), bounds));
+                data.TryAdd(new Vector2Int(chunkX, chunkY), new ChunkData(meshData, biomes, chunkSize, chunkSize, new List<WorldObjectData>(), bounds));
             }
         });
 
@@ -982,17 +979,15 @@ public class TerrainGenerator : MonoBehaviour, IManager
     private class ChunkData
     {
         public MeshGenerator.MeshData MeshData;
-        public TextureGenerator.TextureData TextureData;
         public List<WorldObjectData> WorldObjects;
         public Bounds Bounds;
 
         public Biome.Type[] Biomes;
         public int BiomesWidth, BiomesHeight;
 
-        public ChunkData(MeshGenerator.MeshData meshData, TextureGenerator.TextureData textureData, Biome.Type[] biomes, int width, int height, List<WorldObjectData> worldObjects, Bounds bounds)
+        public ChunkData(MeshGenerator.MeshData meshData, Biome.Type[] biomes, int width, int height, List<WorldObjectData> worldObjects, Bounds bounds)
         {
             MeshData = meshData;
-            TextureData = textureData;
             Biomes = biomes;
             BiomesWidth = width;
             BiomesHeight = height;
