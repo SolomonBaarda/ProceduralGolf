@@ -565,15 +565,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
         var writableMeshData = Mesh.AllocateWritableMeshData(numChunksY * numChunksX * MeshSettings.LevelOfDetail.Count);
         Mesh[] meshes = new Mesh[numChunksY * numChunksX * MeshSettings.LevelOfDetail.Count];
 
-        // TODO
-        int[] meshIDs = new int[numChunksY * numChunksX * MeshSettings.LevelOfDetail.Count];
-
         for (int i = 0; i < meshes.Length; i++)
         {
             meshes[i] = new Mesh();
-            meshIDs[i] = meshes[i].GetInstanceID();
         }
-
 
         // Inline method which returns a list of mesh pointers for the current chunk
         List<Mesh> GenerateLODsForChunk(int chunkX, int chunkY, in Biome.Type[] biomes)
@@ -695,8 +690,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         }
 
 
-        //For(0, numChunksY, (int chunkY) =>
-        for (int chunkY = 0; chunkY < numChunksY; chunkY++)
+        For(0, numChunksY, (int chunkY) =>
         {
             for (int chunkX = 0; chunkX < numChunksX; chunkX++)
             {
@@ -724,8 +718,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
                 chunkData.TryAdd(chunk, new TerrainChunkData(chunk, biomes, chunkSize, chunkSize, LODs, new List<WorldObjectData>()));
             }
-            //});
-        }
+        });
+
 
         // Now apply the meshdata to the meshes and clean up the memory
         Mesh.ApplyAndDisposeWritableMeshData(writableMeshData, meshes);
@@ -741,8 +735,20 @@ public class TerrainGenerator : MonoBehaviour, IManager
             mesh.Optimize();
         }
 
+        // Calculate the mesh IDs of the highest LOD meshes
+        int[] physicsBakeMeshIDs = new int[numChunksY * numChunksX];
+
+        for (int y = 0; y < numChunksY; y++)
+        {
+            for (int x = 0; x < numChunksX; x++)
+            {
+                int baseMeshIndex = ((y * numChunksY) + x) * MeshSettings.LevelOfDetail.Count;
+                physicsBakeMeshIDs[(y * numChunksX) + x] = meshes[baseMeshIndex].GetInstanceID();
+            }
+        }
+
         // Bake the mesh collision data in parallel 
-        ForEach(meshIDs, (id) =>
+        ForEach(physicsBakeMeshIDs, (id) =>
         {
             Physics.BakeMesh(id, false);
         });
