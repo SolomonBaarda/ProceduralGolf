@@ -22,7 +22,7 @@ public class TerrainManager : MonoBehaviour, IManager
     private bool HideChunks = true;
 
     [SerializeField]
-    private List<int> LODViewSettings = new List<int>();
+    private List<float> LODViewSettings = new List<float>();
 
     [Header("Events")]
     public UnityAction<CourseData> OnCourseStarted;
@@ -165,8 +165,8 @@ public class TerrainManager : MonoBehaviour, IManager
 
             foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
             {
-                Vector2Int distanceFromPlayer = ballChunk - chunk.Position;
-                float distanceSqrMag = distanceFromPlayer.sqrMagnitude;
+                Vector3 distanceFromPlayer = GolfBall.Position - chunk.Bounds.center;
+                float distanceSqrMag = Vector2.SqrMagnitude(new Vector2(distanceFromPlayer.x, distanceFromPlayer.z));
 
                 int LOD = 0;
                 foreach (int viewDistance in LODViewSettings)

@@ -339,7 +339,9 @@ MonoBehaviour:
   GolfBall: {fileID: 5612774800490992908}
   NextHoleBeacon: {fileID: 1041538519}
   NextHoleFlag: {fileID: 642023517}
-  LODViewSettings: 0100000003000000
+  LODViewSettings:
+  - 300
+  - 1000
 --- !u!114 &187293245
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1600,6 +1602,7 @@ MonoBehaviour:
   TextureSettings: {fileID: 11400000, guid: 9e788a4a2ac8e7d49ab7dbea7ef4e3e1, type: 2}
   CurrentSettings:
     Seed: 0
+    GenerateLOD: 0
 --- !u!102 &1605079248
 TextMesh:
   serializedVersion: 3

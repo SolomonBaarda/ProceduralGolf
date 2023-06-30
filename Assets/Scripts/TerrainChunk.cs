@@ -3,6 +3,7 @@
 public class TerrainChunk : MonoBehaviour
 {
     public Vector2Int Position { get; private set; }
+    public Bounds Bounds { get; private set; }
 
     public bool IsVisible => gameObject.activeSelf;
 
@@ -25,6 +26,7 @@ public class TerrainChunk : MonoBehaviour
     public void Initialise(Vector2Int position, TerrainChunkData data, Transform parent)
     {
         Position = position;
+        Bounds = data.Meshes[0].bounds;
 
         // Set the GameObject
         gameObject.name = "Terrain Chunk " + Position.ToString();
