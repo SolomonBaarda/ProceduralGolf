@@ -8,10 +8,11 @@ public static class Biome
         if (collider != null)
         {
             TerrainChunk c = collider.gameObject.GetComponent<TerrainChunk>();
+            MeshCollider m = collider.gameObject.GetComponent<MeshCollider>();
 
             if (c != null)
             {
-                if (Utils.GetClosestIndex(worldPos, c.Bounds.min, c.Bounds.max, c.Biomes.GetLength(0), c.Biomes.GetLength(1), out int x, out int y))
+                if (Utils.GetClosestIndex(worldPos, m.bounds.min, m.bounds.max, c.Biomes.GetLength(0), c.Biomes.GetLength(1), out int x, out int y))
                 {
                     return c.Biomes[x, y];
                 }

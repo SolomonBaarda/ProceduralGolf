@@ -31,9 +31,9 @@ public class GameManager : MonoBehaviour, IManager
     public Camera MapCamera;
 
     [Header("Terrain settings")]
-    private Gamerule Gamerules;
-    private static readonly Gamerule Testing = new Gamerule(false, 0, false, false);
-    private static readonly Gamerule FixedArea = new Gamerule(true, 500, true, true);
+    private Gamerules Gamerule;
+    private static readonly Gamerules Testing = new Gamerules(false, false, false, false);
+    private static readonly Gamerules FixedArea = new Gamerules(true, true, true, true);
 
     public delegate void CourseGenerated(TerrainData data);
     public delegate void PreviewGenerated(Texture2D map);
@@ -87,22 +87,17 @@ public class GameManager : MonoBehaviour, IManager
 
     public void SetVisible(bool visible)
     {
-        foreach (GameObject g in ObjectsToDisableWhileLoading)
-        {
-            g.SetActive(visible);
-        }
-
         TerrainManager.SetVisible(visible);
         TerrainGenerator.SetVisible(visible);
     }
 
     public void RestartGame()
     {
-        if (Gamerules.UseGolfBall)
+        if (Gamerule.UseGolfBall)
         {
             TerrainManager.Restart();
         }
-        if (Gamerules.UseHUD)
+        if (Gamerule.UseHUD)
         {
             UpdateHUDShotCounter();
         }
@@ -118,6 +113,7 @@ public class GameManager : MonoBehaviour, IManager
         {
             g.SetActive(false);
         }
+        SetVisible(false);
 
         Clear();
 
@@ -126,12 +122,12 @@ public class GameManager : MonoBehaviour, IManager
         // Set the game rules
         if (testing)
         {
-            Gamerules = Testing;
+            Gamerule = Testing;
 
         }
         else
         {
-            Gamerules = FixedArea;
+            Gamerule = FixedArea;
 
         }
 
@@ -147,7 +143,7 @@ public class GameManager : MonoBehaviour, IManager
     private IEnumerator WaitUntilGameLoaded(TerrainData data)
     {
         // Set up the TerrainManager
-        TerrainManager.Set(Gamerules.HideFarChunks, Gamerules.ViewDistanceWorldUnits);
+        TerrainManager.Set(Gamerule.UseViewDistance);
         TerrainManager.LoadTerrain(data);
 
         // Ensure there is terrain before we start
@@ -161,12 +157,12 @@ public class GameManager : MonoBehaviour, IManager
         }
 
         // Load the HUD if we need it
-        if (Gamerules.UseHUD)
+        if (Gamerule.UseHUD)
         {
 
         }
 
-        if (Gamerules.UseGolfBall)
+        if (Gamerule.UseGolfBall)
         {
             TerrainManager.GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
         }
@@ -175,14 +171,15 @@ public class GameManager : MonoBehaviour, IManager
         {
             g.SetActive(true);
         }
+        SetVisible(true);
 
         // Disable the golf ball if we dont need it
-        TerrainManager.GolfBall.gameObject.SetActive(Gamerules.UseGolfBall);
+        TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
 
         // Start the game
         RestartGame();
 
-        if (Gamerules.UseHUD)
+        if (Gamerule.UseHUD)
         {
             HUD.Compass.Following = TerrainManager.GolfBall.transform;
             HUD.SetVisible(true);
@@ -199,7 +196,7 @@ public class GameManager : MonoBehaviour, IManager
 
     private void Update()
     {
-        if (Gamerules.UseGolfBall && TerrainManager.HasTerrain)
+        if (Gamerule.UseGolfBall && TerrainManager.HasTerrain)
         {
             // Taking a shot
             bool isAiming = TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming;
@@ -207,7 +204,7 @@ public class GameManager : MonoBehaviour, IManager
             // Set the preview active or not
             GolfBallShotPreview.gameObject.SetActive(isAiming);
 
-            if (Gamerules.UseHUD && HUD != null)
+            if (Gamerule.UseHUD && HUD != null)
             {
                 HUD.ShootingMenu.SetActive(isAiming);
 
@@ -377,18 +374,18 @@ public class GameManager : MonoBehaviour, IManager
         }
     }
 
-    public struct Gamerule
+    public struct Gamerules
     {
-        public bool HideFarChunks;
-        public float ViewDistanceWorldUnits;
-
+        public bool UseViewDistance;
+        public bool UseMeshLOD;
         public bool UseHUD;
         public bool UseGolfBall;
 
-        public Gamerule(bool hideFarChunks, float viewDistanceWorldUnits, bool HUD, bool ball)
+        public Gamerules(bool useViewDistance, bool useMeshLOD, bool HUD, bool ball)
         {
-            HideFarChunks = hideFarChunks;
-            ViewDistanceWorldUnits = viewDistanceWorldUnits;
+            UseViewDistance = useViewDistance;
+            UseMeshLOD = useMeshLOD;
+
             UseHUD = HUD;
             UseGolfBall = ball;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -19,7 +20,9 @@ public class TerrainManager : MonoBehaviour, IManager
     public bool IsLoading { get; private set; } = false;
 
     private bool HideChunks = true;
-    private float ViewDistance = 0;
+
+    [SerializeField]
+    private List<int> LODViewSettings = new List<int>();
 
     [Header("Events")]
     public UnityAction<CourseData> OnCourseStarted;
@@ -76,10 +79,9 @@ public class TerrainManager : MonoBehaviour, IManager
         TerrainChunkManager.SetVisible(visible);
     }
 
-    public void Set(bool hideChunks, float viewDistance)
+    public void Set(bool hideChunks)
     {
         HideChunks = hideChunks;
-        ViewDistance = viewDistance;
     }
 
     /// <summary>
@@ -117,7 +119,7 @@ public class TerrainManager : MonoBehaviour, IManager
             yield return null;
         }
 
-        data.Courses.Sort((x, y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
+        //data.Courses.Sort((x, y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
 
         // Assign hole numbers
         for (int i = 0; i < data.Courses.Count; i++)
@@ -155,14 +157,32 @@ public class TerrainManager : MonoBehaviour, IManager
         }
     }
 
-    private void LateUpdate()
+    private void Update()
     {
-        if (HideChunks && GolfBall != null && ViewDistance > 0)
+        if (HideChunks && GolfBall != null)
         {
+            Vector2Int ballChunk = TerrainGenerator.WorldToChunk(GolfBall.Position);
+
             foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
             {
+                Vector2Int distanceFromPlayer = ballChunk - chunk.Position;
+                float distanceSqrMag = distanceFromPlayer.sqrMagnitude;
+
+                int LOD = 0;
+                foreach (int viewDistance in LODViewSettings)
+                {
+                    distanceSqrMag -= viewDistance * viewDistance;
+
+                    if (distanceSqrMag <= 0)
+                    {
+                        break;
+                    }
+
+                    LOD++;
+                }
+
                 // Only set the chunks within render distance to be visible
-                chunk.SetVisible((chunk.Bounds.center - GolfBall.transform.position).sqrMagnitude <= ViewDistance * ViewDistance);
+                chunk.SetLODIndex(LOD);
             }
         }
     }
@@ -249,6 +269,5 @@ public class TerrainManager : MonoBehaviour, IManager
             }
         }
     }
-
 
 }

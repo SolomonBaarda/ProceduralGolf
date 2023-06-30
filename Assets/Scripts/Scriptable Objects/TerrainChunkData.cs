@@ -7,9 +7,8 @@ using UnityEngine;
 public class TerrainChunkData
 {
     public Vector2Int Position;
-    public Bounds Bounds;
 
-    [SerializeField] public Mesh MainMesh;
+    public List<Mesh> Meshes;
 
     public int Width, Height;
     [SerializeField][HideInInspector] public Biome.Type[] Biomes;
@@ -17,12 +16,11 @@ public class TerrainChunkData
     [SerializeField] public List<WorldObjectData> WorldObjects;
 
 
-    public TerrainChunkData(Vector2Int position, Bounds bounds, Biome.Type[] biomes, int biomesWidth, int biomesHeight, Mesh main, List<WorldObjectData> worldObjects)
+    public TerrainChunkData(Vector2Int position, Biome.Type[] biomes, int biomesWidth, int biomesHeight, List<Mesh> meshes, List<WorldObjectData> worldObjects)
     {
         Position = position;
-        Bounds = bounds;
 
-        MainMesh = main;
+        Meshes = meshes;
 
         Width = biomesWidth;
         Height = biomesHeight;

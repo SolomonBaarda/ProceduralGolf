@@ -23,7 +23,7 @@ public class TerrainChunkManager : MonoBehaviour, IManager
 
         // Create the chunk
         TerrainChunk chunk = Instantiate(ChunkPrefab).GetComponent<TerrainChunk>();
-        chunk.Initialise(data.Position, data.Bounds, data, ChunkParent);
+        chunk.Initialise(data.Position, data, ChunkParent);
         TerrainChunks.Add(data.Position, chunk);
 
         return chunk;
@@ -33,51 +33,6 @@ public class TerrainChunkManager : MonoBehaviour, IManager
     {
         return TerrainChunks.Values;
     }
-
-    public List<TerrainChunk> GetChunks(List<Vector2Int> chunks)
-    {
-        List<TerrainChunk> values = new List<TerrainChunk>();
-        foreach (Vector2Int key in chunks)
-        {
-            if (TerrainChunks.TryGetValue(key, out TerrainChunk val))
-            {
-                values.Add(val);
-            }
-        }
-
-        return values;
-    }
-
-
-    public void SetVisibleChunks(List<Vector2Int> visible)
-    {
-        // Disabel all chunks first
-        foreach (TerrainChunk c in TerrainChunks.Values)
-        {
-            c.SetVisible(false);
-        }
-
-        // Then enable the ones we want
-        foreach (Vector2Int key in visible)
-        {
-            if (TerrainChunks.TryGetValue(key, out TerrainChunk chunk))
-            {
-                chunk.SetVisible(true);
-            }
-        }
-    }
-
-
-    public bool TerrainChunkIsVisible(Vector2Int chunk)
-    {
-        if (TerrainChunkExists(chunk))
-        {
-            TerrainChunks.TryGetValue(chunk, out TerrainChunk c);
-            return c.IsVisible;
-        }
-        return false;
-    }
-
 
     public bool TerrainChunkExists(Vector2Int chunk)
     {
@@ -100,6 +55,7 @@ public class TerrainChunkManager : MonoBehaviour, IManager
 
     public void SetVisible(bool visible)
     {
-
+        ChunkParent.gameObject.SetActive(visible);
     }
+
 }

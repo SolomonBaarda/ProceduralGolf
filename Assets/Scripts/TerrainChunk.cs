@@ -3,7 +3,6 @@
 public class TerrainChunk : MonoBehaviour
 {
     public Vector2Int Position { get; private set; }
-    public Bounds Bounds { get; private set; }
 
     public bool IsVisible => gameObject.activeSelf;
 
@@ -15,7 +14,6 @@ public class TerrainChunk : MonoBehaviour
 
     public TerrainChunkData Data;
 
-    public Mesh MainMesh => Data.MainMesh;
     public Biome.Type[,] Biomes;
 
     private void Awake()
@@ -25,10 +23,9 @@ public class TerrainChunk : MonoBehaviour
         meshCollider = gameObject.GetComponent<MeshCollider>();
     }
 
-    public void Initialise(Vector2Int position, Bounds bounds, TerrainChunkData data, Transform parent)
+    public void Initialise(Vector2Int position, TerrainChunkData data, Transform parent)
     {
         Position = position;
-        Bounds = bounds;
 
         // Set the GameObject
         gameObject.name = "Terrain Chunk " + Position.ToString();
@@ -42,13 +39,30 @@ public class TerrainChunk : MonoBehaviour
         Data = data;
         Biomes = Utils.UnFlatten(data.Biomes, data.Width, data.Height);
 
-        meshFilter.sharedMesh = MainMesh;
-        meshCollider.sharedMesh = MainMesh;
+        SetLODIndex(0);
+
+        // Always use the highest resolution mesh for collisions
+        meshCollider.sharedMesh = Data.Meshes[0];
     }
 
-    public void SetVisible(bool visible)
+    public void SetLODIndex(int lod)
     {
-        gameObject.SetActive(visible);
+        //Debug.Log($"CHUNK {Position.x} {Position.y} LOD {lod}");
+
+        if (lod >= 0 && lod < Data.Meshes.Count)
+        {
+            meshFilter.sharedMesh = Data.Meshes[lod];
+
+            gameObject.SetActive(true);
+            //Debug.Log($"CHUNK {Position.x} {Position.y} LOD {lod}");
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
+
+        // Only enable collisions when the ball is close
+        meshCollider.enabled = lod == 0;
     }
 
 

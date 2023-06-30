@@ -199,6 +199,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
         chunkRelativeIndex = new Vector2Int(terrainMapIndex.x % chunkMinusOne, terrainMapIndex.y % chunkMinusOne);
     }
 
+    public static Vector2Int WorldToChunk(Vector3 position)
+    {
+        Vector3 pos = position / TerrainChunkManager.ChunkSizeWorldUnits;
+        return new Vector2Int((int)pos.x, (int)pos.z);
+    }
+
     //static bool ChunkRelativeIndexToTerrainMap(int chunkSize, Vector2Int chunk, Vector2Int chunkRelativeIndex, out Vector2Int terrainMapIndex) { }
 
 
@@ -579,8 +585,8 @@ public class TerrainGenerator : MonoBehaviour, IManager
             for (int chunkX = 0; chunkX < numChunksX; chunkX++)
             {
                 // Calculate chunk bounds
-                Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
-                Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
+                //Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
+                //Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
 
                 // Initialise the new mesh data
                 int meshIndex = (chunkY * numChunksY) + chunkX;
@@ -690,7 +696,13 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 data.SetSubMesh(0, new SubMeshDescriptor(0, triangles.Length, MeshTopology.Triangles));
 
                 Vector2Int chunk = new Vector2Int(chunkX, chunkY);
-                chunkData.TryAdd(chunk, new TerrainChunkData(chunk, bounds, biomes, newChunkSize, newChunkSize, meshes[meshIndex], new List<WorldObjectData>()));
+
+                List<Mesh> LODs = new List<Mesh>
+                {
+                    meshes[meshIndex]
+                };
+
+                chunkData.TryAdd(chunk, new TerrainChunkData(chunk, biomes, newChunkSize, newChunkSize, LODs, new List<WorldObjectData>()));
             }
         });
 
