@@ -42,7 +42,7 @@ public class TerrainSettings : VariablePreset
     /// <summary>
     /// The minimum number of start/end positions allowed for a course. Use this value to exclue smaller courses from being valid
     /// </summary>
-    public readonly int FairwayMinStartEndVertexCount = 100;
+    public readonly int FairwayMinStartEndVertexCount = 50;
 
 
 

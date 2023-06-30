@@ -10,8 +10,6 @@ public class TerrainChunkData
     public Bounds Bounds;
 
     [SerializeField] public Mesh MainMesh;
-    public int MainMeshID; // Used for parallel mesh baking
-
 
     public int Width, Height;
     [SerializeField][HideInInspector] public Biome.Type[] Biomes;
@@ -25,7 +23,6 @@ public class TerrainChunkData
         Bounds = bounds;
 
         MainMesh = main;
-        MainMeshID = main.GetInstanceID();
 
         Width = biomesWidth;
         Height = biomesHeight;

@@ -32,8 +32,6 @@ public class TerrainChunk : MonoBehaviour
 
         // Set the GameObject
         gameObject.name = "Terrain Chunk " + Position.ToString();
-        // Terrain chunk must be offset by -chunksize/2 as mesh values need to be offset by a positive value
-        gameObject.transform.position = bounds.min;
         gameObject.transform.parent = parent;
 
         UpdateChunkData(data);

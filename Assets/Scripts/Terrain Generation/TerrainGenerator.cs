@@ -5,7 +5,9 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class TerrainGenerator : MonoBehaviour, IManager
 {
@@ -156,7 +158,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         // Now that biomes have been assigned, we can calculate the procedural object positions
         map.WorldObjects = !atLeastOneObject ?
             new List<TerrainMap.WorldObjectData>() :
-            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width * distanceBetweenNoiseSamples, map.Height * distanceBetweenNoiseSamples));
+            GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width, map.Height) * distanceBetweenNoiseSamples);
 
 
         Logger.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
@@ -165,85 +167,16 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         // Now subdivide the data into chunks and calculate the mesh data
         int chunkSize = TerrainSettings.SamplePointFrequency;
-        ConcurrentDictionary<Vector2Int, ChunkData> data = SplitIntoChunks(map, chunkSize, offset, distanceBetweenNoiseSamples);
+        ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
         // Partially sequential
-        List<Tuple<Vector2Int, Vector2Int>> possibleCoursesStartEnd = CalculateCourses(map, CurrentSettings.Seed, chunkSize, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
-
-        List<CourseData> courses = new List<CourseData>();
-        System.Random r = new System.Random(0);
-
-        foreach (Tuple<Vector2Int, Vector2Int> startEnd in possibleCoursesStartEnd)
-        {
-            UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-
-            TerrainMapIndexToChunk(chunkSize, startEnd.Item1, out Vector2Int startChunk, out Vector2Int startIndex);
-            TerrainMapIndexToChunk(chunkSize, startEnd.Item2, out Vector2Int endChunk, out Vector2Int endIndex);
-
-            // Get the mesh positions of the start and end pos
-            if (data.TryGetValue(startChunk, out ChunkData startChunkData) && data.TryGetValue(endChunk, out ChunkData endChunkData))
-            {
-                Vector3 start = startChunkData.MeshData.Vertices[(startIndex.y * startChunkData.BiomesWidth) + startIndex.x] + startChunkData.Bounds.min;
-                Vector3 end = endChunkData.MeshData.Vertices[(endIndex.y * endChunkData.BiomesWidth) + endIndex.x] + endChunkData.Bounds.min;
-
-                // Ensure that the holes are far enough away for a decent course
-                if (Vector2.SqrMagnitude(new Vector2(end.x, end.z) - new Vector2(start.x, start.z)) > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
-                {
-                    courses.Add(new CourseData(start, end, c));
-                }
-            }
-            else
-            {
-                Debug.LogError("Failed to create course as data is missing chunk index");
-            }
-        }
-
-        Logger.Log($"* Generated chunk data in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
-        lastTimestamp = DateTime.Now;
-        yield return null;
-
-
-        List<TerrainChunkData> terrainChunks = new List<TerrainChunkData>();
-
-        // Construct textures and meshes
-        // This needs to be done in the main thread
-        foreach (KeyValuePair<Vector2Int, ChunkData> d in data)
-        {
-            // Generate the mesh
-            Mesh mesh = null;
-            d.Value.MeshData.ApplyLODTOMesh(ref mesh);
-            mesh.name = d.Key.ToString();
-
-            mesh.RecalculateNormals();
-            mesh.RecalculateTangents();
-            mesh.RecalculateBounds();
-
-            // Optimise it
-            mesh.Optimize();
-
-            terrainChunks.Add(new TerrainChunkData(d.Key, d.Value.Bounds, d.Value.Biomes, chunkSize, chunkSize, mesh, d.Value.WorldObjects));
-        }
-
-        // Bake the mesh physics in parallel
-        ForEach(terrainChunks, (chunk) =>
-        {
-            Physics.BakeMesh(chunk.MainMeshID, false);
-        });
-
-
-        // TODO in next version
-        // Add map perview before actually generating the course
-        //MapData mapData = GenerateMap(data);
-        //then Save To Disk as PNG
-        //byte[] bytes = mapData.Map.EncodeToPNG();
-        //File.WriteAllBytes(Application.dataPath + "/map.png", bytes);
-
+        List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(CurrentSettings.Seed, terrainChunks, courses, TerrainSettings.name);
+        terrain.SetData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.name);
 
-        Logger.Log($"* Generated meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        Logger.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
 
 
@@ -255,8 +188,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         // Callback when done
         callback(terrain);
-
-        //ClearGenerationData();
     }
 
 
@@ -490,7 +421,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
     /// </summary>
     /// <param name="map"></param>
     /// <param name="greens"></param>
-    private List<Tuple<Vector2Int, Vector2Int>> CalculateCourses(TerrainMap map, int seed, int chunkSize, int numAttemptsToChooseRandomPositions = 100, int precisionStep = 1)
+    private List<CourseData> CalculateCourses(TerrainMap map, int seed, int chunkSize, float distanceBetweenNoiseSamples, int numAttemptsToChooseRandomPositions = 100, int precisionStep = 1)
     {
         // SEQUENTIAL
 
@@ -553,13 +484,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 #endif
 
-
-        // Initialise to correct size so that we don't need to synchronise between threads
-        List<Tuple<Vector2Int, Vector2Int>> courses = new List<Tuple<Vector2Int, Vector2Int>>(coursePoints.Count);
-        for (int i = 0; i < coursePoints.Count; i++)
-        {
-            courses.Add(new(Vector2Int.zero, Vector2Int.zero));
-        }
+        ConcurrentBag<Tuple<Vector3, Vector3>> startFinishCourses = new ConcurrentBag<Tuple<Vector3, Vector3>>();
 
         // Calculate the start and end positions for each of those courses
         For(0, coursePoints.Count, (int index) =>
@@ -570,8 +495,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
             int curSqrMag = 0;
             Vector2Int start = points[0];
             Vector2Int hole = points[1];
-            System.Random r = new System.Random(seed);
+            System.Random r = new System.Random(seed + index);
 
+            // Do a certain number of random attempts
             for (int i = 0; i < numAttemptsToChooseRandomPositions; i++)
             {
                 Vector2Int first = points[r.Next(points.Count)];
@@ -589,60 +515,205 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 }
             }
 
-            // Create the course data object
-            courses[index] = new(start, hole);
+            // Calculate the mesh position
+            Vector3 startWorld = CalculateWorldVertexPositionFromTerrainMapIndex(map, start.x, start.y, distanceBetweenNoiseSamples);
+            Vector3 holeWorld = CalculateWorldVertexPositionFromTerrainMapIndex(map, hole.x, hole.y, distanceBetweenNoiseSamples);
+
+            // Ensure that the holes are far enough away for a decent course
+            Vector2 distance = new Vector2(holeWorld.x - startWorld.x, holeWorld.z - startWorld.z);
+            if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
+            {
+                // Create the course data object
+                startFinishCourses.Add(new(startWorld, holeWorld));
+            }
         });
 
+
+        List<CourseData> courses = new List<CourseData>();
+        System.Random r = new System.Random(0);
+
+        foreach (var startEnd in startFinishCourses)
+        {
+            UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
+            courses.Add(new CourseData(startEnd.Item1, startEnd.Item2, c));
+        }
 
         return courses;
     }
 
+    private static Vector3 CalculateWorldVertexPositionFromTerrainMapIndex(TerrainMap map, int x, int y, float distanceBetweenNoiseSamples)
+    {
+        return new Vector3(x * distanceBetweenNoiseSamples, map.Heights[(y * map.Width) + x], y * distanceBetweenNoiseSamples);
+    }
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="map"></param>
-    private ConcurrentDictionary<Vector2Int, ChunkData> SplitIntoChunks(TerrainMap map, int chunkSize, Vector2 offset, float distanceBetweenNoiseSamples)
+    private ConcurrentDictionary<Vector2Int, TerrainChunkData> SplitIntoChunksAndGenerateMeshData(TerrainMap map, int chunkSize, Vector2 offset, float distanceBetweenNoiseSamples)
     {
-        ConcurrentDictionary<Vector2Int, ChunkData> data = new ConcurrentDictionary<Vector2Int, ChunkData>();
+        ConcurrentDictionary<Vector2Int, TerrainChunkData> chunkData = new ConcurrentDictionary<Vector2Int, TerrainChunkData>();
 
-        For(0, map.Height / chunkSize, (int chunkY) =>
+        int numChunksY = map.Height / chunkSize, numChunksX = map.Width / chunkSize;
+        int increment = MeshSettings.SimplificationIncrement;
+        int newChunkSize = ((chunkSize - 1) / increment) + 1;
+
+        int numVertexesPerChunk = newChunkSize * newChunkSize;
+        int numTrianglesPerChunk = (newChunkSize - 1) * (newChunkSize - 1) * 6;
+
+        UInt32 chunkSizeLODUnsigned = Convert.ToUInt32(newChunkSize);
+
+        var writableMeshData = Mesh.AllocateWritableMeshData(numChunksY * numChunksX);
+        Mesh[] meshes = new Mesh[numChunksY * numChunksX];
+        int[] meshIDs = new int[numChunksY * numChunksX];
+
+        for (int i = 0; i < meshes.Length; i++)
         {
-            for (int chunkX = 0; chunkX < map.Width / chunkSize; chunkX++)
+            meshes[i] = new Mesh();
+            meshIDs[i] = meshes[i].GetInstanceID();
+        }
+
+
+        For(0, numChunksY, (int chunkY) =>
+        {
+            for (int chunkX = 0; chunkX < numChunksX; chunkX++)
             {
-                MeshGenerator.MeshData meshData = new MeshGenerator.MeshData(chunkSize, chunkSize);
-                Biome.Type[] biomes = new Biome.Type[chunkSize * chunkSize];
-
-                for (int heightY = 0; heightY < chunkSize; heightY++)
-                {
-                    for (int heightX = 0; heightX < chunkSize; heightX++)
-                    {
-                        // Calculate the indexes to map between the chunk and terrain map
-                        int localIndex = (heightY * chunkSize) + heightX;
-                        int terrainMapIndex = (((chunkY * chunkSize) - chunkY + heightY) * map.Width) + (chunkX * chunkSize) - chunkX + heightX;
-
-                        // Copy the mesh data
-                        meshData.Vertices[localIndex] = new Vector3(heightX * distanceBetweenNoiseSamples, map.Heights[terrainMapIndex], heightY * distanceBetweenNoiseSamples);
-
-                        // Copy the biome data
-                        biomes[localIndex] = map.Biomes[terrainMapIndex];
-
-                        meshData.Colours[localIndex] = TextureSettings.GetColour(biomes[localIndex]);
-                    }
-                }
-
-                meshData.UpdateUVS();
-                meshData.GenerateMeshLODData(MeshSettings);
-
-                // Compute texture data for chunk
-                TextureGenerator.TextureData textureData = TextureGenerator.GenerateTextureDataForChunk(biomes, chunkSize, chunkSize, TextureSettings);
-
+                // Calculate chunk bounds
                 Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
                 Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
 
-                data.TryAdd(new Vector2Int(chunkX, chunkY), new ChunkData(meshData, textureData, biomes, chunkSize, chunkSize, new List<WorldObjectData>(), bounds));
+                // Initialise the new mesh data
+                int meshIndex = (chunkY * numChunksY) + chunkX;
+                //meshes[meshIndex].name = $"Chunk({chunkX},{chunkY})";
+                var data = writableMeshData[meshIndex];
+
+                Biome.Type[] biomes = new Biome.Type[numVertexesPerChunk];
+
+                // Create the buffers
+                data.SetVertexBufferParams(numVertexesPerChunk,
+                    new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, dimension: 3, stream: 0),
+                    new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, dimension: 4, stream: 1)
+                );
+
+                data.SetIndexBufferParams(numTrianglesPerChunk, IndexFormat.UInt32);
+
+
+                // Get references to the buffers
+                var positions = data.GetVertexData<Vector3>(stream: 0);
+                var colours = data.GetVertexData<Color32>(stream: 1);
+                var triangles = data.GetIndexData<UInt32>();
+
+
+                // Set the data in the buffers
+                int triangleIndex = 0;
+                for (int y = 0; y < chunkSize; y += increment)
+                {
+                    for (int x = 0; x < chunkSize; x += increment)
+                    {
+                        int newX = x / increment, newY = y / increment;
+
+                        int vertexIndex = (newY * newChunkSize) + newX;
+                        int terrainMapX = (chunkX * chunkSize) - chunkX + newX;
+                        int terrainMapY = (chunkY * chunkSize) - chunkY + newY;
+
+                        // Set the biomes
+                        biomes[vertexIndex] = map.Biomes[(terrainMapY * map.Width) + terrainMapX];
+
+                        // Set the vertex
+                        positions[vertexIndex] = CalculateWorldVertexPositionFromTerrainMapIndex(map, terrainMapX, terrainMapY, distanceBetweenNoiseSamples);
+
+                        // Set the colour
+                        colours[vertexIndex] = TextureSettings.GetColour(biomes[vertexIndex]);
+
+                        if (newX >= 0 && newX < newChunkSize - 1 && newY >= 0 && newY < newChunkSize - 1)
+                        {
+                            UInt32 vertexIndexUnsigned = Convert.ToUInt32(vertexIndex);
+
+                            // Set the triangles
+                            triangles[triangleIndex] = vertexIndexUnsigned;
+                            // Below
+                            triangles[triangleIndex + 1] = vertexIndexUnsigned + chunkSizeLODUnsigned;
+                            // Bottom right
+                            triangles[triangleIndex + 2] = vertexIndexUnsigned + chunkSizeLODUnsigned + 1U;
+                            triangleIndex += 3;
+
+                            triangles[triangleIndex] = vertexIndexUnsigned;
+                            // Bottom right
+                            triangles[triangleIndex + 1] = vertexIndexUnsigned + chunkSizeLODUnsigned + 1U;
+                            // Top right
+                            triangles[triangleIndex + 2] = vertexIndexUnsigned + 1U;
+                            triangleIndex += 3;
+                        }
+                    }
+                }
+
+
+
+#if false
+
+                // Calculate UVs
+                // Now not needed
+
+                // Get the minimum and maximum points
+                Vector2 min = Vertices[0], max = Vertices[0];
+                for (int y = 0; y < Height; y++)
+                {
+                    for (int x = 0; x < Width; x++)
+                    {
+                        Vector3 v = Vertices[(y * Width) + x];
+
+                        if (v.x < min.x) { min.x = v.x; }
+                        if (v.x > max.x) { max.x = v.x; }
+
+                        if (v.z < min.y) { min.y = v.z; }
+                        if (v.z > max.y) { max.y = v.z; }
+                    }
+                }
+
+                Vector2 size = max - min;
+
+                // Now assign each UV
+                for (int y = 0; y < Height; y++)
+                {
+                    for (int x = 0; x < Width; x++)
+                    {
+                        Vector3 point = Vertices[(y * Width) + x];
+
+                        UVs[(y * Width) + x] = (max - new Vector2(point.x, point.z)) / size;
+                    }
+                }
+
+#endif
+
+                // Now set the sub mesh
+                data.subMeshCount = 1;
+                data.SetSubMesh(0, new SubMeshDescriptor(0, triangles.Length, MeshTopology.Triangles));
+
+                Vector2Int chunk = new Vector2Int(chunkX, chunkY);
+                chunkData.TryAdd(chunk, new TerrainChunkData(chunk, bounds, biomes, newChunkSize, newChunkSize, meshes[meshIndex], new List<WorldObjectData>()));
             }
         });
+
+        // Now apply the meshdata to the meshes and clean up the memory
+        Mesh.ApplyAndDisposeWritableMeshData(writableMeshData, meshes);
+
+        // Recalculate mesh values (SEQUENTIAL)
+        foreach (Mesh mesh in meshes)
+        {
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+            mesh.RecalculateBounds();
+
+            // Optimise it
+            mesh.Optimize();
+        }
+
+        // Bake the mesh collision data in parallel 
+        ForEach(meshIDs, (id) =>
+        {
+            Physics.BakeMesh(id, false);
+        });
+
 
         // Calculate which chunk each world object belongs to
 
@@ -655,7 +726,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         {
             TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int _);
 
-            if (data.TryGetValue(chunk, out ChunkData value))
+            if (chunkData.TryGetValue(chunk, out TerrainChunkData value))
             {
                 if (!objectsForChunk.ContainsKey(chunk))
                 {
@@ -681,7 +752,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         foreach (var objects in objectsForChunk)
         {
-            if (data.TryGetValue(objects.Key, out ChunkData chunk))
+            if (chunkData.TryGetValue(objects.Key, out TerrainChunkData chunk))
             {
                 foreach (var obj in objects.Value)
                 {
@@ -695,7 +766,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         }
 
-        return data;
+        return chunkData;
     }
 
 
@@ -855,6 +926,30 @@ public class TerrainGenerator : MonoBehaviour, IManager
         }
     }
 
+    private bool AllMasksValidForPosition(TerrainMap map, IEnumerable<TerrainSettings.Mask> masks, int x, int y)
+    {
+        int index = (y * map.Width) + x;
+
+        foreach (TerrainSettings.Mask mask in masks)
+        {
+            TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[mask.LayerIndex];
+
+            // Get the reference to the noise layer that we are comparing against
+            TerrainMap.Layer noiseLayer = layerSettings.ShareOtherLayerNoise ?
+                map.Layers[layerSettings.LayerIndexShareNoise] :
+                map.Layers[mask.LayerIndex];
+
+            // Check if the mask is valid
+            if (!(noiseLayer.Noise[index] >= mask.NoiseThresholdMin && noiseLayer.Noise[index] <= mask.NoiseThresholdMax))
+            {
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
     private void FloodFillGolfCoursePosition(TerrainMap map, ref bool[] checkedFloodFill, Queue<(int, int)> q, int x, int y, ref List<Vector2Int> validPoints)
     {
         int index = (y * map.Width) + x;
@@ -866,38 +961,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
             // Add this point if it could be a valid hole
             foreach (var holeSettings in TerrainSettings.Holes)
             {
-                if (holeSettings.Do && holeSettings.RequiredBiomes.Contains(map.Biomes[index]))
+                if (holeSettings.Do && holeSettings.RequiredBiomes.Contains(map.Biomes[index]) && AllMasksValidForPosition(map, holeSettings.Masks, x, y))
                 {
-                    // Check that the mask is valid if we are using it 
-                    bool maskvalid = true;
-                    if (holeSettings.UseMask)
-                    {
-                        foreach (TerrainSettings.Mask greenLayerMask in holeSettings.Masks)
-                        {
-                            TerrainMap.Layer layer = map.Layers[greenLayerMask.LayerIndex];
-
-                            TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[greenLayerMask.LayerIndex];
-
-                            // Set the reference to be another layer if we are sharing noise
-                            if (layerSettings.ShareOtherLayerNoise)
-                            {
-                                layer = map.Layers[layerSettings.LayerIndexShareNoise];
-                            }
-
-                            // Mask is not valid here
-                            if (!(layer.Noise[index] >= greenLayerMask.NoiseThresholdMin && layer.Noise[index] <= greenLayerMask.NoiseThresholdMax))
-                            {
-                                maskvalid = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (maskvalid)
-                    {
-                        validPoints.Add(new Vector2Int(x, y));
-                        break;
-                    }
+                    validPoints.Add(new Vector2Int(x, y));
+                    break;
                 }
             }
 
@@ -979,27 +1046,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
     }
 
-    private class ChunkData
-    {
-        public MeshGenerator.MeshData MeshData;
-        public TextureGenerator.TextureData TextureData;
-        public List<WorldObjectData> WorldObjects;
-        public Bounds Bounds;
-
-        public Biome.Type[] Biomes;
-        public int BiomesWidth, BiomesHeight;
-
-        public ChunkData(MeshGenerator.MeshData meshData, TextureGenerator.TextureData textureData, Biome.Type[] biomes, int width, int height, List<WorldObjectData> worldObjects, Bounds bounds)
-        {
-            MeshData = meshData;
-            TextureData = textureData;
-            Biomes = biomes;
-            BiomesWidth = width;
-            BiomesHeight = height;
-            WorldObjects = worldObjects;
-            Bounds = bounds;
-        }
-    }
 
     [Serializable]
     public class GenerationSettings
