@@ -1,5 +1,5 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 using UnityEngine.Events;
 
 public class MainMenu : MonoBehaviour, IManager
@@ -28,6 +28,7 @@ public class MainMenu : MonoBehaviour, IManager
         try
         {
             Settings.Seed = int.Parse(SeedInput.text);
+            Settings.GenerateLOD = true;
             OnPressStartGame.Invoke(Settings);
         }
         catch (System.Exception)
@@ -43,7 +44,7 @@ public class MainMenu : MonoBehaviour, IManager
 
     public void Clear()
     {
-        
+
     }
 
     public void SetVisible(bool visible)

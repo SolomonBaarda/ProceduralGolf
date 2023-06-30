@@ -12,9 +12,9 @@ public static class Biome
 
             if (c != null)
             {
-                if (Utils.GetClosestIndex(worldPos, m.bounds.min, m.bounds.max, c.Biomes.GetLength(0), c.Biomes.GetLength(1), out int x, out int y))
+                if (Utils.GetClosestIndex(worldPos, m.bounds.min, m.bounds.max, c.Data.Width, c.Data.Height, out int x, out int y))
                 {
-                    return c.Biomes[x, y];
+                    return c.Data.Biomes[(y * c.Data.Width) + x];
                 }
             }
         }

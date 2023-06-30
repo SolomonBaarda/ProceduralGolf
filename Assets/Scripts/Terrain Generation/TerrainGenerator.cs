@@ -561,17 +561,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
         ConcurrentDictionary<Vector2Int, TerrainChunkData> chunkData = new ConcurrentDictionary<Vector2Int, TerrainChunkData>();
 
         int numChunksY = map.Height / chunkSize, numChunksX = map.Width / chunkSize;
-        int increment = MeshSettings.SimplificationIncrement;
-        int newChunkSize = ((chunkSize - 1) / increment) + 1;
 
-        int numVertexesPerChunk = newChunkSize * newChunkSize;
-        int numTrianglesPerChunk = (newChunkSize - 1) * (newChunkSize - 1) * 6;
+        var writableMeshData = Mesh.AllocateWritableMeshData(numChunksY * numChunksX * MeshSettings.LevelOfDetail.Count);
+        Mesh[] meshes = new Mesh[numChunksY * numChunksX * MeshSettings.LevelOfDetail.Count];
 
-        UInt32 chunkSizeLODUnsigned = Convert.ToUInt32(newChunkSize);
-
-        var writableMeshData = Mesh.AllocateWritableMeshData(numChunksY * numChunksX);
-        Mesh[] meshes = new Mesh[numChunksY * numChunksX];
-        int[] meshIDs = new int[numChunksY * numChunksX];
+        // TODO
+        int[] meshIDs = new int[numChunksY * numChunksX * MeshSettings.LevelOfDetail.Count];
 
         for (int i = 0; i < meshes.Length; i++)
         {
@@ -580,29 +575,32 @@ public class TerrainGenerator : MonoBehaviour, IManager
         }
 
 
-        For(0, numChunksY, (int chunkY) =>
+        // Inline method which returns a list of mesh pointers for the current chunk
+        List<Mesh> GenerateLODsForChunk(int chunkX, int chunkY, in Biome.Type[] biomes)
         {
-            for (int chunkX = 0; chunkX < numChunksX; chunkX++)
+            int baseMeshIndex = ((chunkY * numChunksY) + chunkX) * MeshSettings.LevelOfDetail.Count;
+            List<Mesh> LODs = new List<Mesh>();
+
+            for (int LODIndex = 0; LODIndex < MeshSettings.LevelOfDetail.Count; LODIndex++)
             {
-                // Calculate chunk bounds
-                //Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
-                //Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
+                int simplificationIncrement = Mathf.Max(MeshSettings.LevelOfDetail[LODIndex] * 2, 1);
+
+                int newChunkSize = ((chunkSize - 1) / simplificationIncrement) + 1;
+                UInt32 chunkSizeU = Convert.ToUInt32(newChunkSize);
 
                 // Initialise the new mesh data
-                int meshIndex = (chunkY * numChunksY) + chunkX;
-                //meshes[meshIndex].name = $"Chunk({chunkX},{chunkY})";
-                var data = writableMeshData[meshIndex];
-
-                Biome.Type[] biomes = new Biome.Type[numVertexesPerChunk];
+                var data = writableMeshData[baseMeshIndex + LODIndex];
 
                 // Create the buffers
-                data.SetVertexBufferParams(numVertexesPerChunk,
+                data.SetVertexBufferParams(newChunkSize * newChunkSize, // Num vertexes
                     new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, dimension: 3, stream: 0),
                     new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, dimension: 4, stream: 1)
                 );
 
-                data.SetIndexBufferParams(numTrianglesPerChunk, IndexFormat.UInt32);
-
+                data.SetIndexBufferParams(
+                    (newChunkSize - 1) * (newChunkSize - 1) * 6, // Num triangles
+                    IndexFormat.UInt32
+                );
 
                 // Get references to the buffers
                 var positions = data.GetVertexData<Vector3>(stream: 0);
@@ -612,24 +610,21 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
                 // Set the data in the buffers
                 int triangleIndex = 0;
-                for (int y = 0; y < chunkSize; y += increment)
+                for (int y = 0; y < chunkSize; y += simplificationIncrement)
                 {
-                    for (int x = 0; x < chunkSize; x += increment)
+                    for (int x = 0; x < chunkSize; x += simplificationIncrement)
                     {
-                        int newX = x / increment, newY = y / increment;
+                        int newX = x / simplificationIncrement, newY = y / simplificationIncrement;
 
                         int vertexIndex = (newY * newChunkSize) + newX;
-                        int terrainMapX = (chunkX * chunkSize) - chunkX + newX;
-                        int terrainMapY = (chunkY * chunkSize) - chunkY + newY;
+                        int terrainMapX = (chunkX * chunkSize) - chunkX + x;
+                        int terrainMapY = (chunkY * chunkSize) - chunkY + y;
 
-                        // Set the biomes
-                        biomes[vertexIndex] = map.Biomes[(terrainMapY * map.Width) + terrainMapX];
-
-                        // Set the vertex
+                        // Calculate the vertex position
                         positions[vertexIndex] = CalculateWorldVertexPositionFromTerrainMapIndex(map, terrainMapX, terrainMapY, distanceBetweenNoiseSamples);
 
                         // Set the colour
-                        colours[vertexIndex] = TextureSettings.GetColour(biomes[vertexIndex]);
+                        colours[vertexIndex] = TextureSettings.GetColour(map.Biomes[(terrainMapY * map.Width) + terrainMapX]);
 
                         if (newX >= 0 && newX < newChunkSize - 1 && newY >= 0 && newY < newChunkSize - 1)
                         {
@@ -638,22 +633,20 @@ public class TerrainGenerator : MonoBehaviour, IManager
                             // Set the triangles
                             triangles[triangleIndex] = vertexIndexUnsigned;
                             // Below
-                            triangles[triangleIndex + 1] = vertexIndexUnsigned + chunkSizeLODUnsigned;
+                            triangles[triangleIndex + 1] = vertexIndexUnsigned + chunkSizeU;
                             // Bottom right
-                            triangles[triangleIndex + 2] = vertexIndexUnsigned + chunkSizeLODUnsigned + 1U;
+                            triangles[triangleIndex + 2] = vertexIndexUnsigned + chunkSizeU + 1U;
                             triangleIndex += 3;
 
                             triangles[triangleIndex] = vertexIndexUnsigned;
                             // Bottom right
-                            triangles[triangleIndex + 1] = vertexIndexUnsigned + chunkSizeLODUnsigned + 1U;
+                            triangles[triangleIndex + 1] = vertexIndexUnsigned + chunkSizeU + 1U;
                             // Top right
                             triangles[triangleIndex + 2] = vertexIndexUnsigned + 1U;
                             triangleIndex += 3;
                         }
                     }
                 }
-
-
 
 #if false
 
@@ -695,16 +688,44 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 data.subMeshCount = 1;
                 data.SetSubMesh(0, new SubMeshDescriptor(0, triangles.Length, MeshTopology.Triangles));
 
+                LODs.Add(meshes[baseMeshIndex + LODIndex]);
+            }
+
+            return LODs;
+        }
+
+
+        //For(0, numChunksY, (int chunkY) =>
+        for (int chunkY = 0; chunkY < numChunksY; chunkY++)
+        {
+            for (int chunkX = 0; chunkX < numChunksX; chunkX++)
+            {
+                // Calculate chunk bounds
+                //Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
+                //Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
+
                 Vector2Int chunk = new Vector2Int(chunkX, chunkY);
 
-                List<Mesh> LODs = new List<Mesh>
-                {
-                    meshes[meshIndex]
-                };
+                // Populate the biomes array with data
+                Biome.Type[] biomes = new Biome.Type[chunkSize * chunkSize];
 
-                chunkData.TryAdd(chunk, new TerrainChunkData(chunk, biomes, newChunkSize, newChunkSize, LODs, new List<WorldObjectData>()));
+                for (int y = 0; y < chunkSize; y++)
+                {
+                    for (int x = 0; x < chunkSize; x++)
+                    {
+                        // Set the biomes
+                        int terrainMapX = (chunkX * chunkSize) - chunkX + x;
+                        int terrainMapY = (chunkY * chunkSize) - chunkY + y;
+                        biomes[(y * chunkSize) + x] = map.Biomes[(terrainMapY * map.Width) + terrainMapX];
+                    }
+                }
+
+                List<Mesh> LODs = GenerateLODsForChunk(chunkX, chunkY, biomes);
+
+                chunkData.TryAdd(chunk, new TerrainChunkData(chunk, biomes, chunkSize, chunkSize, LODs, new List<WorldObjectData>()));
             }
-        });
+            //});
+        }
 
         // Now apply the meshdata to the meshes and clean up the memory
         Mesh.ApplyAndDisposeWritableMeshData(writableMeshData, meshes);
@@ -1063,6 +1084,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
     public class GenerationSettings
     {
         public int Seed = 0;
+        public bool GenerateLOD = false;
     }
 
 }

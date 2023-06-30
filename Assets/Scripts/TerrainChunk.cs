@@ -14,7 +14,6 @@ public class TerrainChunk : MonoBehaviour
 
     public TerrainChunkData Data;
 
-    public Biome.Type[,] Biomes;
 
     private void Awake()
     {
@@ -37,7 +36,6 @@ public class TerrainChunk : MonoBehaviour
     public void UpdateChunkData(TerrainChunkData data)
     {
         Data = data;
-        Biomes = Utils.UnFlatten(data.Biomes, data.Width, data.Height);
 
         SetLODIndex(0);
 

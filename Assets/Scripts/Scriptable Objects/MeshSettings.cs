@@ -1,16 +1,18 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 [CreateAssetMenu(menuName = "Settings/Mesh")]
 public class MeshSettings : VariablePreset
 {
     [Header("Value of 0 (most detail) to 6 (least detail)")]
-    public int LevelOfDetail = 1;
-
-    public int SimplificationIncrement => Mathf.Max(LevelOfDetail * 2, 1);
+    public List<int> LevelOfDetail = new List<int>() { 0 };
 
     public override void ValidateValues()
     {
-        LevelOfDetail = Mathf.Clamp(LevelOfDetail, 0, 6);
+        for (int i = 0; i < LevelOfDetail.Count; i++)
+        {
+            LevelOfDetail[i] = System.Math.Max(LevelOfDetail[i], 0);
+        }
     }
 
 
