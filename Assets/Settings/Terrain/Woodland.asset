@@ -158,18 +158,17 @@ MonoBehaviour:
       NoiseThresholdMin: 0.65
       NoiseThresholdMax: 1
   PoissonSamplingIterations: 5
-  PoissonSamplingRadius: 12
+  PoissonSamplingRadius: 13
   ProceduralObjects:
   - Do: 1
     RequiredBiomes: 0200000001000000
     Prefabs:
     - {fileID: 117604, guid: 9469bb1d3aa88ca40aa4079e96a27f8e, type: 3}
-    - {fileID: 127550, guid: 87a6cef862ce2cb4a88c5ca5d5af5d2b, type: 3}
-    - {fileID: 115084, guid: 1aeaf0013e9988a4d9720bf2302d7f99, type: 3}
     - {fileID: 159322, guid: 9f52039fd0e9d35488d949caf695492c, type: 3}
+    - {fileID: 127550, guid: 87a6cef862ce2cb4a88c5ca5d5af5d2b, type: 3}
     - {fileID: 136328, guid: ad24b1be69c00194bb32ca2f99f3b90e, type: 3}
     - {fileID: 180214, guid: bf63f345c35746848b68f3ce8babeb71, type: 3}
-    Chance: 0.6
+    Chance: 0.7
     UseMask: 1
     Masks:
     - LayerIndex: 1
