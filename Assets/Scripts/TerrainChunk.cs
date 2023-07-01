@@ -7,6 +7,8 @@ public class TerrainChunk : MonoBehaviour
 
     public bool IsVisible => gameObject.activeSelf;
 
+    private int CurrentLOD = -1;
+
 
     private MeshRenderer meshRenderer;
     private MeshFilter meshFilter;
@@ -47,22 +49,36 @@ public class TerrainChunk : MonoBehaviour
 
     public void SetLODIndex(int lod)
     {
-        //Debug.Log($"CHUNK {Position.x} {Position.y} LOD {lod}");
-
-        if (lod >= 0 && lod < Data.Meshes.Count)
+        if (lod != CurrentLOD)
         {
-            meshFilter.sharedMesh = Data.Meshes[lod];
+            // Only enable collisions when the ball is close
+            bool collisionsEnabled = lod == 0;
+            meshCollider.enabled = collisionsEnabled;
 
-            gameObject.SetActive(true);
-            //Debug.Log($"CHUNK {Position.x} {Position.y} LOD {lod}");
-        }
-        else
-        {
-            gameObject.SetActive(false);
-        }
+            if (lod >= 0 && lod < Data.Meshes.Count)
+            {
+                meshFilter.sharedMesh = Data.Meshes[lod];
 
-        // Only enable collisions when the ball is close
-        meshCollider.enabled = lod == 0;
+                gameObject.SetActive(true);
+
+                // Very slow
+                foreach (GameObjectLOD g in gameObject.GetComponentsInChildren<GameObjectLOD>())
+                {
+                    if (lod < g.Meshes.Length)
+                    {
+                        g.MeshFilter.sharedMesh = g.Meshes[lod];
+                    }
+
+                    g.MeshCollider.enabled = collisionsEnabled;
+                }
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
+
+            CurrentLOD = lod;
+        }
     }
 
 

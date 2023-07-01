@@ -161,8 +161,6 @@ public class TerrainManager : MonoBehaviour, IManager
     {
         if (HideChunks && GolfBall != null)
         {
-            Vector2Int ballChunk = TerrainGenerator.WorldToChunk(GolfBall.Position);
-
             foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
             {
                 Vector3 distanceFromPlayer = GolfBall.Position - chunk.Bounds.center;
