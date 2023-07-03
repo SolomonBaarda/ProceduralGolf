@@ -164,10 +164,10 @@ MonoBehaviour:
     RequiredBiomes: 0200000001000000
     Prefabs:
     - {fileID: 117604, guid: 9469bb1d3aa88ca40aa4079e96a27f8e, type: 3}
-    - {fileID: 159322, guid: 9f52039fd0e9d35488d949caf695492c, type: 3}
-    - {fileID: 127550, guid: 87a6cef862ce2cb4a88c5ca5d5af5d2b, type: 3}
-    - {fileID: 136328, guid: ad24b1be69c00194bb32ca2f99f3b90e, type: 3}
-    - {fileID: 180214, guid: bf63f345c35746848b68f3ce8babeb71, type: 3}
+    - {fileID: 117604, guid: 0df2c2e15d0927945ba927ab1d1c3e1e, type: 3}
+    - {fileID: 117604, guid: a43974b0aa5c1c5429277c002857235a, type: 3}
+    - {fileID: 117604, guid: 5392eb940a53c4f4caa43af3a318ba9a, type: 3}
+    - {fileID: 117604, guid: a6a6f29597a4c2e4aa70f3d734b2ef26, type: 3}
     Chance: 0.7
     UseMask: 1
     Masks:

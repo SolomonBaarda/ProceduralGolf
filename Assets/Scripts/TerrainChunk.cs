@@ -60,17 +60,6 @@ public class TerrainChunk : MonoBehaviour
                 meshFilter.sharedMesh = Data.Meshes[lod];
 
                 gameObject.SetActive(true);
-
-                // Very slow
-                foreach (GameObjectLOD g in gameObject.GetComponentsInChildren<GameObjectLOD>())
-                {
-                    if (lod < g.Meshes.Length)
-                    {
-                        g.MeshFilter.sharedMesh = g.Meshes[lod];
-                    }
-
-                    g.MeshCollider.enabled = collisionsEnabled;
-                }
             }
             else
             {
