@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,9 +14,17 @@ public class MainMenu : MonoBehaviour, IManager
     public UnityEvent OnPressQuit = new UnityEvent();
 
 
+    public Transform Camera;
+    public float CameraSpinSpeed = 1.0f;
+
     private void Start()
     {
         GenerateRandomSeed();
+    }
+
+    private void Update()
+    {
+        Camera.Rotate(Vector3.up, CameraSpinSpeed * Time.deltaTime, Space.World);
     }
 
     public void QuitGame()
@@ -50,5 +59,10 @@ public class MainMenu : MonoBehaviour, IManager
     public void SetVisible(bool visible)
     {
         gameObject.SetActive(visible);
+    }
+
+    public void OpenBrokenVectorCredits()
+    {
+        Application.OpenURL("https://assetstore.unity.com/publishers/12124");
     }
 }

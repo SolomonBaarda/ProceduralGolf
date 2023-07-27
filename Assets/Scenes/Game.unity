@@ -1582,6 +1582,8 @@ MonoBehaviour:
   - {fileID: 1208001000}
   - {fileID: 295252888}
   - {fileID: 974716570}
+  - {fileID: 1041538518}
+  - {fileID: 642023517}
   CameraStates: {fileID: 950426080}
   MapCamera: {fileID: 974716573}
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
