@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour, IManager
 {
     public static UnityEvent<TerrainGenerator.GenerationSettings, bool> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings, bool>();
+    public static UnityEvent OnGameBegin = new UnityEvent();
 
     [Header("Managers")]
     public TerrainGenerator TerrainGenerator;
@@ -101,6 +102,8 @@ public class GameManager : MonoBehaviour, IManager
         {
             UpdateHUDShotCounter();
         }
+
+        OnGameBegin.Invoke();
     }
 
     public void StartGeneration(TerrainGenerator.GenerationSettings settings, bool testing)

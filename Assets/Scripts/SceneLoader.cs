@@ -45,12 +45,15 @@ public class SceneLoader : MonoBehaviour
 
         GameManager.SetHUD(HUD);
 
+        GameManager.OnGameBegin.AddListener(() => MainMenu.SetVisible(false));
+
         MainMenu.OnPressStartGame.AddListener(StartGame);
         MainMenu.OnPressQuit.AddListener(QuitGame);
 
         HUD.OnQuitToMenuPressed.AddListener(QuitToMenu);
         HUD.OnRestartPressed.AddListener(RestartGame);
 
+        MainMenu.SetLoading(false);
         MainMenu.SetVisible(true);
         GameManager.SetVisible(false);
         HUD.SetVisible(false);
@@ -58,14 +61,15 @@ public class SceneLoader : MonoBehaviour
 
     private void StartGame(TerrainGenerator.GenerationSettings settings)
     {
-        MainMenu.SetVisible(false);
-
+        MainMenu.SetLoading(true);
         GameManager.StartGeneration(settings, false);
     }
 
     private void QuitToMenu()
     {
         MainMenu.SetVisible(true);
+        MainMenu.SetLoading(false);
+
         GameManager.SetVisible(false);
         HUD.SetVisible(false);
     }

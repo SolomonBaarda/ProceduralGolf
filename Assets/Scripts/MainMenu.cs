@@ -17,6 +17,8 @@ public class MainMenu : MonoBehaviour, IManager
     public Transform Camera;
     public float CameraSpinSpeed = 1.0f;
 
+    public GameObject PlayMenuParent;
+
     private void Start()
     {
         GenerateRandomSeed();
@@ -59,6 +61,11 @@ public class MainMenu : MonoBehaviour, IManager
     public void SetVisible(bool visible)
     {
         gameObject.SetActive(visible);
+    }
+
+    public void SetLoading(bool loading)
+    {
+        PlayMenuParent.SetActive(!loading);
     }
 
     public void OpenBrokenVectorCredits()
