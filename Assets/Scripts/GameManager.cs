@@ -23,14 +23,17 @@ public class GameManager : MonoBehaviour, IManager
     [Space]
     public List<GameObject> ObjectsToDisableWhileLoading;
 
-    [Header("Camera")]
+    [Header("Cameras")]
     public CinemachineBrain MainCameraBrain;
     public Animator CameraStates;
+
+    [Space]
     public CinemachineSmoothPath CoursePreviewDollyPath;
     public CinemachineDollyCart CoursePreviewDollyCart;
+    public AnimationCurve CoursePreviewSpeedCurve = new AnimationCurve();
+
     private const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
     private const string CameraCoursePreviewTriggerStart = "OnTriggerCoursePreviewStart", CameraCoursePreviewTriggerEnd = "OnTriggerCoursePreviewEnd";
-
     private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying";
 
     [Space]
@@ -115,7 +118,7 @@ public class GameManager : MonoBehaviour, IManager
 
         for (float totalTime = 0; totalTime < CoursePreviewDurationSeconds; totalTime += Time.deltaTime)
         {
-            CoursePreviewDollyCart.m_Position = totalTime / CoursePreviewDurationSeconds;
+            CoursePreviewDollyCart.m_Position = CoursePreviewSpeedCurve.Evaluate(totalTime / CoursePreviewDurationSeconds);
             yield return null;
         }
 

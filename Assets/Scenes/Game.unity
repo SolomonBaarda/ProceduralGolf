@@ -698,7 +698,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 1
-  m_FollowOffset: {x: 0, y: 50, z: -10}
+  m_FollowOffset: {x: 0, y: 50, z: -25}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -985,8 +985,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 762619620}
-  m_LocalRotation: {x: 0.24413127, y: -0.7187535, z: 0.5005013, w: 0.41628337}
-  m_LocalPosition: {x: 30.753044, y: 53.17919, z: 7.713314}
+  m_LocalRotation: {x: 0.19055645, y: -0.77533424, z: 0.407388, w: 0.44337362}
+  m_LocalPosition: {x: 43.30801, y: 51.69967, z: 15.786964}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1867,6 +1867,30 @@ MonoBehaviour:
   CameraStates: {fileID: 950426080}
   CoursePreviewDollyPath: {fileID: 892787842}
   CoursePreviewDollyCart: {fileID: 128706777}
+  CoursePreviewSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   MapCamera: {fileID: 974716573}
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
 --- !u!114 &1510809347
