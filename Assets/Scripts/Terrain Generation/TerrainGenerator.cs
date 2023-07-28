@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -543,6 +544,9 @@ public class TerrainGenerator : MonoBehaviour, IManager
             UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
             courses.Add(new CourseData(startEnd.Item1, startEnd.Item2, c));
         }
+
+        // Sort by distance to the origin
+        courses.Sort((x,y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
 
         return courses;
     }

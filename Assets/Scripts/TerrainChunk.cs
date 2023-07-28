@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.InteropServices.WindowsRuntime;
+using UnityEngine;
 
 public class TerrainChunk : MonoBehaviour
 {
@@ -7,6 +8,7 @@ public class TerrainChunk : MonoBehaviour
 
     public bool IsVisible => gameObject.activeSelf;
 
+    [SerializeField]
     private int CurrentLOD = -1;
 
 
@@ -41,22 +43,19 @@ public class TerrainChunk : MonoBehaviour
     {
         Data = data;
 
-        SetLODIndex(0);
+        SetLODIndex(0, true);
 
         // Always use the highest resolution mesh for collisions
         meshCollider.sharedMesh = Data.Meshes[0];
     }
 
-    public void SetLODIndex(int lod)
+    public void SetLODIndex(int lod, bool collisionsEnabled)
     {
-        if (lod != CurrentLOD)
+        if (lod != CurrentLOD || collisionsEnabled != meshCollider.enabled)
         {
-            // Only enable collisions when the ball is close
-            bool collisionsEnabled = lod == 0;
-            meshCollider.enabled = collisionsEnabled;
-
             if (lod >= 0 && lod < Data.Meshes.Count)
             {
+                meshCollider.enabled = collisionsEnabled;
                 meshFilter.sharedMesh = Data.Meshes[lod];
 
                 gameObject.SetActive(true);

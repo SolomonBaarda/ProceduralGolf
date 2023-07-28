@@ -155,16 +155,13 @@ public class TerrainManager : MonoBehaviour, IManager
     {
         foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
         {
-            Vector3 distanceFromPlayer = currentGolfBallPosition - chunk.Bounds.center;
             Vector3 distanceFromCamera = currentCameraPositionm - chunk.Bounds.center;
 
-            float distanceSqrMag = Math.Min(
-                Vector2.SqrMagnitude(new Vector2(distanceFromPlayer.x, distanceFromPlayer.z)), 
-                Vector2.SqrMagnitude(new Vector2(distanceFromCamera.x, distanceFromCamera.z))
-            );
+            // Calculate which visual LOD we should be using
+            float distanceSqrMag = Vector2.SqrMagnitude(new Vector2(distanceFromCamera.x, distanceFromCamera.z));
 
-            int LOD = 0;
-            foreach (int viewDistance in LODViewSettings)
+            int viewLOD = 0;
+            foreach (float viewDistance in LODViewSettings)
             {
                 distanceSqrMag -= viewDistance * viewDistance;
 
@@ -173,11 +170,23 @@ public class TerrainManager : MonoBehaviour, IManager
                     break;
                 }
 
-                LOD++;
+                viewLOD++;
+            }
+
+
+            Vector3 distanceFromBall = currentGolfBallPosition - chunk.Bounds.center;
+
+            // Enable collisions for the 2x2 chunks surrounding the ball
+            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= TerrainChunkManager.ChunkSizeWorldUnits && 
+                Math.Abs(distanceFromBall.z) <= TerrainChunkManager.ChunkSizeWorldUnits;
+
+            if (collisionsEnabled && viewLOD >= LODViewSettings.Count)
+            {
+                viewLOD = LODViewSettings.Count - 1;
             }
 
             // Only set the chunks within render distance to be visible
-            chunk.SetLODIndex(LOD);
+            chunk.SetLODIndex(viewLOD, collisionsEnabled);
         }
     }
 
