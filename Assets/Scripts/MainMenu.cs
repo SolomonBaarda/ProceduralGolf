@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -22,6 +23,25 @@ public class MainMenu : MonoBehaviour, IManager
     private void Start()
     {
         GenerateRandomSeed();
+
+        SeedInput.onValueChanged.AddListener(
+            (e) =>
+            {
+                try
+                {
+                    Convert.ToInt32(SeedInput.text);
+                }
+                catch (System.OverflowException)
+                {
+                    // Clamp the input to the min/max i32 values
+                    SeedInput.text = SeedInput.text[0] == '-' ? System.Int32.MinValue.ToString() : System.Int32.MaxValue.ToString();
+                }
+                catch (System.FormatException)
+                {
+                    SeedInput.text = "0";
+                }
+            }
+        );
     }
 
     private void Update()
@@ -38,7 +58,7 @@ public class MainMenu : MonoBehaviour, IManager
     {
         try
         {
-            Settings.Seed = int.Parse(SeedInput.text);
+            Settings.Seed = Convert.ToInt32(SeedInput.text);
             Settings.GenerateLOD = true;
             OnPressStartGame.Invoke(Settings);
         }

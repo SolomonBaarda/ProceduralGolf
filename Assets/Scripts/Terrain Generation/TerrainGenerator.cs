@@ -1089,7 +1089,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
     [Serializable]
     public class GenerationSettings
     {
-        public int Seed = 0;
+        public System.Int32 Seed = 0;
         public bool GenerateLOD = false;
     }
 
