@@ -45,8 +45,6 @@ public class SceneLoader : MonoBehaviour
 
         GameManager.SetHUD(HUD);
 
-        GameManager.OnGameBegin.AddListener(() => MainMenu.SetVisible(false));
-
         MainMenu.OnPressStartGame.AddListener(StartGame);
         MainMenu.OnPressQuit.AddListener(QuitGame);
 

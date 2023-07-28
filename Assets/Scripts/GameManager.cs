@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Cinemachine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -8,7 +10,6 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour, IManager
 {
     public static UnityEvent<TerrainGenerator.GenerationSettings, bool> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings, bool>();
-    public static UnityEvent OnGameBegin = new UnityEvent();
 
     [Header("Managers")]
     public TerrainGenerator TerrainGenerator;
@@ -23,10 +24,14 @@ public class GameManager : MonoBehaviour, IManager
     public List<GameObject> ObjectsToDisableWhileLoading;
 
     [Header("Camera")]
+    public CinemachineBrain MainCameraBrain;
     public Animator CameraStates;
-    public const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
-    public const string CameraAimingTrigger = "IsAiming", CameraRollingTrigger = "IsRolling", CameraFlyingTrigger = "IsFlying";
-    private readonly string[] AllCameraTriggers = { CameraAimingTrigger, CameraRollingTrigger, CameraFlyingTrigger };
+    public CinemachineSmoothPath CoursePreviewDollyPath;
+    public CinemachineDollyCart CoursePreviewDollyCart;
+    private const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
+    private const string CameraCoursePreviewTriggerStart = "OnTriggerCoursePreviewStart", CameraCoursePreviewTriggerEnd = "OnTriggerCoursePreviewEnd";
+
+    private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying";
 
     [Space]
     public Camera MapCamera;
@@ -45,6 +50,9 @@ public class GameManager : MonoBehaviour, IManager
 
     public const float DefaultMapCameraZoom = 500;
 
+    public const float CoursePreviewDurationSeconds =10.0f;
+
+
 
     private void Awake()
     {
@@ -54,12 +62,12 @@ public class GameManager : MonoBehaviour, IManager
 
         RenderSettings.skybox = Skybox;
 
-        TerrainManager.OnCourseStarted += UpdateMapCamera;
+        TerrainManager.OnCourseStarted += CourseStarted;
     }
 
     private void OnDestroy()
     {
-        TerrainManager.OnCourseStarted -= UpdateMapCamera;
+        TerrainManager.OnCourseStarted -= CourseStarted;
     }
 
     private void Start()
@@ -75,15 +83,44 @@ public class GameManager : MonoBehaviour, IManager
 
     }
 
-    private void UpdateMapCamera(CourseData data)
+    private void CourseStarted(CourseData data)
     {
+        // Update the course preview dolly path
+        CoursePreviewDollyPath.m_Waypoints = new CinemachineSmoothPath.Waypoint[] 
+        { 
+            new CinemachineSmoothPath.Waypoint() { position = data.Hole }, 
+            new CinemachineSmoothPath.Waypoint() { position = data.Start }
+        };
+
+        // Update map camera
+        /*
         Vector3 pos = (data.Start + data.Hole) / 2;
         pos.y = MapCamera.transform.position.y;
         MapCamera.transform.position = pos;
-
         MapCamera.orthographicSize = DefaultMapCameraZoom;
-
         MapCamera.enabled = false;
+        */
+
+
+        StartCoroutine(DoCoursePreview());
+    }
+
+    private IEnumerator DoCoursePreview()
+    {
+        Debug.Log("HERE");
+
+        CameraStates.SetTrigger(CameraCoursePreviewTriggerStart);
+
+        CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
+
+        for (float totalTime = 0; totalTime < CoursePreviewDurationSeconds; totalTime += Time.deltaTime)
+        {
+            CoursePreviewDollyCart.m_Position = totalTime / CoursePreviewDurationSeconds;
+            yield return null;
+        }
+
+        CameraStates.SetTrigger(CameraCoursePreviewTriggerEnd);
+
     }
 
     public void SetVisible(bool visible)
@@ -103,7 +140,7 @@ public class GameManager : MonoBehaviour, IManager
             UpdateHUDShotCounter();
         }
 
-        OnGameBegin.Invoke();
+        Logger.Log("Game has started. There are " + TerrainManager.CurrentLoadedTerrain.Courses.Count + " courses.");
     }
 
     public void StartGeneration(TerrainGenerator.GenerationSettings settings, bool testing)
@@ -140,13 +177,26 @@ public class GameManager : MonoBehaviour, IManager
 
     private void LoadTerrain(TerrainData data)
     {
-        StartCoroutine(WaitUntilGameLoaded(data));
+        if (data.Courses.Count == 0)
+        {
+            Debug.LogError("NO GOLF COURSES!");
+
+            LoadingScreen.Instance.SetVisible(false);
+            HUD.QuitToMenuPressed();
+
+            MainMenu.Instance.InvalidSeedText.SetActive(true);
+        }
+        else
+        {
+            MainMenu.Instance.InvalidSeedText.SetActive(false);
+
+            StartCoroutine(WaitUntilGameLoaded(data));
+        }
     }
 
     private IEnumerator WaitUntilGameLoaded(TerrainData data)
     {
         // Set up the TerrainManager
-        TerrainManager.Set(Gamerule.UseViewDistance);
         TerrainManager.LoadTerrain(data);
 
         // Ensure there is terrain before we start
@@ -159,15 +209,16 @@ public class GameManager : MonoBehaviour, IManager
             yield break;
         }
 
-        // Load the HUD if we need it
-        if (Gamerule.UseHUD)
-        {
-
-        }
-
         if (Gamerule.UseGolfBall)
         {
             TerrainManager.GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
+        }
+
+        LoadingScreen.Instance.SetVisible(false);
+
+        if(MainMenu.Instance)
+        {
+            MainMenu.Instance.SetVisible(false);
         }
 
         foreach (GameObject g in ObjectsToDisableWhileLoading)
@@ -179,26 +230,25 @@ public class GameManager : MonoBehaviour, IManager
         // Disable the golf ball if we dont need it
         TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
 
-        // Start the game
-        RestartGame();
-
         if (Gamerule.UseHUD)
         {
             HUD.Compass.Following = TerrainManager.GolfBall.transform;
             HUD.SetVisible(true);
         }
 
-        LoadingScreen.Instance.SetVisible(false);
-
-        Logger.Log("Game has started. There are " + TerrainManager.CurrentLoadedTerrain.Courses.Count + " courses.");
+        // Start the game
+        RestartGame();
     }
 
 
 
-
-
-    private void Update()
+    private void UpdateLoop()
     {
+        if(Gamerule.UseViewDistance)
+        {
+            TerrainManager.UpdateLOD(MainCameraBrain.OutputCamera.transform.position, TerrainManager.GolfBall.Position);
+        }
+
         if (Gamerule.UseGolfBall && TerrainManager.HasTerrain)
         {
             // Taking a shot
@@ -275,26 +325,31 @@ public class GameManager : MonoBehaviour, IManager
                         p.a = HUD.PowerSliderBackgroundAlpha;
                         HUD.PowerSlider.Background.color = p;
 
-                        ResetCameraTriggers();
-                        CameraStates.SetTrigger(CameraAimingTrigger);
                         CameraStates.SetFloat(CameraSqrMagToTargetFloat, -1);
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
-                        ResetCameraTriggers();
-                        CameraStates.SetTrigger(CameraFlyingTrigger);
+
                         float sqrMag = (GolfBallShotPreview.ShotPreviewTarget.position - TerrainManager.GolfBall.transform.position).sqrMagnitude;
                         CameraStates.SetFloat(CameraSqrMagToTargetFloat, sqrMag);
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
-                        ResetCameraTriggers();
-                        CameraStates.SetTrigger(CameraRollingTrigger);
                         CameraStates.SetFloat(CameraSqrMagToTargetFloat, -1);
                         break;
                 }
+
+                CameraStates.SetBool(CameraAiming, TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
+                CameraStates.SetBool(CameraFlying, TerrainManager.GolfBall.State == GolfBall.PlayState.Flying);
+                CameraStates.SetBool(CameraRolling, TerrainManager.GolfBall.State == GolfBall.PlayState.Rolling);
+
             }
         }
+    }
+
+    private void Update()
+    {
+        UpdateLoop();
     }
 
     public void Clear()
@@ -366,14 +421,6 @@ public class GameManager : MonoBehaviour, IManager
                     HUD.ScoreboardRows[rowIndex].Time.text = timeMessage;
                 }
             }
-        }
-    }
-
-    private void ResetCameraTriggers()
-    {
-        foreach (string s in AllCameraTriggers)
-        {
-            CameraStates.ResetTrigger(s);
         }
     }
 

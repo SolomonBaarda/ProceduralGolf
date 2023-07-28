@@ -19,14 +19,13 @@ public class TerrainManager : MonoBehaviour, IManager
     public bool HasTerrain { get; private set; } = false;
     public bool IsLoading { get; private set; } = false;
 
-    private bool HideChunks = true;
-
     [SerializeField]
     private List<float> LODViewSettings = new List<float>();
 
     [Header("Events")]
     public UnityAction<CourseData> OnCourseStarted;
     public UnityAction<CourseData> OnCourseCompleted;
+
 
     private void Awake()
     {
@@ -77,11 +76,6 @@ public class TerrainManager : MonoBehaviour, IManager
     public void SetVisible(bool visible)
     {
         TerrainChunkManager.SetVisible(visible);
-    }
-
-    public void Set(bool hideChunks)
-    {
-        HideChunks = hideChunks;
     }
 
     /// <summary>
@@ -157,31 +151,33 @@ public class TerrainManager : MonoBehaviour, IManager
         }
     }
 
-    private void Update()
+    public void UpdateLOD(Vector3 currentCameraPositionm, Vector3 currentGolfBallPosition)
     {
-        if (HideChunks && GolfBall != null)
+        foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
         {
-            foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
+            Vector3 distanceFromPlayer = currentGolfBallPosition - chunk.Bounds.center;
+            Vector3 distanceFromCamera = currentCameraPositionm - chunk.Bounds.center;
+
+            float distanceSqrMag = Math.Min(
+                Vector2.SqrMagnitude(new Vector2(distanceFromPlayer.x, distanceFromPlayer.z)), 
+                Vector2.SqrMagnitude(new Vector2(distanceFromCamera.x, distanceFromCamera.z))
+            );
+
+            int LOD = 0;
+            foreach (int viewDistance in LODViewSettings)
             {
-                Vector3 distanceFromPlayer = GolfBall.Position - chunk.Bounds.center;
-                float distanceSqrMag = Vector2.SqrMagnitude(new Vector2(distanceFromPlayer.x, distanceFromPlayer.z));
+                distanceSqrMag -= viewDistance * viewDistance;
 
-                int LOD = 0;
-                foreach (int viewDistance in LODViewSettings)
+                if (distanceSqrMag <= 0)
                 {
-                    distanceSqrMag -= viewDistance * viewDistance;
-
-                    if (distanceSqrMag <= 0)
-                    {
-                        break;
-                    }
-
-                    LOD++;
+                    break;
                 }
 
-                // Only set the chunks within render distance to be visible
-                chunk.SetLODIndex(LOD);
+                LOD++;
             }
+
+            // Only set the chunks within render distance to be visible
+            chunk.SetLODIndex(LOD);
         }
     }
 

@@ -20,8 +20,16 @@ public class MainMenu : MonoBehaviour, IManager
 
     public GameObject PlayMenuParent;
 
-    private void Start()
+    public GameObject InvalidSeedText;
+
+    public static MainMenu Instance { get; private set; }
+
+    private void Awake()
     {
+        Instance = this;
+
+        InvalidSeedText.SetActive(false);
+
         GenerateRandomSeed();
 
         SeedInput.onValueChanged.AddListener(
@@ -71,6 +79,9 @@ public class MainMenu : MonoBehaviour, IManager
     public void GenerateRandomSeed()
     {
         SeedInput.text = Noise.RandomSeed.ToString();
+
+        // Invalid seed:
+        //SeedInput.text = "-1793396896";
     }
 
     public void Clear()
