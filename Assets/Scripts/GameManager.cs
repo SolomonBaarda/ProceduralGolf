@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -91,12 +92,12 @@ public class GameManager : MonoBehaviour, IManager
     private void CourseStarted(CourseData data)
     {
         // Update the course preview dolly path
-        CoursePreviewDollyPath.m_Waypoints = new CinemachineSmoothPath.Waypoint[] 
-        { 
-            new CinemachineSmoothPath.Waypoint() { position = data.Hole },
-            new CinemachineSmoothPath.Waypoint() { position = data.Midpoint },
-            new CinemachineSmoothPath.Waypoint() { position = data.Start }
-        };
+        CinemachineSmoothPath.Waypoint[] path = data.PathStartToEnd
+            .Reverse<Vector3>()
+            .Select(x => new CinemachineSmoothPath.Waypoint() { position = x })
+            .ToArray();
+
+        CoursePreviewDollyPath.m_Waypoints = path;
 
         // Update map camera
         /*

@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -423,6 +422,118 @@ public class TerrainGenerator : MonoBehaviour, IManager
     }
 
 
+
+
+
+
+
+
+
+
+
+
+
+    private class Node
+    {
+        public Vector2Int Position;
+
+        /// <summary>
+        /// Distance between the current node and the start node
+        /// </summary>
+        public int Distance;
+        /// <summary>
+        /// Estimated distance to the end
+        /// </summary>
+        public int Heuristic;
+
+        public Node Parent;
+
+        public Node(Vector2Int position, int distance, int heuristic, Node parent)
+        {
+            Position = position;
+            Distance = distance;
+            Heuristic = heuristic;
+            Parent = parent;
+        }
+
+        public int Cost => Distance + Heuristic;
+    }
+
+    private static List<Vector2Int> CalculateShortestPathOnCourseFromStartToEnd(TerrainMap map, Vector2Int start, Vector2Int end)
+    {
+        var openList = new List<Node>() { new Node(end, 0, (start-end).sqrMagnitude, null) };
+        var closedList = new List<Node>();
+
+        while(openList.Count > 0)
+        {
+            openList.Sort((x,y) => x.Cost.CompareTo(y.Cost));
+
+            // Get the current node
+            // Should have the lowest cost
+            var currentNode = openList[0];
+            openList.RemoveAt(0);
+            closedList.Add(currentNode);
+
+            // We have found the goal
+            if(start.Equals(currentNode.Position))
+            {
+                // Backtrack from here to get the path
+                var path = new List<Vector2Int>();
+
+                Node c = currentNode;
+                while(c != null)
+                {
+                    path.Add(c.Position);
+                    c = c.Parent;
+                }
+
+                return path;
+            }
+
+            List<Node> children = new List<Node>();
+
+            void AddIfValidChild(Vector2Int direction)
+            {
+                Vector2Int child = currentNode.Position + direction;
+
+                // Ensure valid position
+                if (child.x >= 0 && child.y >= 0 && child.x < map.Width &&child.y < map.Height && 
+                    map.Greens[child.y * map.Width + child.x])
+                {
+                    children.Add(new Node(child, currentNode.Distance + 1, (start - child).sqrMagnitude, currentNode));
+                }
+            }
+
+            AddIfValidChild(Vector2Int.up);
+            AddIfValidChild(Vector2Int.down);
+            AddIfValidChild(Vector2Int.left);
+            AddIfValidChild(Vector2Int.right);
+
+            foreach (var newChild in children)
+            {
+                // Skip child if it has already been visited
+                if(closedList.Any(x => x.Position.Equals(newChild.Position))) continue;
+
+                int index = openList.FindIndex(x => x.Position.Equals(newChild.Position));
+                if (index >= 0 && index < openList.Count)
+                {
+                    // Update this node to be the new shortest path
+                    if (newChild.Distance < openList[index].Distance)
+                    {
+                        openList[index] = newChild;
+                    }
+                }
+                else
+                {
+                    // If this is a new node then add it to the open list
+                    openList.Add(newChild);
+                }
+            }
+        }
+
+        return new List<Vector2Int>();
+    }
+
     /// <summary>
     /// Calculate start/hole positions for each golf course
     /// </summary>
@@ -491,7 +602,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 #endif
 
-        ConcurrentBag<Tuple<Vector3, Vector3, Vector3>> startFinishMidpointCourses = new ConcurrentBag<Tuple<Vector3, Vector3, Vector3>>();
+        ConcurrentBag<Tuple<Vector3, Vector3, List<Vector3>>> startFinishPathCourses = new ConcurrentBag<Tuple<Vector3, Vector3, List<Vector3>>>();
+
+        // Sort courses by size for consistency
+        coursePoints.Sort((x,y) => x.Count.CompareTo(y.Count));
 
         // Calculate the start and end positions for each of those courses
         For(0, coursePoints.Count, (int index) =>
@@ -530,35 +644,16 @@ public class TerrainGenerator : MonoBehaviour, IManager
             Vector2 distance = new Vector2(holeWorld.x - startWorld.x, holeWorld.z - startWorld.z);
             if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
             {
+                var pathPoints = CalculateShortestPathOnCourseFromStartToEnd(map, start, hole);
+                List<Vector3> worldPoints = new List<Vector3>();
 
-                // Calculate the midpoint of the course
-                Vector2Int midpoint = points[2];
-                float pathLength = float.MinValue, diffBetweenSegments = float.MaxValue;
-
-                // Do a certain number of random attempts
-                for (int i = 0; i < numAttemptsToChooseRandomPositions; i++)
+                foreach(Vector2Int cell in pathPoints)
                 {
-                    Vector2Int position = points[r.Next(points.Count)];
-
-                    int startLength = (start - position).sqrMagnitude;
-                    int endLength = (hole - position).sqrMagnitude;
-
-                    int newPathLength = startLength + endLength;
-                    int newDiffBetweenSegments = Math.Abs(startLength - endLength);
-
-                    if (newPathLength >= pathLength && newDiffBetweenSegments < diffBetweenSegments)
-                    {
-                        midpoint = position;
-
-                        pathLength = newPathLength;
-                        diffBetweenSegments = newDiffBetweenSegments;
-                    }
+                    worldPoints.Add(CalculateWorldVertexPositionFromTerrainMapIndex(map, cell.x, cell.y, distanceBetweenNoiseSamples));
                 }
 
-                Vector3 midpointWorld = CalculateWorldVertexPositionFromTerrainMapIndex(map, midpoint.x, midpoint.y, distanceBetweenNoiseSamples);
-
                 // Create the course data object
-                startFinishMidpointCourses.Add(new(startWorld, holeWorld, midpointWorld));
+                startFinishPathCourses.Add(new(startWorld, holeWorld, worldPoints));
             }
         });
 
@@ -566,7 +661,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
         List<CourseData> courses = new List<CourseData>();
         System.Random r = new System.Random(0);
 
-        foreach (var startEndMid in startFinishMidpointCourses)
+        foreach (var startEndMid in startFinishPathCourses)
         {
             UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
             courses.Add(new CourseData(startEndMid.Item1, startEndMid.Item2, startEndMid.Item3, c));
