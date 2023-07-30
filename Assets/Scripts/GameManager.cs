@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour, IManager
     public CinemachineSmoothPath CoursePreviewDollyPath;
     public CinemachineDollyCart CoursePreviewDollyCart;
     public AnimationCurve CoursePreviewSpeedCurve = new AnimationCurve();
+    public CinemachineVirtualCamera CoursePreviewCamera;
 
     private const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
     private const string CameraCoursePreviewTriggerStart = "OnTriggerCoursePreviewStart", CameraCoursePreviewTriggerEnd = "OnTriggerCoursePreviewEnd";
@@ -53,7 +54,8 @@ public class GameManager : MonoBehaviour, IManager
 
     public const float DefaultMapCameraZoom = 500;
 
-    public const float CoursePreviewDurationSeconds =10.0f;
+    public const float CoursePreviewDurationSeconds = 10.0f;
+    public const float PercentLookingAtHoleCoursePreview = 0.1f;
 
 
 
@@ -91,7 +93,8 @@ public class GameManager : MonoBehaviour, IManager
         // Update the course preview dolly path
         CoursePreviewDollyPath.m_Waypoints = new CinemachineSmoothPath.Waypoint[] 
         { 
-            new CinemachineSmoothPath.Waypoint() { position = data.Hole }, 
+            new CinemachineSmoothPath.Waypoint() { position = data.Hole },
+            new CinemachineSmoothPath.Waypoint() { position = data.Midpoint },
             new CinemachineSmoothPath.Waypoint() { position = data.Start }
         };
 
@@ -110,20 +113,21 @@ public class GameManager : MonoBehaviour, IManager
 
     private IEnumerator DoCoursePreview()
     {
-        Debug.Log("HERE");
-
         CameraStates.SetTrigger(CameraCoursePreviewTriggerStart);
 
         CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
 
         for (float totalTime = 0; totalTime < CoursePreviewDurationSeconds; totalTime += Time.deltaTime)
         {
-            CoursePreviewDollyCart.m_Position = CoursePreviewSpeedCurve.Evaluate(totalTime / CoursePreviewDurationSeconds);
+            float t = CoursePreviewSpeedCurve.Evaluate(totalTime / CoursePreviewDurationSeconds);
+            CoursePreviewDollyCart.m_Position = t;
+
+            CoursePreviewCamera.LookAt = t < PercentLookingAtHoleCoursePreview ? TerrainManager.NextHoleFlag.transform : TerrainManager.GolfBall.transform;
+
             yield return null;
         }
 
         CameraStates.SetTrigger(CameraCoursePreviewTriggerEnd);
-
     }
 
     public void SetVisible(bool visible)

@@ -268,6 +268,7 @@ public class TerrainManager : MonoBehaviour, IManager
             {
                 Gizmos.color = c.Colour;
                 Gizmos.DrawLine(c.Start, c.Start + (Vector3.up * 100));
+                Gizmos.DrawLine(c.Midpoint, c.Midpoint + (Vector3.up * 100));
                 Gizmos.DrawLine(c.Hole, c.Hole + (Vector3.up * 200));
             }
         }

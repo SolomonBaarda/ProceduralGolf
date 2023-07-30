@@ -491,7 +491,7 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
 #endif
 
-        ConcurrentBag<Tuple<Vector3, Vector3>> startFinishCourses = new ConcurrentBag<Tuple<Vector3, Vector3>>();
+        ConcurrentBag<Tuple<Vector3, Vector3, Vector3>> startFinishMidpointCourses = new ConcurrentBag<Tuple<Vector3, Vector3, Vector3>>();
 
         // Calculate the start and end positions for each of those courses
         For(0, coursePoints.Count, (int index) =>
@@ -530,8 +530,35 @@ public class TerrainGenerator : MonoBehaviour, IManager
             Vector2 distance = new Vector2(holeWorld.x - startWorld.x, holeWorld.z - startWorld.z);
             if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
             {
+
+                // Calculate the midpoint of the course
+                Vector2Int midpoint = points[2];
+                float pathLength = float.MinValue, diffBetweenSegments = float.MaxValue;
+
+                // Do a certain number of random attempts
+                for (int i = 0; i < numAttemptsToChooseRandomPositions; i++)
+                {
+                    Vector2Int position = points[r.Next(points.Count)];
+
+                    int startLength = (start - position).sqrMagnitude;
+                    int endLength = (hole - position).sqrMagnitude;
+
+                    int newPathLength = startLength + endLength;
+                    int newDiffBetweenSegments = Math.Abs(startLength - endLength);
+
+                    if (newPathLength >= pathLength && newDiffBetweenSegments < diffBetweenSegments)
+                    {
+                        midpoint = position;
+
+                        pathLength = newPathLength;
+                        diffBetweenSegments = newDiffBetweenSegments;
+                    }
+                }
+
+                Vector3 midpointWorld = CalculateWorldVertexPositionFromTerrainMapIndex(map, midpoint.x, midpoint.y, distanceBetweenNoiseSamples);
+
                 // Create the course data object
-                startFinishCourses.Add(new(startWorld, holeWorld));
+                startFinishMidpointCourses.Add(new(startWorld, holeWorld, midpointWorld));
             }
         });
 
@@ -539,10 +566,10 @@ public class TerrainGenerator : MonoBehaviour, IManager
         List<CourseData> courses = new List<CourseData>();
         System.Random r = new System.Random(0);
 
-        foreach (var startEnd in startFinishCourses)
+        foreach (var startEndMid in startFinishMidpointCourses)
         {
             UnityEngine.Color c = new UnityEngine.Color((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble());
-            courses.Add(new CourseData(startEnd.Item1, startEnd.Item2, c));
+            courses.Add(new CourseData(startEndMid.Item1, startEndMid.Item2, startEndMid.Item3, c));
         }
 
         // Sort by distance to the origin

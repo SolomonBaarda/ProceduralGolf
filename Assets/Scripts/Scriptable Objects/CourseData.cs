@@ -4,17 +4,18 @@ using UnityEngine;
 [Serializable]
 public class CourseData
 {
-    public Vector3 Start, Hole;
+    public Vector3 Start, Midpoint, Hole;
 
     public const int NotAssignedHoleNumber = -1;
     public int Number = NotAssignedHoleNumber;
 
     public Color32 Colour;
 
-    public CourseData(Vector3 start, Vector3 finish, Color32 colour)
+    public CourseData(Vector3 start, Vector3 finish, Vector3 approxMidpoint, Color32 colour)
     {
         Start = start;
         Hole = finish;
+        Midpoint = approxMidpoint;
         Colour = colour;
     }
 
