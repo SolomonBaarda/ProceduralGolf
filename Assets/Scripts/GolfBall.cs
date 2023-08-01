@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class GolfBall : MonoBehaviour, ICanBeFollowed
+public class GolfBall : MonoBehaviour
 {
     public const string LAYER_NAME = "Ball";
     public static int Layer => LayerMask.NameToLayer(LAYER_NAME);
