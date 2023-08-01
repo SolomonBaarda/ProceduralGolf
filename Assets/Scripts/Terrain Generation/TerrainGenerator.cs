@@ -5,7 +5,9 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -500,7 +502,13 @@ public class TerrainGenerator : MonoBehaviour, IManager
                 if (child.x >= 0 && child.y >= 0 && child.x < map.Width &&child.y < map.Height && 
                     map.Greens[child.y * map.Width + child.x])
                 {
-                    children.Add(new Node(child, currentNode.Distance + 1, (start - child).sqrMagnitude, currentNode));
+                    // Distance travelled
+                    int newDistance = currentNode.Distance + 1;
+
+                    // Estimation of the distance to the end node
+                    int heuristic = (start - child).sqrMagnitude;
+
+                    children.Add(new Node(child, newDistance, heuristic, currentNode));
                 }
             }
 
@@ -651,17 +659,22 @@ public class TerrainGenerator : MonoBehaviour, IManager
             if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
             {
                 var pathPoints = CalculateShortestPathOnCourseFromStartToEnd(map, start, hole);
-                List<Vector3> worldPoints = new List<Vector3>(), worldPointsSimplified = new List<Vector3>();
 
-                foreach(Vector2Int cell in pathPoints)
+                var indexesToKeep = new List<int>();
+                
+                // Simplify the 2D line
+                LineUtility.Simplify(pathPoints.Select(x=>new Vector2(x.x, x.y)).ToList(), TerrainSettings.CourseCameraPathSimplificationStrength, indexesToKeep);
+
+                var worldPoints = new List<Vector3>();
+
+                // Map the 2D line to 3D
+                foreach (int indexToKeep in indexesToKeep)
                 {
-                    worldPoints.Add(CalculateWorldVertexPositionFromTerrainMapIndex(map, cell.x, cell.y, distanceBetweenNoiseSamples));
+                    worldPoints.Add(CalculateWorldVertexPositionFromTerrainMapIndex(map, pathPoints[indexToKeep].x, pathPoints[indexToKeep].y, distanceBetweenNoiseSamples));
                 }
 
-                LineUtility.Simplify(worldPoints, TerrainSettings.CourseCameraPathSimplificationArea, worldPointsSimplified);
-
                 // Create the course data object
-                startFinishPathCourses.Add(new(startWorld, holeWorld, worldPointsSimplified));
+                startFinishPathCourses.Add(new(startWorld, holeWorld, worldPoints));
             }
         });
 

@@ -9,7 +9,7 @@ public class TerrainSettings : VariablePreset
     [Min(1)]
     public int NumChunksToGenerateSize = 10;
 
-    public float CourseCameraPathSimplificationArea = 10.0f;
+    public float CourseCameraPathSimplificationStrength = 10.0f;
 
     public bool UseHeightDistributionCurve = false;
     public AnimationCurve HeightDistribution;

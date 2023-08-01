@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Woodland
   m_EditorClassIdentifier: 
   NumChunksToGenerateSize: 10
+  CourseCameraPathSimplificationArea: 15
   UseHeightDistributionCurve: 0
   HeightDistribution:
     serializedVersion: 2

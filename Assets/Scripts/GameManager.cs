@@ -107,15 +107,22 @@ public class GameManager : MonoBehaviour, IManager
         MapCamera.enabled = false;
         */
 
-
-        StartCoroutine(DoCoursePreview());
+        StartCoroutine(DoCoursePreview(path));
     }
 
-    private IEnumerator DoCoursePreview()
+    private IEnumerator DoCoursePreview(CinemachineSmoothPath.Waypoint[] path)
     {
         CameraStates.SetBool(CameraCoursePreview, true);
 
         CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
+
+
+        // TODO fix when cinemachine gets updated
+        // DUMB FIX FOR BROKEN PATHS
+        CoursePreviewDollyPath.m_Resolution--;
+        yield return null;
+        CoursePreviewDollyPath.m_Resolution++;
+
 
         for (float totalTime = 0; totalTime < CoursePreviewDurationSeconds; totalTime += Time.deltaTime)
         {
