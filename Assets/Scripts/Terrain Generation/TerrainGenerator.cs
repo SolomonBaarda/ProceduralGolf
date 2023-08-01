@@ -5,13 +5,12 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class TerrainGenerator : MonoBehaviour, IManager
+public class TerrainGenerator : MonoBehaviour
 {
     [Header("Settings")]
     public MeshSettings MeshSettings;
@@ -1221,17 +1220,6 @@ public class TerrainGenerator : MonoBehaviour, IManager
 
         return localPositions;
     }
-
-    public void Clear()
-    {
-
-    }
-
-    public void SetVisible(bool visible)
-    {
-
-    }
-
 
     [Serializable]
     public class GenerationSettings

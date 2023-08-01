@@ -39,14 +39,13 @@ public class TerrainChunkManager : MonoBehaviour, IManager
         return TerrainChunks.ContainsKey(chunk);
     }
 
-
     public static Vector3 CalculateTerrainChunkCentreWorld(Vector2Int chunk)
     {
         const float half = ChunkSizeWorldUnits / 2;
         return new Vector3((chunk.x * ChunkSizeWorldUnits) + half, 0, (chunk.y * ChunkSizeWorldUnits) + half);
     }
 
-    public void Clear()
+    public void Reset()
     {
         // Clear all the chunks
         Utils.DestroyAllChildren(ChunkParent);

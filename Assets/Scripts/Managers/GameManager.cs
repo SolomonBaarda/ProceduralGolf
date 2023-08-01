@@ -6,17 +6,21 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour, IManager
 {
     public static UnityEvent<TerrainGenerator.GenerationSettings, bool> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings, bool>();
 
+    [Header("Game State")]
+    public GameState State;
+
     [Header("Managers")]
     public TerrainGenerator TerrainGenerator;
+    [Space]
     public TerrainManager TerrainManager;
-
-    private HUD HUD;
+    public LoadingScreenManager LoadingScreenManager;
+    public MainMenuManager MainMenuManager;
+    public HUDManager HUDManager;
 
     [Header("Golf Ball")]
     public ShotPreview GolfBallShotPreview;
@@ -57,36 +61,116 @@ public class GameManager : MonoBehaviour, IManager
     public const float CoursePreviewDurationSeconds = 10.0f;
     public const float PercentLookingAtHoleCoursePreview = 0.1f;
 
-
-
     private void Awake()
     {
-        OnRequestStartGenerating.AddListener(StartGeneration);
-
-        SceneManager.LoadScene(LoadingScreen.SceneName, LoadSceneMode.Additive);
-
         RenderSettings.skybox = Skybox;
 
+        OnRequestStartGenerating.AddListener(StartGeneration);
+
+
         TerrainManager.OnCourseStarted += CourseStarted;
+        TerrainManager.OnCourseCompleted += UpdateHUDShotCounter;
+
+        MainMenuManager.OnPressStartGame.AddListener(StartGame);
+        MainMenuManager.OnPressQuit.AddListener(QuitApplication);
+
+        HUDManager.OnQuitToMenuPressed.AddListener(QuitToMainMenu);
+        HUDManager.OnRestartPressed.AddListener(RestartGame);
+        HUDManager.OnShootPressed.AddListener(TerrainManager.GolfBall.Shoot);
+        HUDManager.OnShootPressed.AddListener(UpdateHUDShotCounter);
+
+        Logger.OnLogMessage.AddListener(message => { LoadingScreenManager.Info.text = message; });
+
+        TerrainManager.GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
+
+        QuitToMainMenu();
     }
 
-    private void OnDestroy()
+    private void Update()
     {
-        TerrainManager.OnCourseStarted -= CourseStarted;
-    }
-
-    private void Start()
-    {
-        Clear();
-
-        foreach (GameObject g in ObjectsToDisableWhileLoading)
+        switch (State)
         {
-            g.SetActive(false);
+            case GameState.MainMenu:
+                break;
+            case GameState.GameLoading:
+                break;
+            case GameState.InGame:
+                DoGameLoop();
+                break;
         }
-
-
-
     }
+
+    private void QuitToMainMenu()
+    {
+        SetGameState(GameState.MainMenu);
+    }
+
+    private void StartGame(TerrainGenerator.GenerationSettings settings)
+    {
+        StartGeneration(settings, false);
+    }
+
+    private void SetGameState(GameState state)
+    {
+        State = state;
+
+        switch (State)
+        {
+            case GameState.MainMenu:
+
+                MainMenuManager.SetVisible(true);
+                MainMenuManager.SetLoading(false);
+                LoadingScreenManager.SetVisible(false);
+
+                HUDManager.SetVisible(false);
+                TerrainManager.SetVisible(false);
+
+                SetVisible(false);
+
+                break;
+            case GameState.GameLoading:
+                MainMenuManager.SetVisible(true);
+                MainMenuManager.SetLoading(true);
+                LoadingScreenManager.SetVisible(true);
+
+                HUDManager.SetVisible(false);
+                TerrainManager.SetVisible(false);
+
+                SetVisible(false);
+
+                break;
+            case GameState.InGame:
+
+                MainMenuManager.SetVisible(false);
+                MainMenuManager.SetLoading(false);
+                LoadingScreenManager.SetVisible(false);
+
+                TerrainManager.SetVisible(true);
+
+                SetVisible(true);
+
+                // Disable the golf ball if we dont need it
+                TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
+
+                if (Gamerule.UseHUD)
+                {
+                    HUDManager.Compass.Following = TerrainManager.GolfBall.transform;
+                }
+
+                HUDManager.SetVisible(Gamerule.UseHUD);
+
+                break;
+        }
+    }
+
+    private void QuitApplication()
+    {
+        Application.Quit();
+    }
+
+
+
+
 
     private void CourseStarted(CourseData data)
     {
@@ -139,16 +223,21 @@ public class GameManager : MonoBehaviour, IManager
 
     public void SetVisible(bool visible)
     {
-        TerrainManager.SetVisible(visible);
-        TerrainGenerator.SetVisible(visible);
+        foreach (GameObject g in ObjectsToDisableWhileLoading)
+        {
+            g.SetActive(visible);
+        }
     }
 
     public void RestartGame()
     {
+        SetGameState(GameState.InGame);
+
         if (Gamerule.UseGolfBall)
         {
             TerrainManager.Restart();
         }
+
         if (Gamerule.UseHUD)
         {
             UpdateHUDShotCounter();
@@ -159,30 +248,20 @@ public class GameManager : MonoBehaviour, IManager
 
     public void StartGeneration(TerrainGenerator.GenerationSettings settings, bool testing)
     {
-        if (TerrainGenerator.IsGenerating) return;
+        if (TerrainGenerator.IsGenerating || State == GameState.GameLoading) return;
 
-        LoadingScreen.Instance.SetVisible(true);
+        SetGameState(GameState.GameLoading);
 
-        foreach (GameObject g in ObjectsToDisableWhileLoading)
-        {
-            g.SetActive(false);
-        }
-        SetVisible(false);
-
-        Clear();
-
-        Logger.OnLogMessage.AddListener(message => { LoadingScreen.Instance.Info.text = message; });
+        Reset();
 
         // Set the game rules
         if (testing)
         {
             Gamerule = Testing;
-
         }
         else
         {
             Gamerule = FixedArea;
-
         }
 
         // Now generate the terrain
@@ -195,14 +274,14 @@ public class GameManager : MonoBehaviour, IManager
         {
             Debug.LogError("NO GOLF COURSES!");
 
-            LoadingScreen.Instance.SetVisible(false);
-            HUD.QuitToMenuPressed();
+            LoadingScreenManager.SetVisible(false);
+            HUDManager.QuitToMenuPressed();
 
-            MainMenu.Instance.InvalidSeedText.SetActive(true);
+            MainMenuManager.InvalidSeedText.SetActive(true);
         }
         else
         {
-            MainMenu.Instance.InvalidSeedText.SetActive(false);
+            MainMenuManager.InvalidSeedText.SetActive(false);
 
             StartCoroutine(WaitUntilGameLoaded(data));
         }
@@ -223,32 +302,9 @@ public class GameManager : MonoBehaviour, IManager
             yield break;
         }
 
-        if (Gamerule.UseGolfBall)
-        {
-            TerrainManager.GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
-        }
 
-        LoadingScreen.Instance.SetVisible(false);
 
-        if(MainMenu.Instance)
-        {
-            MainMenu.Instance.SetVisible(false);
-        }
 
-        foreach (GameObject g in ObjectsToDisableWhileLoading)
-        {
-            g.SetActive(true);
-        }
-        SetVisible(true);
-
-        // Disable the golf ball if we dont need it
-        TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
-
-        if (Gamerule.UseHUD)
-        {
-            HUD.Compass.Following = TerrainManager.GolfBall.transform;
-            HUD.SetVisible(true);
-        }
 
         // Start the game
         RestartGame();
@@ -256,7 +312,7 @@ public class GameManager : MonoBehaviour, IManager
 
 
 
-    private void UpdateLoop()
+    private void DoGameLoop()
     {
         if(Gamerule.UseViewDistance)
         {
@@ -271,12 +327,12 @@ public class GameManager : MonoBehaviour, IManager
             // Set the preview active or not
             GolfBallShotPreview.gameObject.SetActive(isAiming);
 
-            if (Gamerule.UseHUD && HUD != null)
+            if (Gamerule.UseHUD && HUDManager != null)
             {
-                HUD.ShootingMenu.SetActive(isAiming);
+                HUDManager.ShootingMenu.SetActive(isAiming);
 
                 // TODO
-                HUD.Minimap.SetActive(false);
+                HUDManager.Minimap.SetActive(false);
 
                 // Update the camera angles
                 switch (TerrainManager.GolfBall.State)
@@ -287,8 +343,8 @@ public class GameManager : MonoBehaviour, IManager
                         const int heldButtonMultiplier = 24, touchMultiplier = 10;
 
                         // Calculate the deltas for each 
-                        Vector2 rotationAndAngleDelta = Time.deltaTime * touchMultiplier * HUD.MainSlider.DeltaPosition;
-                        Vector2 powerDelta = Time.deltaTime * touchMultiplier * HUD.PowerSlider.DeltaPosition;
+                        Vector2 rotationAndAngleDelta = Time.deltaTime * touchMultiplier * HUDManager.MainSlider.DeltaPosition;
+                        Vector2 powerDelta = Time.deltaTime * touchMultiplier * HUDManager.PowerSlider.DeltaPosition;
 
                         // Make sure power has priority over rotation and angle
                         if (powerDelta.x != 0 || powerDelta.y != 0)
@@ -300,24 +356,24 @@ public class GameManager : MonoBehaviour, IManager
 
                         // Rotation
                         // Move less
-                        if (HUD.RotationLess.IsPressed && !HUD.RotationMore.IsPressed)
+                        if (HUDManager.RotationLess.IsPressed && !HUDManager.RotationMore.IsPressed)
                         {
                             rotationDelta = -heldButtonMultiplier * Time.deltaTime;
                         }
                         // Move more
-                        else if (!HUD.RotationLess.IsPressed && HUD.RotationMore.IsPressed)
+                        else if (!HUDManager.RotationLess.IsPressed && HUDManager.RotationMore.IsPressed)
                         {
                             rotationDelta = heldButtonMultiplier * Time.deltaTime;
                         }
 
                         // Angle
                         // Move less
-                        if (HUD.AngleLess.IsPressed && !HUD.AngleMore.IsPressed)
+                        if (HUDManager.AngleLess.IsPressed && !HUDManager.AngleMore.IsPressed)
                         {
                             angleDelta = -heldButtonMultiplier * Time.deltaTime;
                         }
                         // Move more
-                        else if (!HUD.AngleLess.IsPressed && HUD.AngleMore.IsPressed)
+                        else if (!HUDManager.AngleLess.IsPressed && HUDManager.AngleMore.IsPressed)
                         {
                             angleDelta = heldButtonMultiplier * Time.deltaTime;
                         }
@@ -332,12 +388,12 @@ public class GameManager : MonoBehaviour, IManager
 
 
                         // Update the HUD to display the correct values
-                        HUD.PowerSlider.DisplayValue.text = (TerrainManager.GolfBall.Power * 100).ToString("0") + "%";
+                        HUDManager.PowerSlider.DisplayValue.text = (TerrainManager.GolfBall.Power * 100).ToString("0") + "%";
 
                         // Set the power slider colour
-                        Color p = HUD.PowerSlider.Gradient.Evaluate(TerrainManager.GolfBall.Power);
-                        p.a = HUD.PowerSliderBackgroundAlpha;
-                        HUD.PowerSlider.Background.color = p;
+                        Color p = HUDManager.PowerSlider.Gradient.Evaluate(TerrainManager.GolfBall.Power);
+                        p.a = HUDManager.PowerSliderBackgroundAlpha;
+                        HUDManager.PowerSlider.Background.color = p;
 
                         CameraStates.SetFloat(CameraSqrMagToTargetFloat, -1);
                         break;
@@ -361,27 +417,13 @@ public class GameManager : MonoBehaviour, IManager
         }
     }
 
-    private void Update()
+
+
+    public void Reset()
     {
-        UpdateLoop();
-    }
+        TerrainManager.Reset();
 
-    public void Clear()
-    {
-        TerrainManager.Clear();
-        TerrainGenerator.Clear();
-
-        if (HUD) HUD.Clear();
-    }
-
-    public void SetHUD(HUD instance)
-    {
-        HUD = instance;
-
-        HUD.OnShootPressed.AddListener(TerrainManager.GolfBall.Shoot);
-        HUD.OnShootPressed.AddListener(UpdateHUDShotCounter);
-
-        TerrainManager.OnCourseCompleted += UpdateHUDShotCounter;
+        if (HUDManager) HUDManager.Reset();
     }
 
     private void UpdateHUDShotCounter<T>(T t)
@@ -391,10 +433,10 @@ public class GameManager : MonoBehaviour, IManager
 
     private void UpdateHUDShotCounter()
     {
-        if (HUD != null)
+        if (HUDManager != null)
         {
             // Update the shots counter
-            HUD.Shots.text = TerrainManager.GolfBall.Progress.ShotsForThisHole.ToString();
+            HUDManager.Shots.text = TerrainManager.GolfBall.Progress.ShotsForThisHole.ToString();
 
 
             GolfBall.Stats.Pot[] holes = TerrainManager.GolfBall.Progress.CoursesCompleted.ToArray();
@@ -402,21 +444,21 @@ public class GameManager : MonoBehaviour, IManager
             if (holes != null && holes.Length > 0)
             {
                 // Add rows until we have enough
-                while (HUD.ScoreboardRows.Count < holes.Length - 1)
+                while (HUDManager.ScoreboardRows.Count < holes.Length - 1)
                 {
-                    GameObject g = Instantiate(HUD.ScoreRowPrefab, HUD.ScoreRowParent.transform);
+                    GameObject g = Instantiate(HUDManager.ScoreRowPrefab, HUDManager.ScoreRowParent.transform);
                     ScoreboardRow row = g.GetComponent<ScoreboardRow>();
 
-                    HUD.ScoreboardRows.Add(row);
+                    HUDManager.ScoreboardRows.Add(row);
                 }
 
                 // Update each ones data
                 for (int holeIndex = 0; holeIndex < holes.Length - 1; holeIndex++)
                 {
-                    int rowIndex = HUD.ScoreboardRows.Count - 1 - holeIndex;
+                    int rowIndex = HUDManager.ScoreboardRows.Count - 1 - holeIndex;
 
-                    HUD.ScoreboardRows[rowIndex].HoleNumber.text = "#" + holes[holeIndex].CourseNumber;
-                    HUD.ScoreboardRows[rowIndex].Shots.text = holes[holeIndex].ShotsTaken.ToString();
+                    HUDManager.ScoreboardRows[rowIndex].HoleNumber.text = "#" + holes[holeIndex].CourseNumber;
+                    HUDManager.ScoreboardRows[rowIndex].Shots.text = holes[holeIndex].ShotsTaken.ToString();
 
 
                     TimeSpan time = holes[holeIndex].TimeReached - holes[holeIndex + 1].TimeReached;
@@ -432,11 +474,17 @@ public class GameManager : MonoBehaviour, IManager
                         timeMessage = time.TotalSeconds.ToString("0.0") + "s";
                     }
 
-                    HUD.ScoreboardRows[rowIndex].Time.text = timeMessage;
+                    HUDManager.ScoreboardRows[rowIndex].Time.text = timeMessage;
                 }
             }
         }
     }
+
+
+
+
+
+
 
     public struct Gamerules
     {
@@ -459,5 +507,12 @@ public class GameManager : MonoBehaviour, IManager
     {
         FixedArea,
         Testing
+    }
+
+    public enum GameState
+    {
+        MainMenu,
+        GameLoading,
+        InGame
     }
 }

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class MainMenu : MonoBehaviour, IManager
+public class MainMenuManager : MonoBehaviour, IManager
 {
     public TerrainGenerator.GenerationSettings Settings = new TerrainGenerator.GenerationSettings();
 
@@ -22,12 +22,8 @@ public class MainMenu : MonoBehaviour, IManager
 
     public GameObject InvalidSeedText;
 
-    public static MainMenu Instance { get; private set; }
-
     private void Awake()
     {
-        Instance = this;
-
         InvalidSeedText.SetActive(false);
 
         GenerateRandomSeed();
@@ -84,7 +80,7 @@ public class MainMenu : MonoBehaviour, IManager
         //SeedInput.text = "-1793396896";
     }
 
-    public void Clear()
+    public void Reset()
     {
 
     }

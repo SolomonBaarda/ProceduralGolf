@@ -2,9 +2,8 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
-public class HUD : MonoBehaviour, IManager
+public class HUDManager : MonoBehaviour, IManager
 {
     public UnityEvent OnShootPressed;
     public UnityEvent OnRestartPressed;
@@ -43,15 +42,7 @@ public class HUD : MonoBehaviour, IManager
     [Header("Minimap")]
     public GameObject Minimap;
 
-    public static HUD Instance;
-
-
-    private void Awake()
-    {
-        Instance = FindObjectOfType<HUD>();
-    }
-
-    public void Clear()
+    public void Reset()
     {
         for (int i = 0; i < ScoreRowParent.transform.childCount; i++)
         {
@@ -73,7 +64,7 @@ public class HUD : MonoBehaviour, IManager
     }
 
     public void ShootPressed() { OnShootPressed.Invoke(); HideAllMenus(); }
-    public void RestartPressed() { OnRestartPressed.Invoke(); Clear(); HideAllMenus(); }
+    public void RestartPressed() { OnRestartPressed.Invoke(); Reset(); HideAllMenus(); }
     public void QuitToMenuPressed() { OnQuitToMenuPressed.Invoke(); HideAllMenus(); }
 
 

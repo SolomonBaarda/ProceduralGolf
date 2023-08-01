@@ -37,7 +37,7 @@ public class TerrainManager : MonoBehaviour, IManager
     {
         OnCourseStarted -= StartCourse;
         OnCourseCompleted -= CourseCompleted;
-        Clear();
+        Reset();
     }
 
     private void CourseCompleted(CourseData course)
@@ -64,9 +64,9 @@ public class TerrainManager : MonoBehaviour, IManager
         SpawnGolfBall(course);
     }
 
-    public void Clear()
+    public void Reset()
     {
-        TerrainChunkManager.Clear();
+        TerrainChunkManager.Reset();
 
         HasTerrain = false;
         CurrentLoadedTerrain = null;
@@ -76,6 +76,10 @@ public class TerrainManager : MonoBehaviour, IManager
     public void SetVisible(bool visible)
     {
         TerrainChunkManager.SetVisible(visible);
+
+        GolfBall.gameObject.SetActive(visible);
+        NextHoleBeacon.gameObject.SetActive(visible);
+        NextHoleFlag.gameObject.SetActive(visible); 
     }
 
     /// <summary>
@@ -90,7 +94,7 @@ public class TerrainManager : MonoBehaviour, IManager
     private IEnumerator LoadTerrainAsync(TerrainData data)
     {
         DateTime before = DateTime.Now;
-        Clear();
+        Reset();
         IsLoading = true;
 
 
