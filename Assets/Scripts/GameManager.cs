@@ -35,8 +35,7 @@ public class GameManager : MonoBehaviour, IManager
     public CinemachineVirtualCamera CoursePreviewCamera;
 
     private const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
-    private const string CameraCoursePreviewTriggerStart = "OnTriggerCoursePreviewStart", CameraCoursePreviewTriggerEnd = "OnTriggerCoursePreviewEnd";
-    private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying";
+    private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying", CameraCoursePreview = "IsCoursePreview";
 
     [Space]
     public Camera MapCamera;
@@ -114,7 +113,7 @@ public class GameManager : MonoBehaviour, IManager
 
     private IEnumerator DoCoursePreview()
     {
-        CameraStates.SetTrigger(CameraCoursePreviewTriggerStart);
+        CameraStates.SetBool(CameraCoursePreview, true);
 
         CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
 
@@ -128,7 +127,7 @@ public class GameManager : MonoBehaviour, IManager
             yield return null;
         }
 
-        CameraStates.SetTrigger(CameraCoursePreviewTriggerEnd);
+        CameraStates.SetBool(CameraCoursePreview, false);
     }
 
     public void SetVisible(bool visible)

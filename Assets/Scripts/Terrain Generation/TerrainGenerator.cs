@@ -509,6 +509,12 @@ public class TerrainGenerator : MonoBehaviour, IManager
             AddIfValidChild(Vector2Int.left);
             AddIfValidChild(Vector2Int.right);
 
+            // Allow diagonal movement
+            AddIfValidChild(new Vector2Int(1, 1));
+            AddIfValidChild(new Vector2Int(-1, 1));
+            AddIfValidChild(new Vector2Int(1, -1));
+            AddIfValidChild(new Vector2Int(-1, -1));
+
             foreach (var newChild in children)
             {
                 // Skip child if it has already been visited
@@ -645,15 +651,17 @@ public class TerrainGenerator : MonoBehaviour, IManager
             if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
             {
                 var pathPoints = CalculateShortestPathOnCourseFromStartToEnd(map, start, hole);
-                List<Vector3> worldPoints = new List<Vector3>();
+                List<Vector3> worldPoints = new List<Vector3>(), worldPointsSimplified = new List<Vector3>();
 
                 foreach(Vector2Int cell in pathPoints)
                 {
                     worldPoints.Add(CalculateWorldVertexPositionFromTerrainMapIndex(map, cell.x, cell.y, distanceBetweenNoiseSamples));
                 }
 
+                LineUtility.Simplify(worldPoints, TerrainSettings.CourseCameraPathSimplificationArea, worldPointsSimplified);
+
                 // Create the course data object
-                startFinishPathCourses.Add(new(startWorld, holeWorld, worldPoints));
+                startFinishPathCourses.Add(new(startWorld, holeWorld, worldPointsSimplified));
             }
         });
 
