@@ -686,13 +686,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 128706775}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_Father: {fileID: 522883650}
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &128706777
 MonoBehaviour:
@@ -1389,14 +1389,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 295252888}
-  m_LocalRotation: {x: 0.2397753, y: 0.280543, z: -0.07259812, w: 0.92657053}
+  m_LocalRotation: {x: 0.2397753, y: 0.280543, z: -0.07259812, w: 0.9265706}
   m_LocalPosition: {x: -2, y: 2, z: -3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 950426078}
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_Father: {fileID: 522883650}
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &295252893
 MonoBehaviour:
@@ -3110,6 +3110,85 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 522040008}
   m_CullTransparentMesh: 0
+--- !u!1 &522883649
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 522883650}
+  - component: {fileID: 522883651}
+  m_Layer: 0
+  m_Name: Camera Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &522883650
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 522883649}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 295252892}
+  - {fileID: 128706776}
+  - {fileID: 892787843}
+  - {fileID: 974716574}
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &522883651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 522883649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0be6d4b88118401439e04538eefbacb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CamerasParent: {fileID: 522883649}
+  TerrainManager: {fileID: 187293244}
+  MainCameraBrain: {fileID: 295252895}
+  CameraStates: {fileID: 950426080}
+  CoursePreviewDollyPath: {fileID: 892787842}
+  CoursePreviewDollyCart: {fileID: 128706777}
+  CoursePreviewSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.19999999
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.79999995
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  CoursePreviewCamera: {fileID: 762619622}
 --- !u!1 &542868712
 GameObject:
   m_ObjectHideFlags: 0
@@ -3941,7 +4020,7 @@ RectTransform:
   m_Children:
   - {fileID: 341470134}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -3972,7 +4051,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 762619620}
-  m_LocalRotation: {x: 0.08044252, y: -0.24069785, z: 0.16136733, w: 0.9537055}
+  m_LocalRotation: {x: 0.08044252, y: -0.24069782, z: 0.16136733, w: 0.9537055}
   m_LocalPosition: {x: 27.735012, y: 14.798805, z: -51.660088}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -4369,13 +4448,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 892787841}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_Father: {fileID: 522883650}
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &950426077
 GameObject:
@@ -4623,13 +4702,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 974716570}
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 100, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_Father: {fileID: 522883650}
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &977734078
 GameObject:
@@ -5023,7 +5102,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1053671504}
-  m_LocalRotation: {x: 0.000000014901159, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0.000000014901159, y: 0.000000029802319, z: -0.000000014901159,
+    w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -5146,7 +5226,7 @@ Transform:
   - {fileID: 173373393}
   - {fileID: 1557199087}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1056162044
 GameObject:
@@ -7021,46 +7101,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5a224ca4d327a344a2882f860b9f903, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  State: 0
   TerrainGenerator: {fileID: 1510809347}
   TerrainManager: {fileID: 187293244}
   LoadingScreenManager: {fileID: 736453759}
   MainMenuManager: {fileID: 1655121897}
   HUDManager: {fileID: 1055517126}
+  CameraManager: {fileID: 522883651}
   GolfBallShotPreview: {fileID: 1208001002}
   ObjectsToDisableWhileLoading:
   - {fileID: 1208001000}
   - {fileID: 295252888}
   - {fileID: 642023517}
-  MainCameraBrain: {fileID: 295252895}
-  CameraStates: {fileID: 950426080}
-  CoursePreviewDollyPath: {fileID: 892787842}
-  CoursePreviewDollyCart: {fileID: 128706777}
-  CoursePreviewSpeedCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0.099999994
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.9
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  CoursePreviewCamera: {fileID: 762619622}
-  MapCamera: {fileID: 974716573}
   Skybox: {fileID: 2100000, guid: 3be37e0764203d947ad4f60574b89e86, type: 2}
 --- !u!114 &1510809347
 MonoBehaviour:
@@ -7404,7 +7456,7 @@ Transform:
   - {fileID: 1799830961}
   - {fileID: 1697553658}
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1697553657
 GameObject:

@@ -21,28 +21,13 @@ public class GameManager : MonoBehaviour, IManager
     public LoadingScreenManager LoadingScreenManager;
     public MainMenuManager MainMenuManager;
     public HUDManager HUDManager;
+    public CameraManager CameraManager;
 
     [Header("Golf Ball")]
     public ShotPreview GolfBallShotPreview;
 
     [Space]
     public List<GameObject> ObjectsToDisableWhileLoading;
-
-    [Header("Cameras")]
-    public CinemachineBrain MainCameraBrain;
-    public Animator CameraStates;
-
-    [Space]
-    public CinemachineSmoothPath CoursePreviewDollyPath;
-    public CinemachineDollyCart CoursePreviewDollyCart;
-    public AnimationCurve CoursePreviewSpeedCurve = new AnimationCurve();
-    public CinemachineVirtualCamera CoursePreviewCamera;
-
-    private const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
-    private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying", CameraCoursePreview = "IsCoursePreview";
-
-    [Space]
-    public Camera MapCamera;
 
     [Header("Terrain settings")]
     private Gamerules Gamerule;
@@ -55,11 +40,6 @@ public class GameManager : MonoBehaviour, IManager
     [Space]
     public Material Skybox;
 
-
-    public const float DefaultMapCameraZoom = 500;
-
-    public const float CoursePreviewDurationSeconds = 10.0f;
-    public const float PercentLookingAtHoleCoursePreview = 0.1f;
 
     private void Awake()
     {
@@ -180,46 +160,10 @@ public class GameManager : MonoBehaviour, IManager
             .Select(x => new CinemachineSmoothPath.Waypoint() { position = x })
             .ToArray();
 
-        CoursePreviewDollyPath.m_Waypoints = path;
-
-        // Update map camera
-        /*
-        Vector3 pos = (data.Start + data.Hole) / 2;
-        pos.y = MapCamera.transform.position.y;
-        MapCamera.transform.position = pos;
-        MapCamera.orthographicSize = DefaultMapCameraZoom;
-        MapCamera.enabled = false;
-        */
-
-        StartCoroutine(DoCoursePreview(path));
+        CameraManager.StartCoursePreview(path);
     }
 
-    private IEnumerator DoCoursePreview(CinemachineSmoothPath.Waypoint[] path)
-    {
-        CameraStates.SetBool(CameraCoursePreview, true);
 
-        CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
-
-
-        // TODO fix when cinemachine gets updated
-        // DUMB FIX FOR BROKEN PATHS
-        CoursePreviewDollyPath.m_Resolution--;
-        yield return null;
-        CoursePreviewDollyPath.m_Resolution++;
-
-
-        for (float totalTime = 0; totalTime < CoursePreviewDurationSeconds; totalTime += Time.deltaTime)
-        {
-            float t = CoursePreviewSpeedCurve.Evaluate(totalTime / CoursePreviewDurationSeconds);
-            CoursePreviewDollyCart.m_Position = t;
-
-            CoursePreviewCamera.LookAt = t < PercentLookingAtHoleCoursePreview ? TerrainManager.NextHoleFlag.transform : TerrainManager.GolfBall.transform;
-
-            yield return null;
-        }
-
-        CameraStates.SetBool(CameraCoursePreview, false);
-    }
 
     public void SetVisible(bool visible)
     {
@@ -316,7 +260,7 @@ public class GameManager : MonoBehaviour, IManager
     {
         if(Gamerule.UseViewDistance)
         {
-            TerrainManager.UpdateLOD(MainCameraBrain.OutputCamera.transform.position, TerrainManager.GolfBall.Position);
+            TerrainManager.UpdateLOD(CameraManager.MainCamera.transform.position, TerrainManager.GolfBall.Position);
         }
 
         if (Gamerule.UseGolfBall && TerrainManager.HasTerrain)
@@ -395,24 +339,19 @@ public class GameManager : MonoBehaviour, IManager
                         p.a = HUDManager.PowerSliderBackgroundAlpha;
                         HUDManager.PowerSlider.Background.color = p;
 
-                        CameraStates.SetFloat(CameraSqrMagToTargetFloat, -1);
+                        CameraManager.SetGolfBallSquareMagnitudeToTarget(-1f);
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
 
                         float sqrMag = (GolfBallShotPreview.ShotPreviewTarget.position - TerrainManager.GolfBall.transform.position).sqrMagnitude;
-                        CameraStates.SetFloat(CameraSqrMagToTargetFloat, sqrMag);
+                        CameraManager.SetGolfBallSquareMagnitudeToTarget(sqrMag);
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
-                        CameraStates.SetFloat(CameraSqrMagToTargetFloat, -1);
+                        CameraManager.SetGolfBallSquareMagnitudeToTarget(-1f);
                         break;
                 }
-
-                CameraStates.SetBool(CameraAiming, TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
-                CameraStates.SetBool(CameraFlying, TerrainManager.GolfBall.State == GolfBall.PlayState.Flying);
-                CameraStates.SetBool(CameraRolling, TerrainManager.GolfBall.State == GolfBall.PlayState.Rolling);
-
             }
         }
     }
