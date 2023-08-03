@@ -49,9 +49,22 @@ public class TerrainGenerator : MonoBehaviour
             throw new Exception("Terrain settings must contain at least one layer");
         }
 
+        bool atLeastOneObject = false;
+        for (int i = 0; i < TerrainSettings.ProceduralObjects.Count; i++)
+        {
+            if (TerrainSettings.ProceduralObjects[i].Do)
+            {
+                atLeastOneObject = true;
+                break;
+            }
+        }
+
+        if (!atLeastOneObject)
+            Debug.LogError("No procedural objects have been added");
+
         CurrentSettings = settings;
 
-        StartCoroutine(WaitForGenerate(callback));
+        StartCoroutine(WaitForGenerate(atLeastOneObject, callback));
     }
 
 
@@ -93,30 +106,14 @@ public class TerrainGenerator : MonoBehaviour
 #endif
     }
 
-    private IEnumerator WaitForGenerate(OnCourseGenerated callback)
+    private IEnumerator WaitForGenerate(bool atLeastOneObject, OnCourseGenerated callback)
     {
         Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
 
         DateTime startTimestamp = DateTime.Now, lastTimestamp = startTimestamp;
         IsGenerating = true;
 
-        bool atLeastOneObject = false;
-        for (int i = 0; i < TerrainSettings.ProceduralObjects.Count; i++)
-        {
-            if (TerrainSettings.ProceduralObjects[i].Do)
-            {
-                atLeastOneObject = true;
-                break;
-            }
-        }
-
-        if (!atLeastOneObject)
-            Debug.LogError("No procedural objects have been added");
-
-        yield return null;
-
         // TERRAIN LAYERS
-
 
         // Construct the terrain map for the whole course
         int size = TerrainSettings.NumChunksToGenerateSize * TerrainSettings.SamplePointFrequency;
@@ -125,13 +122,7 @@ public class TerrainGenerator : MonoBehaviour
         Vector2 offset = Vector2.zero;
         float distanceBetweenNoiseSamples = TerrainChunkManager.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
 
-
-
-
         GenerateTerrain(map, out float minHeight, out float maxHeight);
-
-        yield return null;
-
 
         // Use height curve to calculate new height distribution
         // TODO BLOCKING HEIGHT CURVE OBJ
@@ -155,6 +146,7 @@ public class TerrainGenerator : MonoBehaviour
             map.Heights[index] *= TerrainSettings.HeightMultiplier;
         });
 
+
         Logger.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
@@ -176,20 +168,19 @@ public class TerrainGenerator : MonoBehaviour
         int chunkSize = TerrainSettings.SamplePointFrequency;
         ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
+        Logger.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        lastTimestamp = DateTime.Now;
         yield return null;
 
         // Partially sequential
         List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
+        Logger.Log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        lastTimestamp = DateTime.Now;
         yield return null;
 
         // Create the object and set the data
-        TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
-        terrain.SetData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.name);
-
-        Logger.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
-        lastTimestamp = DateTime.Now;
-
+        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.name);
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
         Logger.Log(message);
