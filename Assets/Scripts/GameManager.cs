@@ -263,7 +263,7 @@ public class GameManager : MonoBehaviour, IManager
     private IEnumerator WaitUntilGameLoaded(TerrainData data)
     {
         // Set up the TerrainManager
-        TerrainManager.LoadTerrain(data);
+        TerrainManager.LoadTerrain(data, Logger.Log);
 
         // Ensure there is terrain before we start
         while (TerrainManager.IsLoading) yield return null;

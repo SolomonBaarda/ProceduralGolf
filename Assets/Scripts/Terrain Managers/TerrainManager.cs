@@ -24,6 +24,7 @@ public class TerrainManager : MonoBehaviour, IManager
     public UnityAction<CourseData> OnCourseStarted;
     public UnityAction<CourseData> OnCourseCompleted;
 
+    public delegate void Logger(string message);
 
     private void Awake()
     {
@@ -84,12 +85,12 @@ public class TerrainManager : MonoBehaviour, IManager
     /// Load the TerrainData into the TerrainChunkManager.
     /// </summary>
     /// <param name="data"></param>
-    public void LoadTerrain(TerrainData data)
+    public void LoadTerrain(TerrainData data, Logger logger)
     {
-        StartCoroutine(LoadTerrainAsync(data));
+        StartCoroutine(LoadTerrainAsync(data, logger));
     }
 
-    private IEnumerator LoadTerrainAsync(TerrainData data)
+    private IEnumerator LoadTerrainAsync(TerrainData data, Logger log)
     {
         DateTime before = DateTime.Now;
         Reset();
@@ -132,7 +133,7 @@ public class TerrainManager : MonoBehaviour, IManager
         string message = "* Loaded terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0")
             + " seconds with " + data.Chunks.Count + " chunks and " + data.Courses.Count + " holes.";
 
-        Logger.Log(message);
+        log(message);
     }
 
     private void FixedUpdate()
@@ -147,7 +148,7 @@ public class TerrainManager : MonoBehaviour, IManager
 
             // Update the next hole beacon width
             float distanceSqr = (target.Hole - GolfBall.Position).sqrMagnitude;
-            const float maximumDistance = TerrainGenerator.ChunkSizeWorldUnits * 2;
+            const float maximumDistance = TerrainChunkData.ChunkSizeWorldUnits * 2;
             float percent = Mathf.Clamp01(distanceSqr / (maximumDistance * maximumDistance));
             NextHoleBeacon.UpdateLineWidth(Mathf.Lerp(0.05f, 10, percent));
         }
@@ -179,8 +180,8 @@ public class TerrainManager : MonoBehaviour, IManager
             Vector3 distanceFromBall = currentGolfBallPosition - chunk.Bounds.center;
 
             // Enable collisions for the 2x2 chunks surrounding the ball
-            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= TerrainGenerator.ChunkSizeWorldUnits && 
-                Math.Abs(distanceFromBall.z) <= TerrainGenerator.ChunkSizeWorldUnits;
+            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= TerrainChunkData.ChunkSizeWorldUnits && 
+                Math.Abs(distanceFromBall.z) <= TerrainChunkData.ChunkSizeWorldUnits;
 
             if (collisionsEnabled && viewLOD >= LODViewSettings.Count)
             {

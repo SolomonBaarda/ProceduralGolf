@@ -6,6 +6,8 @@ using UnityEngine;
 [Serializable]
 public class TerrainChunkData
 {
+    public const float ChunkSizeWorldUnits = 250;
+
     public Vector2Int Position;
 
     public List<Mesh> Meshes;
@@ -14,7 +16,6 @@ public class TerrainChunkData
     [SerializeField][HideInInspector] public Biome.Type[] Biomes;
 
     [SerializeField] public List<WorldObjectData> WorldObjects;
-
 
     public TerrainChunkData(Vector2Int position, Biome.Type[] biomes, int biomesWidth, int biomesHeight, List<Mesh> meshes, List<WorldObjectData> worldObjects)
     {

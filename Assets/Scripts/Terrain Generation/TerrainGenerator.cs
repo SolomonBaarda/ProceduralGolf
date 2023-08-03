@@ -28,8 +28,6 @@ public class TerrainGenerator : MonoBehaviour
 
     private const int NumAttemptsToChooseRandomCoursePositions = 100;
 
-    public const float ChunkSizeWorldUnits = 250;
-
     public delegate void OnCourseGenerated(TerrainData data);
     public delegate void Logger(string message);
 
@@ -124,7 +122,7 @@ public class TerrainGenerator : MonoBehaviour
         TerrainMap map = new TerrainMap(size, size);
 
         Vector2 offset = Vector2.zero;
-        float distanceBetweenNoiseSamples = ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
+        float distanceBetweenNoiseSamples = TerrainChunkData.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
 
         GenerateTerrain(map, out float minHeight, out float maxHeight);
 
@@ -207,7 +205,7 @@ public class TerrainGenerator : MonoBehaviour
 
     public static Vector2Int WorldToChunk(Vector3 position)
     {
-        Vector3 pos = position / ChunkSizeWorldUnits;
+        Vector3 pos = position / TerrainChunkData.ChunkSizeWorldUnits;
         return new Vector2Int((int)pos.x, (int)pos.z);
     }
 
