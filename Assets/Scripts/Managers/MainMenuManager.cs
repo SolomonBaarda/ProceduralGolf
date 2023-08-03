@@ -15,9 +15,6 @@ public class MainMenuManager : MonoBehaviour, IManager
     public UnityEvent OnPressQuit = new UnityEvent();
 
 
-    public Transform Camera;
-    public float CameraSpinSpeed = 1.0f;
-
     public GameObject PlayMenuParent;
 
     public GameObject InvalidSeedText;
@@ -46,11 +43,6 @@ public class MainMenuManager : MonoBehaviour, IManager
                 }
             }
         );
-    }
-
-    private void Update()
-    {
-        Camera.Rotate(Vector3.up, CameraSpinSpeed * Time.deltaTime, Space.World);
     }
 
     public void QuitGame()

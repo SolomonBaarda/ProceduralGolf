@@ -12,24 +12,36 @@ public class CameraManager : MonoBehaviour, IManager
     public Camera MainCamera => MainCameraBrain.OutputCamera;
     public Animator CameraStates;
 
+    private State CameraState;
+
+    [Header("Main Menu Camera")]
+    public Transform RotatingPosition;
+    public Transform RotatingLookAt;
+    public float RotationSpeed = 0.5f;
+
+    private float CurrentRotatingCameraAngle = 0.0f;
+
+
     [Header("Course Preview Camera")]
     public CinemachineSmoothPath CoursePreviewDollyPath;
     public CinemachineDollyCart CoursePreviewDollyCart;
     public AnimationCurve CoursePreviewSpeedCurve = new AnimationCurve();
     public CinemachineVirtualCamera CoursePreviewCamera;
 
+    public const float CoursePreviewDurationSeconds = 10.0f;
+    public const float PercentLookingAtHoleCoursePreview = 0.1f;
+
+
 
     //public Camera MapCamera;
 
-
     private const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
-    private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying", CameraCoursePreview = "IsCoursePreview";
-    private const string OnMainMenuTrigger = "OnMainMenu", OnLoadingTrigger = "OnLoading", OnGameStartTrigger = "OnGameStart";
+    private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying";
+    private const string OnMainMenuTrigger = "OnMainMenu", OnCoursePreviewTrigger = "OnCoursePreviewStart", OnGameStartTrigger = "OnGameStart";
+
 
     public const float DefaultMapCameraZoom = 500;
 
-    public const float CoursePreviewDurationSeconds = 10.0f;
-    public const float PercentLookingAtHoleCoursePreview = 0.1f;
 
     public void Reset()
     {
@@ -41,6 +53,13 @@ public class CameraManager : MonoBehaviour, IManager
         CamerasParent.SetActive(visible);
     }
 
+    private enum State
+    {
+        SpinningCamera = 0,
+        CoursePreviewCamera = 1,
+        GameCameras = 2
+    }
+
     public void SetGolfBallSquareMagnitudeToTarget(float value)
     {
         CameraStates.SetFloat(CameraSqrMagToTargetFloat, value);
@@ -48,11 +67,26 @@ public class CameraManager : MonoBehaviour, IManager
 
     private void Update()
     {
+        RotatingPosition.Rotate(Vector3.up, RotationSpeed * Time.deltaTime);
+
         CameraStates.SetBool(CameraAiming, TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
         CameraStates.SetBool(CameraFlying, TerrainManager.GolfBall.State == GolfBall.PlayState.Flying);
         CameraStates.SetBool(CameraRolling, TerrainManager.GolfBall.State == GolfBall.PlayState.Rolling);
     }
 
+    public void StartMainMenu()
+    {
+        CameraState = State.SpinningCamera;
+
+        CameraStates.SetTrigger(OnMainMenuTrigger);
+    }
+
+    public void StartGameCameras()
+    {
+        CameraState = State.GameCameras;
+
+        CameraStates.SetTrigger(OnGameStartTrigger);
+    }
 
     public delegate void OnCoursePreviewCompleted();
 
@@ -72,10 +106,12 @@ public class CameraManager : MonoBehaviour, IManager
 
     private IEnumerator DoCoursePreview(CinemachineSmoothPath.Waypoint[] path, OnCoursePreviewCompleted callback)
     {
+        CameraState = State.CoursePreviewCamera;
+
         CoursePreviewDollyPath.m_Waypoints = path;
         CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
 
-        CameraStates.SetBool(CameraCoursePreview, true);
+        CameraStates.SetTrigger(OnCoursePreviewTrigger);
 
         // TODO fix when cinemachine gets updated
         // DUMB FIX FOR BROKEN PATHS
@@ -93,8 +129,6 @@ public class CameraManager : MonoBehaviour, IManager
 
             yield return null;
         }
-
-        CameraStates.SetBool(CameraCoursePreview, false);
 
         callback();
     }

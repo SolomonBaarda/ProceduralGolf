@@ -107,6 +107,7 @@ public class GameManager : MonoBehaviour, IManager
 
                 HUDManager.SetVisible(false);
                 TerrainManager.SetVisible(false);
+                CameraManager.StartMainMenu();
 
                 SetVisible(false);
 
@@ -125,6 +126,7 @@ public class GameManager : MonoBehaviour, IManager
 
                 HUDManager.SetVisible(false);
                 TerrainManager.SetVisible(false);
+                CameraManager.StartMainMenu();
 
                 SetVisible(false);
 
@@ -150,6 +152,7 @@ public class GameManager : MonoBehaviour, IManager
                 LoadingScreenManager.SetVisible(false);
 
                 TerrainManager.SetVisible(true);
+                CameraManager.StartGameCameras();
 
                 SetVisible(true);
 
