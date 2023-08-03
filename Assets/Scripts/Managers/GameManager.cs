@@ -35,9 +35,6 @@ public class GameManager : MonoBehaviour, IManager
     private static readonly Gamerules Testing = new Gamerules(false, false, false, false);
     private static readonly Gamerules FixedArea = new Gamerules(true, true, true, true);
 
-    public delegate void CourseGenerated(TerrainData data);
-    public delegate void PreviewGenerated(Texture2D map);
-
     [Space]
     public Material Skybox;
 

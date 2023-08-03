@@ -12,15 +12,10 @@ public class CameraManager : MonoBehaviour, IManager
     public Camera MainCamera => MainCameraBrain.OutputCamera;
     public Animator CameraStates;
 
-    private State CameraState;
-
     [Header("Main Menu Camera")]
     public Transform RotatingPosition;
     public Transform RotatingLookAt;
     public float RotationSpeed = 0.5f;
-
-    private float CurrentRotatingCameraAngle = 0.0f;
-
 
     [Header("Course Preview Camera")]
     public CinemachineSmoothPath CoursePreviewDollyPath;
@@ -67,6 +62,8 @@ public class CameraManager : MonoBehaviour, IManager
 
     private void Update()
     {
+        // Always update all cameras so that they are in position to cut to
+
         RotatingPosition.Rotate(Vector3.up, RotationSpeed * Time.deltaTime);
 
         CameraStates.SetBool(CameraAiming, TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
@@ -76,15 +73,11 @@ public class CameraManager : MonoBehaviour, IManager
 
     public void StartMainMenu()
     {
-        CameraState = State.SpinningCamera;
-
         CameraStates.SetTrigger(OnMainMenuTrigger);
     }
 
     public void StartGameCameras()
     {
-        CameraState = State.GameCameras;
-
         CameraStates.SetTrigger(OnGameStartTrigger);
     }
 
@@ -106,8 +99,6 @@ public class CameraManager : MonoBehaviour, IManager
 
     private IEnumerator DoCoursePreview(CinemachineSmoothPath.Waypoint[] path, OnCoursePreviewCompleted callback)
     {
-        CameraState = State.CoursePreviewCamera;
-
         CoursePreviewDollyPath.m_Waypoints = path;
         CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
 

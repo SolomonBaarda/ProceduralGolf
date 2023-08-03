@@ -28,7 +28,10 @@ public class TerrainGenerator : MonoBehaviour
 
     private const int NumAttemptsToChooseRandomCoursePositions = 100;
 
-    public void Generate(GenerationSettings settings, GameManager.CourseGenerated callback)
+    public delegate void OnCourseGenerated(TerrainData data);
+    public delegate void PreviewGenerated(Texture2D map);
+
+    public void Generate(GenerationSettings settings, OnCourseGenerated callback)
     {
         if (IsGenerating)
         {
@@ -90,7 +93,7 @@ public class TerrainGenerator : MonoBehaviour
 #endif
     }
 
-    private IEnumerator WaitForGenerate(GameManager.CourseGenerated callback)
+    private IEnumerator WaitForGenerate(OnCourseGenerated callback)
     {
         Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
 
@@ -127,8 +130,11 @@ public class TerrainGenerator : MonoBehaviour
 
         GenerateTerrain(map, out float minHeight, out float maxHeight);
 
+        yield return null;
+
 
         // Use height curve to calculate new height distribution
+        // TODO BLOCKING HEIGHT CURVE OBJ
         AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
         float maxMinusMin = maxHeight - minHeight;
 
@@ -170,8 +176,12 @@ public class TerrainGenerator : MonoBehaviour
         int chunkSize = TerrainSettings.SamplePointFrequency;
         ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
+        yield return null;
+
         // Partially sequential
         List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
+
+        yield return null;
 
         // Create the object and set the data
         TerrainData terrain = ScriptableObject.CreateInstance<TerrainData>();
