@@ -97,4 +97,9 @@ public class MainMenuManager : MonoBehaviour, IManager
         Application.OpenURL("https://assetstore.unity.com/publishers/57827");
     }
 
+    public void OpenBearIconsCredits()
+    {
+        Application.OpenURL("https://www.flaticon.com/authors/bearicons");
+    }
+
 }

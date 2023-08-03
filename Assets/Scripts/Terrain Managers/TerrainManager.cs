@@ -8,6 +8,7 @@ public class TerrainManager : MonoBehaviour, IManager
 {
     [Header("References")]
     public TerrainChunkManager TerrainChunkManager;
+    public CameraManager CameraManager;
     public GolfBall GolfBall;
     public LinePreview NextHoleBeacon;
     public GameObject NextHoleFlag;
@@ -145,7 +146,7 @@ public class TerrainManager : MonoBehaviour, IManager
             }
 
             // Update the next hole beacon width
-            float distanceSqr = (target.Hole - GolfBall.Position).sqrMagnitude;
+            float distanceSqr = (target.Hole - CameraManager.MainCamera.transform.position).sqrMagnitude;
             const float maximumDistance = TerrainChunkData.ChunkSizeWorldUnits * 2;
             float percent = Mathf.Clamp01(distanceSqr / (maximumDistance * maximumDistance));
             NextHoleBeacon.UpdateLineWidth(Mathf.Lerp(0.05f, 10, percent));
