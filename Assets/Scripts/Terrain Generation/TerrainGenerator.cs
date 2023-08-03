@@ -28,10 +28,14 @@ public class TerrainGenerator : MonoBehaviour
 
     private const int NumAttemptsToChooseRandomCoursePositions = 100;
 
+    public const float ChunkSizeWorldUnits = 250;
+
     public delegate void OnCourseGenerated(TerrainData data);
+    public delegate void Logger(string message);
+
     public delegate void PreviewGenerated(Texture2D map);
 
-    public void Generate(GenerationSettings settings, OnCourseGenerated callback)
+    public void Generate(GenerationSettings settings, OnCourseGenerated callback, Logger log)
     {
         if (IsGenerating)
         {
@@ -64,7 +68,7 @@ public class TerrainGenerator : MonoBehaviour
 
         CurrentSettings = settings;
 
-        StartCoroutine(WaitForGenerate(atLeastOneObject, callback));
+        StartCoroutine(WaitForGenerate(atLeastOneObject, callback, log));
     }
 
 
@@ -106,7 +110,7 @@ public class TerrainGenerator : MonoBehaviour
 #endif
     }
 
-    private IEnumerator WaitForGenerate(bool atLeastOneObject, OnCourseGenerated callback)
+    private IEnumerator WaitForGenerate(bool atLeastOneObject, OnCourseGenerated callback, Logger log)
     {
         Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
 
@@ -120,7 +124,7 @@ public class TerrainGenerator : MonoBehaviour
         TerrainMap map = new TerrainMap(size, size);
 
         Vector2 offset = Vector2.zero;
-        float distanceBetweenNoiseSamples = TerrainChunkManager.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
+        float distanceBetweenNoiseSamples = ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
 
         GenerateTerrain(map, out float minHeight, out float maxHeight);
 
@@ -147,7 +151,7 @@ public class TerrainGenerator : MonoBehaviour
         });
 
 
-        Logger.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -160,7 +164,7 @@ public class TerrainGenerator : MonoBehaviour
             GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width, map.Height) * distanceBetweenNoiseSamples);
 
 
-        Logger.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -168,14 +172,14 @@ public class TerrainGenerator : MonoBehaviour
         int chunkSize = TerrainSettings.SamplePointFrequency;
         ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
-        Logger.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
         // Partially sequential
         List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
-        Logger.Log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -183,7 +187,7 @@ public class TerrainGenerator : MonoBehaviour
         TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.name);
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
-        Logger.Log(message);
+        log(message);
         yield return null;
 
         IsGenerating = false;
@@ -203,7 +207,7 @@ public class TerrainGenerator : MonoBehaviour
 
     public static Vector2Int WorldToChunk(Vector3 position)
     {
-        Vector3 pos = position / TerrainChunkManager.ChunkSizeWorldUnits;
+        Vector3 pos = position / ChunkSizeWorldUnits;
         return new Vector2Int((int)pos.x, (int)pos.z);
     }
 

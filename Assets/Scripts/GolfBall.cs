@@ -135,7 +135,7 @@ public class GolfBall : MonoBehaviour
         IsOnGround = groundCollisions.Length > 0;
 
         // Get the current biome
-        CurrentBiome = IsOnGround ? Biome.GetBiomeSamplePoint(groundCollisions[0], transform.position) : Biome.Type.None;
+        CurrentBiome = IsOnGround ? TerrainChunk.GetBiomeSamplePoint(groundCollisions[0], transform.position) : Biome.Type.None;
 
         if(IsOnGround && wasOnGroundLastFrame)
         {

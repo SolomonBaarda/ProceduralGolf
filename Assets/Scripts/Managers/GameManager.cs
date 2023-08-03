@@ -238,7 +238,7 @@ public class GameManager : MonoBehaviour, IManager
         }
 
         // Now generate the terrain
-        TerrainGenerator.Generate(settings, LoadTerrain);
+        TerrainGenerator.Generate(settings, LoadTerrain, Logger.Log);
     }
 
     private void LoadTerrain(TerrainData data)

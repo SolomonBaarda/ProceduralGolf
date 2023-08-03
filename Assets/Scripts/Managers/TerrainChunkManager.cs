@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class TerrainChunkManager : MonoBehaviour, IManager
 {
-    public const float ChunkSizeWorldUnits = 250;
-
     [Header("References")]
     public Transform ChunkParent;
     public GameObject ChunkPrefab;
@@ -34,6 +32,8 @@ public class TerrainChunkManager : MonoBehaviour, IManager
         return TerrainChunks.Values;
     }
 
+    /*
+
     public bool TerrainChunkExists(Vector2Int chunk)
     {
         return TerrainChunks.ContainsKey(chunk);
@@ -44,6 +44,8 @@ public class TerrainChunkManager : MonoBehaviour, IManager
         const float half = ChunkSizeWorldUnits / 2;
         return new Vector3((chunk.x * ChunkSizeWorldUnits) + half, 0, (chunk.y * ChunkSizeWorldUnits) + half);
     }
+
+    */
 
     public void Reset()
     {

@@ -6,9 +6,6 @@ using UnityEngine.Events;
 
 public class TerrainManager : MonoBehaviour, IManager
 {
-    public static readonly Vector3 UP = Vector3.up;
-    public static readonly Vector3 ORIGIN = Vector3.zero;
-
     [Header("References")]
     public TerrainChunkManager TerrainChunkManager;
     public GolfBall GolfBall;
@@ -60,7 +57,7 @@ public class TerrainManager : MonoBehaviour, IManager
     {
         // Update course game object positions
         NextHoleFlag.transform.position = course.Hole;
-        NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + (UP * 100) });
+        NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + (Vector3.up * 100) });
 
         SpawnGolfBall(course);
     }
@@ -150,7 +147,7 @@ public class TerrainManager : MonoBehaviour, IManager
 
             // Update the next hole beacon width
             float distanceSqr = (target.Hole - GolfBall.Position).sqrMagnitude;
-            const float maximumDistance = TerrainChunkManager.ChunkSizeWorldUnits * 2;
+            const float maximumDistance = TerrainGenerator.ChunkSizeWorldUnits * 2;
             float percent = Mathf.Clamp01(distanceSqr / (maximumDistance * maximumDistance));
             NextHoleBeacon.UpdateLineWidth(Mathf.Lerp(0.05f, 10, percent));
         }
@@ -182,8 +179,8 @@ public class TerrainManager : MonoBehaviour, IManager
             Vector3 distanceFromBall = currentGolfBallPosition - chunk.Bounds.center;
 
             // Enable collisions for the 2x2 chunks surrounding the ball
-            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= TerrainChunkManager.ChunkSizeWorldUnits && 
-                Math.Abs(distanceFromBall.z) <= TerrainChunkManager.ChunkSizeWorldUnits;
+            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= TerrainGenerator.ChunkSizeWorldUnits && 
+                Math.Abs(distanceFromBall.z) <= TerrainGenerator.ChunkSizeWorldUnits;
 
             if (collisionsEnabled && viewLOD >= LODViewSettings.Count)
             {
@@ -248,7 +245,7 @@ public class TerrainManager : MonoBehaviour, IManager
         */
 
         // And move the ball there
-        MoveGolfBallAndWaitForNextShot(spawnPoint + (UP * GolfBall.Radius));
+        MoveGolfBallAndWaitForNextShot(spawnPoint + (Vector3.up * GolfBall.Radius));
     }
 
     private void MoveGolfBallAndWaitForNextShot(Vector3 position)
