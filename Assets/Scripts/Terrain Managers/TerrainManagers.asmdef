@@ -1,5 +1,5 @@
 {
-    "name": "Terrain",
+    "name": "TerrainManagers",
     "rootNamespace": "",
     "references": [
         "GUID:d28426c8f0dc1c44184359fcca1781f3",

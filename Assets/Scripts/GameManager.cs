@@ -238,7 +238,7 @@ public class GameManager : MonoBehaviour, IManager
         }
 
         // Now generate the terrain
-        TerrainGenerator.Generate(settings, LoadTerrain, Logger.Log);
+        TerrainGenerator.Generate(settings, LoadTerrain);
     }
 
     private void LoadTerrain(TerrainData data)
@@ -263,7 +263,7 @@ public class GameManager : MonoBehaviour, IManager
     private IEnumerator WaitUntilGameLoaded(TerrainData data)
     {
         // Set up the TerrainManager
-        TerrainManager.LoadTerrain(data, Logger.Log);
+        TerrainManager.LoadTerrain(data);
 
         // Ensure there is terrain before we start
         while (TerrainManager.IsLoading) yield return null;

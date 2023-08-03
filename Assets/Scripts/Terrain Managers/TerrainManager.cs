@@ -24,8 +24,6 @@ public class TerrainManager : MonoBehaviour, IManager
     public UnityAction<CourseData> OnCourseStarted;
     public UnityAction<CourseData> OnCourseCompleted;
 
-    public delegate void Logger(string message);
-
     private void Awake()
     {
         OnCourseStarted += StartCourse;
@@ -85,12 +83,12 @@ public class TerrainManager : MonoBehaviour, IManager
     /// Load the TerrainData into the TerrainChunkManager.
     /// </summary>
     /// <param name="data"></param>
-    public void LoadTerrain(TerrainData data, Logger logger)
+    public void LoadTerrain(TerrainData data)
     {
-        StartCoroutine(LoadTerrainAsync(data, logger));
+        StartCoroutine(LoadTerrainAsync(data));
     }
 
-    private IEnumerator LoadTerrainAsync(TerrainData data, Logger log)
+    private IEnumerator LoadTerrainAsync(TerrainData data)
     {
         DateTime before = DateTime.Now;
         Reset();
@@ -133,7 +131,7 @@ public class TerrainManager : MonoBehaviour, IManager
         string message = "* Loaded terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0")
             + " seconds with " + data.Chunks.Count + " chunks and " + data.Courses.Count + " holes.";
 
-        log(message);
+        Logger.Log(message);
     }
 
     private void FixedUpdate()
