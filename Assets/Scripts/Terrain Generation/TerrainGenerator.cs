@@ -1024,63 +1024,6 @@ public class TerrainGenerator : MonoBehaviour
         return worldObjects;
     }
 
-
-
-#if false
-
-    /*
-    private MapData GenerateMap(Dictionary<Vector2Int, ChunkData> data)
-    {
-        KeyValuePair<Vector2Int, ChunkData> first = data.First();
-        Vector2Int min = first.Key, max = min;
-        foreach (Vector2Int key in data.Keys)
-        {
-            if (key.x < min.x)
-                min.x = key.x;
-            if (key.y < min.y)
-                min.y = key.y;
-            if (key.x > max.x)
-                max.x = key.x;
-            if (key.y > max.y)
-                max.y = key.y;
-        }
-
-        TextureGenerator.TextureData[,] textures = new TextureGenerator.TextureData[Mathf.Abs(max.x - min.x) + 1, Mathf.Abs(max.y - min.y) + 1];
-        foreach (KeyValuePair<Vector2Int, ChunkData> pair in data)
-        {
-            textures[pair.Key.x - min.x, pair.Key.y - min.y] = pair.Value.TextureData;
-        }
-
-        TextureGenerator.TextureData d = TextureGenerator.CombineChunkTextureData(textures, first.Value.TextureData.Width, first.Value.TextureData.Height, TextureSettings);
-        Texture2D map = TextureGenerator.GenerateTextureFromData(d);
-
-
-        return new MapData()
-        {
-            Map = map,
-            MinWorldPos = data[min].TerrainMap.Bounds.min,
-            MaxWorldPox = data[max].TerrainMap.Bounds.max,
-        };
-    }
-    */
-
-    private static void FixProceduralObjectsOnChunkBorders(TerrainMap chunk, List<TerrainMap> neighbours, float minRadius)
-    {
-        foreach (TerrainMap.WorldObjectData worldObject in chunk.WorldObjects)
-        {
-            Vector3 world = worldObject.LocalPosition + chunk.Bounds.min;
-
-            foreach (TerrainMap neighbour in neighbours)
-            {
-                // Remove all that are too close
-                neighbour.WorldObjects.RemoveAll(x => (world - x.LocalPosition + neighbour.Bounds.min).sqrMagnitude < minRadius * minRadius);
-            }
-        }
-    }
-
-#endif
-
-
     /// <summary>
     /// 
     /// </summary>

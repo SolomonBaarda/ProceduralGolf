@@ -32,7 +32,6 @@ public static class Noise
                 float sample = n.GetNoise(x, y);
 
                 if (sample < min) min = sample;
-
                 if (sample > max) max = sample;
 
                 noise[(y * width) + x] = sample;
@@ -51,8 +50,6 @@ public static class Noise
             array[i] = (array[i] - min) / maxMinusMin;
         }
     }
-
-
 }
 
 
