@@ -91,4 +91,10 @@ public class MainMenuManager : MonoBehaviour, IManager
     {
         Application.OpenURL("https://assetstore.unity.com/publishers/12124");
     }
+
+    public void OpenYuki2022Credits()
+    {
+        Application.OpenURL("https://assetstore.unity.com/publishers/57827");
+    }
+
 }
