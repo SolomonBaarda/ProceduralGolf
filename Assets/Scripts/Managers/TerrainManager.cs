@@ -22,6 +22,7 @@ public class TerrainManager : MonoBehaviour, IManager
     [SerializeField]
     private List<float> LODViewSettings = new List<float>();
 
+
     [Header("Events")]
     public UnityAction<CourseData> OnCourseStarted;
     public UnityAction<CourseData> OnCourseCompleted;

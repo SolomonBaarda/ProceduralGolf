@@ -24,7 +24,7 @@ public class CameraManager : MonoBehaviour, IManager
 
     private const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
     private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying", CameraCoursePreview = "IsCoursePreview";
-
+    private const string OnMainMenuTrigger = "OnMainMenu", OnLoadingTrigger = "OnLoading", OnGameStartTrigger = "OnGameStart";
 
     public const float DefaultMapCameraZoom = 500;
 
@@ -53,10 +53,11 @@ public class CameraManager : MonoBehaviour, IManager
         CameraStates.SetBool(CameraRolling, TerrainManager.GolfBall.State == GolfBall.PlayState.Rolling);
     }
 
-    public void StartCoursePreview(CinemachineSmoothPath.Waypoint[] path)
-    {
-        CoursePreviewDollyPath.m_Waypoints = path;
 
+    public delegate void OnCoursePreviewCompleted();
+
+    public void StartCoursePreview(CinemachineSmoothPath.Waypoint[] path, OnCoursePreviewCompleted callback)
+    {
         // Update map camera
         /*
         Vector3 pos = (data.Start + data.Hole) / 2;
@@ -66,21 +67,21 @@ public class CameraManager : MonoBehaviour, IManager
         MapCamera.enabled = false;
         */
 
-        StartCoroutine(DoCoursePreview(path));
+        StartCoroutine(DoCoursePreview(path, callback));
     }
 
-    private IEnumerator DoCoursePreview(CinemachineSmoothPath.Waypoint[] path)
+    private IEnumerator DoCoursePreview(CinemachineSmoothPath.Waypoint[] path, OnCoursePreviewCompleted callback)
     {
-        CameraStates.SetBool(CameraCoursePreview, true);
-
+        CoursePreviewDollyPath.m_Waypoints = path;
         CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
 
+        CameraStates.SetBool(CameraCoursePreview, true);
 
         // TODO fix when cinemachine gets updated
         // DUMB FIX FOR BROKEN PATHS
-        CoursePreviewDollyPath.m_Resolution--;
-        yield return null;
         CoursePreviewDollyPath.m_Resolution++;
+        yield return null;
+        CoursePreviewDollyPath.m_Resolution--;
 
 
         for (float totalTime = 0; totalTime < CoursePreviewDurationSeconds; totalTime += Time.deltaTime)
@@ -94,7 +95,10 @@ public class CameraManager : MonoBehaviour, IManager
         }
 
         CameraStates.SetBool(CameraCoursePreview, false);
+
+        callback();
     }
+
 
 
 

@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering.Universal;
 
 public class GameManager : MonoBehaviour, IManager
 {
@@ -48,14 +49,14 @@ public class GameManager : MonoBehaviour, IManager
         OnRequestStartGenerating.AddListener(StartGeneration);
 
 
-        TerrainManager.OnCourseStarted += CourseStarted;
+        TerrainManager.OnCourseStarted += OnStartCourse;
         TerrainManager.OnCourseCompleted += UpdateHUDShotCounter;
 
         MainMenuManager.OnPressStartGame.AddListener(StartGame);
         MainMenuManager.OnPressQuit.AddListener(QuitApplication);
 
         HUDManager.OnQuitToMenuPressed.AddListener(QuitToMainMenu);
-        HUDManager.OnRestartPressed.AddListener(RestartGame);
+        HUDManager.OnRestartPressed.AddListener(RestartGameFromFirstCourse);
         HUDManager.OnShootPressed.AddListener(TerrainManager.GolfBall.Shoot);
         HUDManager.OnShootPressed.AddListener(UpdateHUDShotCounter);
 
@@ -73,6 +74,8 @@ public class GameManager : MonoBehaviour, IManager
             case GameState.MainMenu:
                 break;
             case GameState.GameLoading:
+                break;
+            case GameState.CoursePreview: 
                 break;
             case GameState.InGame:
                 DoGameLoop();
@@ -107,8 +110,15 @@ public class GameManager : MonoBehaviour, IManager
 
                 SetVisible(false);
 
+                // TODO TEST:
+                //StopAllCoroutines();
+                //CameraManager.StopAllCoroutines();
+                //TerrainManager.GolfBall.StopAllCoroutines();
+                //TerrainGenerator.StopAllCoroutines();
+
                 break;
             case GameState.GameLoading:
+
                 MainMenuManager.SetVisible(true);
                 MainMenuManager.SetLoading(true);
                 LoadingScreenManager.SetVisible(true);
@@ -117,6 +127,20 @@ public class GameManager : MonoBehaviour, IManager
                 TerrainManager.SetVisible(false);
 
                 SetVisible(false);
+
+                break;
+            case GameState.CoursePreview:
+
+                MainMenuManager.SetVisible(false);
+                MainMenuManager.SetLoading(false);
+                LoadingScreenManager.SetVisible(false);
+                HUDManager.SetVisible(false);
+
+                TerrainManager.SetVisible(true);
+                SetVisible(true);
+                // Disable the golf ball if we dont need it
+                TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
+
 
                 break;
             case GameState.InGame:
@@ -148,19 +172,39 @@ public class GameManager : MonoBehaviour, IManager
         Application.Quit();
     }
 
-
-
-
-
-    private void CourseStarted(CourseData data)
+    public void RestartGameFromFirstCourse()
     {
+        TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
+
+        if (Gamerule.UseGolfBall)
+        {
+            TerrainManager.Restart();
+        }
+
+        if (Gamerule.UseHUD)
+        {
+            UpdateHUDShotCounter();
+        }
+    }
+
+    private void OnStartCourse(CourseData data)
+    {
+        SetGameState(GameState.CoursePreview);
+
         // Update the course preview dolly path
         CinemachineSmoothPath.Waypoint[] path = data.PathStartToEnd
             .Reverse<Vector3>()
             .Select(x => new CinemachineSmoothPath.Waypoint() { position = x })
             .ToArray();
 
-        CameraManager.StartCoursePreview(path);
+        CameraManager.StartCoursePreview(path, OnCoursePreviewCompleted);
+    }
+
+    private void OnCoursePreviewCompleted()
+    {
+        SetGameState(GameState.InGame);
+
+        Logger.Log("Game has started. There are " + TerrainManager.CurrentLoadedTerrain.Courses.Count + " courses.");
     }
 
 
@@ -173,22 +217,7 @@ public class GameManager : MonoBehaviour, IManager
         }
     }
 
-    public void RestartGame()
-    {
-        SetGameState(GameState.InGame);
 
-        if (Gamerule.UseGolfBall)
-        {
-            TerrainManager.Restart();
-        }
-
-        if (Gamerule.UseHUD)
-        {
-            UpdateHUDShotCounter();
-        }
-
-        Logger.Log("Game has started. There are " + TerrainManager.CurrentLoadedTerrain.Courses.Count + " courses.");
-    }
 
     public void StartGeneration(TerrainGenerator.GenerationSettings settings, bool testing)
     {
@@ -246,12 +275,8 @@ public class GameManager : MonoBehaviour, IManager
             yield break;
         }
 
-
-
-
-
         // Start the game
-        RestartGame();
+        RestartGameFromFirstCourse();
     }
 
 
@@ -450,8 +475,9 @@ public class GameManager : MonoBehaviour, IManager
 
     public enum GameState
     {
-        MainMenu,
-        GameLoading,
-        InGame
+        MainMenu = 0,
+        GameLoading = 1,
+        CoursePreview = 2,
+        InGame = 3
     }
 }
