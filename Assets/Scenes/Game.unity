@@ -749,7 +749,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Icons by <color="blue"><u>bearicons</u></color> from www.flaticon.com
+  m_text: Icons by <color="blue"><u>juicy_fish</u></color> from www.flaticon.com
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -776,8 +776,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28
-  m_fontSizeBase: 28
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1592,7 +1592,7 @@ GameObject:
   - component: {fileID: 309502174}
   - component: {fileID: 309502173}
   m_Layer: 5
-  m_Name: Models
+  m_Name: Tree Models
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1694,7 +1694,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Models by <color="blue"><u>Broken Vector</u></color>
+  m_text: Tree models by <color="blue"><u>Broken Vector</u></color>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1721,8 +1721,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28
-  m_fontSizeBase: 28
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2886,8 +2886,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 503060163}
-  m_LocalRotation: {x: 0.21915719, y: -0.21448883, z: 0.19485736, w: 0.9316627}
-  m_LocalPosition: {x: -18.689505, y: -12.11067, z: -4.063751}
+  m_LocalRotation: {x: 0.21915719, y: -0.21448883, z: 0.19485734, w: 0.9316627}
+  m_LocalPosition: {x: -18.689505, y: -12.11067, z: -4.0637503}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3968,7 +3968,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Skybox by <color="blue"><u>Yuki2022</u></color>
+  m_text: Skybox texture by <color="blue"><u>Yuki2022</u></color>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3995,8 +3995,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28
-  m_fontSizeBase: 28
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4361,8 +4361,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 762619620}
-  m_LocalRotation: {x: 0.080442525, y: -0.24069783, z: 0.16136731, w: 0.9537055}
-  m_LocalPosition: {x: 27.735012, y: 14.798801, z: -51.660088}
+  m_LocalRotation: {x: 0.080442466, y: -0.24069786, z: 0.16136731, w: 0.95370555}
+  m_LocalPosition: {x: 27.735012, y: 14.798805, z: -51.660088}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5465,8 +5465,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056162044}
-  m_LocalRotation: {x: -0.002091013, y: 0.91346794, z: -0.40621474, w: 0.023697227}
-  m_LocalPosition: {x: -0.27734995, y: 4.574175, z: 8.246211}
+  m_LocalRotation: {x: -0.0020910278, y: 0.91346794, z: -0.40621474, w: 0.023697257}
+  m_LocalPosition: {x: -0.27735043, y: 4.574175, z: 8.246211}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
