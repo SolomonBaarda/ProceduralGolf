@@ -1,16 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ShotPreview : MonoBehaviour
 {
     [Header("Line Previews")]
     public LinePreview ShotPreviewMain;
-    public LinePreview ShotPreviewMinimap;
 
-    public Transform ShotPreviewTarget;
-    public Transform ShotPreviewStart;
+    [Header("Key positions")]
+    public Transform AimingPosition;
+    public Transform StartingPosition;
+    public Transform ShotPeakPosition;
 
+    [Header("Graphics")]
     public TextMesh ShotAngleText;
     public Transform ShotAnglePosition;
 
@@ -25,11 +28,11 @@ public class ShotPreview : MonoBehaviour
 
             // Update the shot preview
             ShotPreviewMain.SetPoints(previewPositions);
-            ShotPreviewMinimap.SetPoints(new Vector3[] { previewPositions[0] + Vector3.up * 10, previewPositions[previewPositions.Length - 1] + Vector3.up * 10 });
 
             // Update the start and end positions
-            ShotPreviewStart.SetPositionAndRotation(previewPositions[0], rotation);
-            ShotPreviewTarget.SetPositionAndRotation(previewPositions[previewPositions.Length - 1], rotation);
+            StartingPosition.SetPositionAndRotation(previewPositions[0], rotation);
+            AimingPosition.SetPositionAndRotation(previewPositions[previewPositions.Length - 1], rotation);
+            ShotPeakPosition.SetPositionAndRotation(previewPositions.OrderByDescending(x => x.y).First(), rotation);
         }
         else
         {

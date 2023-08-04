@@ -10,8 +10,9 @@ public class TerrainManager : MonoBehaviour, IManager
     public TerrainChunkManager TerrainChunkManager;
     public CameraManager CameraManager;
     public GolfBall GolfBall;
+
     public LinePreview NextHoleBeacon;
-    public GameObject NextHoleFlag;
+    public Transform NextHolePosition;
 
     public TerrainData CurrentLoadedTerrain { get; private set; }
     public bool HasTerrain { get; private set; } = false;
@@ -56,7 +57,7 @@ public class TerrainManager : MonoBehaviour, IManager
     private void StartCourse(CourseData course)
     {
         // Update course game object positions
-        NextHoleFlag.transform.position = course.Hole;
+        NextHolePosition.position = course.Hole;
         NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + (Vector3.up * 100) });
 
         SpawnGolfBall(course);
@@ -77,7 +78,7 @@ public class TerrainManager : MonoBehaviour, IManager
 
         GolfBall.gameObject.SetActive(visible);
         NextHoleBeacon.gameObject.SetActive(visible);
-        NextHoleFlag.gameObject.SetActive(visible); 
+        NextHolePosition.gameObject.SetActive(visible); 
     }
 
     /// <summary>

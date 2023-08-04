@@ -366,7 +366,7 @@ public class GameManager : MonoBehaviour, IManager
                     // Flying mode
                     case GolfBall.PlayState.Flying:
 
-                        float sqrMag = (GolfBallShotPreview.ShotPreviewTarget.position - TerrainManager.GolfBall.transform.position).sqrMagnitude;
+                        float sqrMag = (GolfBallShotPreview.AimingPosition.position - TerrainManager.GolfBall.transform.position).sqrMagnitude;
                         CameraManager.SetGolfBallSquareMagnitudeToTarget(sqrMag);
                         break;
                     // Rolling mode

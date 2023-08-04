@@ -116,7 +116,7 @@ public class CameraManager : MonoBehaviour, IManager
             float t = CoursePreviewSpeedCurve.Evaluate(totalTime / CoursePreviewDurationSeconds);
             CoursePreviewDollyCart.m_Position = t;
 
-            CoursePreviewCamera.LookAt = t < PercentLookingAtHoleCoursePreview ? TerrainManager.NextHoleFlag.transform : TerrainManager.GolfBall.transform;
+            CoursePreviewCamera.LookAt = t < PercentLookingAtHoleCoursePreview ? TerrainManager.NextHolePosition.transform : TerrainManager.GolfBall.transform;
 
             yield return null;
         }
