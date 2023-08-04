@@ -41,12 +41,17 @@ public class CameraManager : MonoBehaviour, IManager
 
     public void SetGolfBallSquareMagnitudeToAimingPosition(float value)
     {
-        CameraStates.SetFloat("SqrMagToAimingPosition", value);
+        CameraStates.SetFloat("BallSqrMagToAimingPosition", value);
     }
 
     public void SetGolfBallYVelocity(float value)
     {
-        CameraStates.SetFloat("YVelocity", value);
+        CameraStates.SetFloat("BallYVelocity", value);
+    }
+
+    public void SetShotPeakHeightFromGround(float value)
+    {
+        CameraStates.SetFloat("ShotPeakHeightFromGround", value);
     }
 
     private void Update()

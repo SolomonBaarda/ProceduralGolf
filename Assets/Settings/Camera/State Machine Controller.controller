@@ -215,7 +215,7 @@ AnimatorStateTransition:
   m_Name: Close to pos
   m_Conditions:
   - m_ConditionMode: 4
-    m_ConditionEvent: SqrMagToAimingPosition
+    m_ConditionEvent: BallSqrMagToAimingPosition
     m_EventTreshold: 500
   - m_ConditionMode: 2
     m_ConditionEvent: IsOnGround
@@ -317,7 +317,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 4
-    m_ConditionEvent: YVelocity
+    m_ConditionEvent: BallYVelocity
     m_EventTreshold: -10
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 6782841232489742637}
@@ -397,13 +397,19 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 0}
-  - m_Name: YVelocity
+  - m_Name: ShotPeakHeightFromGround
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 0}
-  - m_Name: SqrMagToAimingPosition
+  - m_Name: BallYVelocity
+    m_Type: 1
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 0}
+  - m_Name: BallSqrMagToAimingPosition
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -431,7 +437,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 4
-    m_ConditionEvent: YVelocity
+    m_ConditionEvent: BallYVelocity
     m_EventTreshold: 0
   - m_ConditionMode: 2
     m_ConditionEvent: IsOnGround
@@ -617,11 +623,14 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 4
-    m_ConditionEvent: YVelocity
+    m_ConditionEvent: BallYVelocity
     m_EventTreshold: 10
   - m_ConditionMode: 2
     m_ConditionEvent: IsOnGround
     m_EventTreshold: 0
+  - m_ConditionMode: 3
+    m_ConditionEvent: ShotPeakHeightFromGround
+    m_EventTreshold: 9
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 4810716834489172528}
   m_Solo: 0
@@ -700,7 +709,7 @@ AnimatorStateTransition:
   m_Name: Close to pos
   m_Conditions:
   - m_ConditionMode: 4
-    m_ConditionEvent: SqrMagToAimingPosition
+    m_ConditionEvent: BallSqrMagToAimingPosition
     m_EventTreshold: 500
   - m_ConditionMode: 2
     m_ConditionEvent: IsOnGround

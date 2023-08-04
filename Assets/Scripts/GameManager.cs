@@ -355,7 +355,9 @@ public class GameManager : MonoBehaviour, IManager
 
                         // Update the shot preview
                         Vector3[] positions = TerrainManager.GolfBall.CalculateShotPreviewWorldPositions(1000, 0.1f).ToArray();
-                        GolfBallShotPreview.UpdateShotPreview(TerrainManager.GolfBall.Angle.ToString("0") + "°", TerrainManager.GolfBall.Angle, positions, TerrainManager.GolfBall.transform.rotation);
+                        GolfBallShotPreview.UpdateShotPreview(TerrainManager.GolfBall.Angle.ToString("0") + "°", TerrainManager.GolfBall.Angle, positions, TerrainManager.GolfBall.transform.rotation, out Vector3 shotPeakPos, out Vector3 shotMinPos);
+
+                        CameraManager.SetShotPeakHeightFromGround((shotPeakPos- positions[0]).y);
 
 
                         // Update the HUD to display the correct values
@@ -365,6 +367,7 @@ public class GameManager : MonoBehaviour, IManager
                         Color p = HUDManager.PowerSlider.Gradient.Evaluate(TerrainManager.GolfBall.Power);
                         p.a = HUDManager.PowerSliderBackgroundAlpha;
                         HUDManager.PowerSlider.Background.color = p;
+
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:

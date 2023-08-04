@@ -18,7 +18,7 @@ public class ShotPreview : MonoBehaviour
     public TextMesh ShotAngleText;
     public Transform ShotAnglePosition;
 
-    public void UpdateShotPreview(string angleText, float angle, Vector3[] previewPositions, Quaternion rotation)
+    public void UpdateShotPreview(string angleText, float angle, Vector3[] previewPositions, Quaternion rotation, out Vector3 peakPos, out Vector3 minPos)
     {
         if(previewPositions.Length > 0)
         {
@@ -35,16 +35,19 @@ public class ShotPreview : MonoBehaviour
             AimingPosition.SetPositionAndRotation(previewPositions[previewPositions.Length - 1], rotation);
 
             var sortedByY = previewPositions.OrderByDescending(x => x.y);
-            Vector3 peak = sortedByY.First();
-            Vector3 min = sortedByY.Last();
+            peakPos = sortedByY.First();
+            minPos = sortedByY.Last();
 
-            ShotPeakPosition.SetPositionAndRotation(peak, rotation);
+            ShotPeakPosition.SetPositionAndRotation(peakPos, rotation);
 
-            float halfHeight = (peak.y - min.y) / 2;
-            ShotCentrePosition.SetPositionAndRotation(peak - new Vector3(0, halfHeight, 0), rotation);
+            float halfHeight = (peakPos.y - minPos.y) / 2;
+            ShotCentrePosition.SetPositionAndRotation(peakPos - new Vector3(0, halfHeight, 0), rotation);
         }
         else
         {
+            peakPos = Vector3.zero;
+            minPos = Vector3.zero;
+
             Debug.LogError("Shot preview cannot be updated as preview positions array has no elements");
         }
 
