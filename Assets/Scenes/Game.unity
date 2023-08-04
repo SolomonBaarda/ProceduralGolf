@@ -2886,8 +2886,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 503060163}
-  m_LocalRotation: {x: 0.21915719, y: -0.21448883, z: 0.19485734, w: 0.9316627}
-  m_LocalPosition: {x: -18.689505, y: -12.11067, z: -4.0637503}
+  m_LocalRotation: {x: 0.21915719, y: -0.21448883, z: 0.19485736, w: 0.9316627}
+  m_LocalPosition: {x: -18.689505, y: -12.11067, z: -4.063751}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4361,8 +4361,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 762619620}
-  m_LocalRotation: {x: 0.080442466, y: -0.24069786, z: 0.16136731, w: 0.95370555}
-  m_LocalPosition: {x: 27.735012, y: 14.798805, z: -51.660088}
+  m_LocalRotation: {x: 0.08044255, y: -0.24069783, z: 0.16136733, w: 0.95370555}
+  m_LocalPosition: {x: 27.735012, y: 14.798801, z: -51.660088}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5465,8 +5465,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056162044}
-  m_LocalRotation: {x: -0.0020910278, y: 0.91346794, z: -0.40621474, w: 0.023697257}
-  m_LocalPosition: {x: -0.27735043, y: 4.574175, z: 8.246211}
+  m_LocalRotation: {x: -0.002091013, y: 0.91346794, z: -0.40621474, w: 0.023697227}
+  m_LocalPosition: {x: -0.27734995, y: 4.574175, z: 8.246211}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -7299,6 +7299,7 @@ GameObject:
   - component: {fileID: 1510809346}
   - component: {fileID: 1510809347}
   - component: {fileID: 1510809344}
+  - component: {fileID: 1510809348}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -7375,6 +7376,26 @@ MonoBehaviour:
   CurrentSettings:
     Seed: 0
     GenerateLOD: 0
+--- !u!114 &1510809348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510809342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d646f083158b18468fb660452e1612f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Colours:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.6132076, g: 0.6132076, b: 0.6132076, a: 1}
+    m_PressedColor: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
 --- !u!1 &1516611450
 GameObject:
   m_ObjectHideFlags: 0
