@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 36baaa8bdcb9d8b49b9199833965d2c3, type: 3}
-  m_Name: State machine camera Blends
+  m_Name: Game Blends
   m_EditorClassIdentifier: 
   m_CustomBlends:
   - m_From: Course Preview Dolly Camera
-    m_To: Game Aiming Camera
+    m_To: Game Cameras
     m_Blend:
       m_Style: 1
       m_Time: 2
@@ -24,30 +24,8 @@ MonoBehaviour:
         m_PreInfinity: 0
         m_PostInfinity: 0
         m_RotationOrder: 0
-  - m_From: Game Aiming Camera
-    m_To: Game Shot Side On Aiming Camera
-    m_Blend:
-      m_Style: 1
-      m_Time: 2
-      m_CustomCurve:
-        serializedVersion: 2
-        m_Curve: []
-        m_PreInfinity: 0
-        m_PostInfinity: 0
-        m_RotationOrder: 0
-  - m_From: Game Shot Side On Aiming Camera
-    m_To: Game Aiming Camera
-    m_Blend:
-      m_Style: 1
-      m_Time: 2
-      m_CustomCurve:
-        serializedVersion: 2
-        m_Curve: []
-        m_PreInfinity: 0
-        m_PostInfinity: 0
-        m_RotationOrder: 0
-  - m_From: Game Shot Aiming Position Camera
-    m_To: Game Aiming Camera
+  - m_From: '**ANY CAMERA**'
+    m_To: '**ANY CAMERA**'
     m_Blend:
       m_Style: 0
       m_Time: 2

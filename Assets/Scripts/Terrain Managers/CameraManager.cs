@@ -10,7 +10,10 @@ public class CameraManager : MonoBehaviour, IManager
     [Space]
     public CinemachineBrain MainCameraBrain;
     public Camera MainCamera => MainCameraBrain.OutputCamera;
-    public Animator CameraStates;
+
+    [Header("States")]
+    public Animator MainStates;
+    public Animator InGameStates;
 
     [Header("Main Menu Camera")]
     public Transform RotatingPosition;
@@ -41,17 +44,17 @@ public class CameraManager : MonoBehaviour, IManager
 
     public void SetGolfBallSquareMagnitudeToAimingPosition(float value)
     {
-        CameraStates.SetFloat("BallSqrMagToAimingPosition", value);
+        InGameStates.SetFloat("BallSqrMagToAimingPosition", value);
     }
 
     public void SetGolfBallYVelocity(float value)
     {
-        CameraStates.SetFloat("BallYVelocity", value);
+        InGameStates.SetFloat("BallYVelocity", value);
     }
 
     public void SetShotPeakHeightFromGround(float value)
     {
-        CameraStates.SetFloat("ShotPeakHeightFromGround", value);
+        InGameStates.SetFloat("ShotPeakHeightFromGround", value);
     }
 
     private void Update()
@@ -62,18 +65,18 @@ public class CameraManager : MonoBehaviour, IManager
         RotatingPosition.Rotate(Vector3.up, RotationSpeed * Time.deltaTime);
 
         // Golf Ball
-        CameraStates.SetBool("IsAiming", TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
-        CameraStates.SetBool("IsOnGround", TerrainManager.GolfBall.IsOnGround);
+        InGameStates.SetBool("IsAiming", TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
+        InGameStates.SetBool("IsOnGround", TerrainManager.GolfBall.IsOnGround);
     }
 
     public void StartMainMenu()
     {
-        CameraStates.SetTrigger(OnMainMenuTrigger);
+        MainStates.SetTrigger(OnMainMenuTrigger);
     }
 
     public void StartGameCameras()
     {
-        CameraStates.SetTrigger(OnGameStartTrigger);
+        MainStates.SetTrigger(OnGameStartTrigger);
     }
 
     public delegate void OnCoursePreviewCompleted();
@@ -97,7 +100,7 @@ public class CameraManager : MonoBehaviour, IManager
         CoursePreviewDollyPath.m_Waypoints = path;
         CoursePreviewDollyCart.m_PositionUnits = CinemachinePathBase.PositionUnits.Normalized;
 
-        CameraStates.SetTrigger(OnCoursePreviewTrigger);
+        MainStates.SetTrigger(OnCoursePreviewTrigger);
 
         // TODO fix when cinemachine gets updated
         // DUMB FIX FOR BROKEN PATHS
