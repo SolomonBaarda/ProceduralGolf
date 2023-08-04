@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_CustomBlends:
   - m_From: Course Preview Dolly Camera
-    m_To: Game Shot camera
+    m_To: Game Aiming Camera
     m_Blend:
       m_Style: 1
       m_Time: 2
@@ -24,10 +24,21 @@ MonoBehaviour:
         m_PreInfinity: 0
         m_PostInfinity: 0
         m_RotationOrder: 0
-  - m_From: '**ANY CAMERA**'
-    m_To: '**ANY CAMERA**'
+  - m_From: Game Aiming Camera
+    m_To: Game Shot Side On Aiming Camera
     m_Blend:
-      m_Style: 0
+      m_Style: 1
+      m_Time: 2
+      m_CustomCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 0
+        m_PostInfinity: 0
+        m_RotationOrder: 0
+  - m_From: Game Shot Side On Aiming Camera
+    m_To: Game Aiming Camera
+    m_Blend:
+      m_Style: 1
       m_Time: 2
       m_CustomCurve:
         serializedVersion: 2

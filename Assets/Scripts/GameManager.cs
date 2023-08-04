@@ -300,6 +300,11 @@ public class GameManager : MonoBehaviour, IManager
             {
                 HUDManager.ShootingMenu.SetActive(isAiming);
 
+                CameraManager.SetGolfBallYVelocity(TerrainManager.GolfBall.rigid.velocity.y);
+
+                float sqrMag = (GolfBallShotPreview.AimingPosition.position - TerrainManager.GolfBall.transform.position).sqrMagnitude;
+                CameraManager.SetGolfBallSquareMagnitudeToAimingPosition(sqrMag);
+
                 // Update the camera angles
                 switch (TerrainManager.GolfBall.State)
                 {
@@ -360,18 +365,13 @@ public class GameManager : MonoBehaviour, IManager
                         Color p = HUDManager.PowerSlider.Gradient.Evaluate(TerrainManager.GolfBall.Power);
                         p.a = HUDManager.PowerSliderBackgroundAlpha;
                         HUDManager.PowerSlider.Background.color = p;
-
-                        CameraManager.SetGolfBallSquareMagnitudeToTarget(-1f);
                         break;
                     // Flying mode
                     case GolfBall.PlayState.Flying:
 
-                        float sqrMag = (GolfBallShotPreview.AimingPosition.position - TerrainManager.GolfBall.transform.position).sqrMagnitude;
-                        CameraManager.SetGolfBallSquareMagnitudeToTarget(sqrMag);
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
-                        CameraManager.SetGolfBallSquareMagnitudeToTarget(-1f);
                         break;
                 }
             }

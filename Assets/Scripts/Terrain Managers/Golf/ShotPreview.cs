@@ -12,6 +12,7 @@ public class ShotPreview : MonoBehaviour
     public Transform AimingPosition;
     public Transform StartingPosition;
     public Transform ShotPeakPosition;
+    public Transform ShotCentrePosition;
 
     [Header("Graphics")]
     public TextMesh ShotAngleText;
@@ -32,7 +33,15 @@ public class ShotPreview : MonoBehaviour
             // Update the start and end positions
             StartingPosition.SetPositionAndRotation(previewPositions[0], rotation);
             AimingPosition.SetPositionAndRotation(previewPositions[previewPositions.Length - 1], rotation);
-            ShotPeakPosition.SetPositionAndRotation(previewPositions.OrderByDescending(x => x.y).First(), rotation);
+
+            var sortedByY = previewPositions.OrderByDescending(x => x.y);
+            Vector3 peak = sortedByY.First();
+            Vector3 min = sortedByY.Last();
+
+            ShotPeakPosition.SetPositionAndRotation(peak, rotation);
+
+            float halfHeight = (peak.y - min.y) / 2;
+            ShotCentrePosition.SetPositionAndRotation(peak - new Vector3(0, halfHeight, 0), rotation);
         }
         else
         {

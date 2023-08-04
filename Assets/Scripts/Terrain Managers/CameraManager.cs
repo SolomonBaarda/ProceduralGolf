@@ -26,16 +26,7 @@ public class CameraManager : MonoBehaviour, IManager
     public const float CoursePreviewDurationSeconds = 10.0f;
     public const float PercentLookingAtHoleCoursePreview = 0.1f;
 
-
-
-    //public Camera MapCamera;
-
-    private const string CameraSqrMagToTargetFloat = "SqrMagToTarget";
-    private const string CameraAiming = "IsAiming", CameraRolling = "IsRolling", CameraFlying = "IsFlying";
     private const string OnMainMenuTrigger = "OnMainMenu", OnCoursePreviewTrigger = "OnCoursePreviewStart", OnGameStartTrigger = "OnGameStart";
-
-
-    public const float DefaultMapCameraZoom = 500;
 
 
     public void Reset()
@@ -48,16 +39,14 @@ public class CameraManager : MonoBehaviour, IManager
         CamerasParent.SetActive(visible);
     }
 
-    private enum State
+    public void SetGolfBallSquareMagnitudeToAimingPosition(float value)
     {
-        SpinningCamera = 0,
-        CoursePreviewCamera = 1,
-        GameCameras = 2
+        CameraStates.SetFloat("SqrMagToAimingPosition", value);
     }
 
-    public void SetGolfBallSquareMagnitudeToTarget(float value)
+    public void SetGolfBallYVelocity(float value)
     {
-        CameraStates.SetFloat(CameraSqrMagToTargetFloat, value);
+        CameraStates.SetFloat("YVelocity", value);
     }
 
     private void Update()
@@ -66,9 +55,8 @@ public class CameraManager : MonoBehaviour, IManager
 
         RotatingPosition.Rotate(Vector3.up, RotationSpeed * Time.deltaTime);
 
-        CameraStates.SetBool(CameraAiming, TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
-        CameraStates.SetBool(CameraFlying, TerrainManager.GolfBall.State == GolfBall.PlayState.Flying);
-        CameraStates.SetBool(CameraRolling, TerrainManager.GolfBall.State == GolfBall.PlayState.Rolling);
+        CameraStates.SetBool("IsAiming", TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
+        CameraStates.SetBool("IsOnGround", TerrainManager.GolfBall.IsOnGround);
     }
 
     public void StartMainMenu()
