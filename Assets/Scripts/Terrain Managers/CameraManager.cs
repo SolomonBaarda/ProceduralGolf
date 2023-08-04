@@ -58,8 +58,10 @@ public class CameraManager : MonoBehaviour, IManager
     {
         // Always update all cameras so that they are in position to cut to
 
+        // Main menu
         RotatingPosition.Rotate(Vector3.up, RotationSpeed * Time.deltaTime);
 
+        // Golf Ball
         CameraStates.SetBool("IsAiming", TerrainManager.GolfBall.State == GolfBall.PlayState.Aiming);
         CameraStates.SetBool("IsOnGround", TerrainManager.GolfBall.IsOnGround);
     }
