@@ -14,6 +14,7 @@ public class CameraManager : MonoBehaviour, IManager
     [Header("States")]
     public Animator MainStates;
     public Animator InGameStates;
+    public Animator CoursePreviewStates;
 
     [Header("Main Menu Camera")]
     public Transform RotatingPosition;
@@ -24,10 +25,11 @@ public class CameraManager : MonoBehaviour, IManager
     public CinemachineSmoothPath CoursePreviewDollyPath;
     public CinemachineDollyCart CoursePreviewDollyCart;
     public AnimationCurve CoursePreviewSpeedCurve = new AnimationCurve();
-    public CinemachineVirtualCamera CoursePreviewCamera;
+    public CinemachineTargetGroup CoursePreviewTargetGroup;
 
-    public const float CoursePreviewDurationSeconds = 10.0f;
-    public const float PercentLookingAtHoleCoursePreview = 0.1f;
+    public const float CoursePreviewStartSeconds = 1.0f;
+    public const float CoursePreviewMainSeconds = 7.0f;
+    public const float CoursePreviewEndSeconds = 2.0f;
 
     private const string OnMainMenuTrigger = "OnMainMenu", OnCoursePreviewTrigger = "OnCoursePreviewStart", OnGameStartTrigger = "OnGameStart";
 
@@ -102,22 +104,45 @@ public class CameraManager : MonoBehaviour, IManager
 
         MainStates.SetTrigger(OnCoursePreviewTrigger);
 
+        // Stationary looking at hole
+        CoursePreviewTargetGroup.m_Targets = new CinemachineTargetGroup.Target[]
+        {
+            new CinemachineTargetGroup.Target() { target = TerrainManager.NextHolePosition, weight = 1, radius = 0 }
+        };
+        CoursePreviewDollyCart.m_Position = 0.0f;
+        CoursePreviewStates.SetTrigger("OnStartWatchingHole");
+
         // TODO fix when cinemachine gets updated
         // DUMB FIX FOR BROKEN PATHS
         CoursePreviewDollyPath.m_Resolution++;
         yield return null;
         CoursePreviewDollyPath.m_Resolution--;
 
+        yield return new WaitForSeconds(CoursePreviewStartSeconds);
 
-        for (float totalTime = 0; totalTime < CoursePreviewDurationSeconds; totalTime += Time.deltaTime)
+
+        // Doing flyby
+        CoursePreviewTargetGroup.m_Targets = new CinemachineTargetGroup.Target[]
         {
-            float t = CoursePreviewSpeedCurve.Evaluate(totalTime / CoursePreviewDurationSeconds);
-            CoursePreviewDollyCart.m_Position = t;
+            new CinemachineTargetGroup.Target() { target = TerrainManager.GolfBall.transform, weight = 1, radius = 0 }
+        };
+        CoursePreviewStates.SetTrigger("OnStartMoving");
 
-            CoursePreviewCamera.LookAt = t < PercentLookingAtHoleCoursePreview ? TerrainManager.NextHolePosition.transform : TerrainManager.GolfBall.transform;
-
+        for (float totalTime = 0; totalTime < CoursePreviewMainSeconds; totalTime += Time.deltaTime)
+        {
+            CoursePreviewDollyCart.m_Position = CoursePreviewSpeedCurve.Evaluate(totalTime / CoursePreviewMainSeconds);
             yield return null;
         }
+
+        // Looking at ball
+        CoursePreviewTargetGroup.m_Targets = new CinemachineTargetGroup.Target[]
+        {
+            new CinemachineTargetGroup.Target() { target = TerrainManager.GolfBall.transform, weight = 1, radius = 0 }
+        };
+        CoursePreviewDollyCart.m_Position = 1.0f;
+        CoursePreviewStates.SetTrigger("OnStartWatchingBall");
+        yield return new WaitForSeconds(CoursePreviewEndSeconds);
+
 
         callback();
     }

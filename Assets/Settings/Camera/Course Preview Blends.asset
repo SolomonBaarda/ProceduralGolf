@@ -10,36 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 36baaa8bdcb9d8b49b9199833965d2c3, type: 3}
-  m_Name: Game Blends
+  m_Name: Course Preview Blends
   m_EditorClassIdentifier: 
   m_CustomBlends:
-  - m_From: Main Menu Spinning Camera
-    m_To: Course Preview Camera
+  - m_From: Course Preview Dolly Camera
+    m_To: Course Preview Zoom Dolly Camera
     m_Blend:
-      m_Style: 0
-      m_Time: 2
+      m_Style: 6
+      m_Time: 1.5
       m_CustomCurve:
         serializedVersion: 2
         m_Curve: []
         m_PreInfinity: 0
         m_PostInfinity: 0
         m_RotationOrder: 0
-  - m_From: '**ANY CAMERA**'
-    m_To: Main Menu Spinning Camera
+  - m_From: Course Preview Zoom Dolly Camera
+    m_To: Course Preview Dolly Camera
     m_Blend:
-      m_Style: 0
-      m_Time: 2
-      m_CustomCurve:
-        serializedVersion: 2
-        m_Curve: []
-        m_PreInfinity: 0
-        m_PostInfinity: 0
-        m_RotationOrder: 0
-  - m_From: Course Preview Camera
-    m_To: Game Cameras
-    m_Blend:
-      m_Style: 1
-      m_Time: 2
+      m_Style: 6
+      m_Time: 1
       m_CustomCurve:
         serializedVersion: 2
         m_Curve: []
