@@ -72,8 +72,10 @@ public class GameManager : MonoBehaviour, IManager
             case GameState.GameLoading:
                 break;
             case GameState.CoursePreview:
+                UpdateLOD();
                 break;
             case GameState.InGame:
+                UpdateLOD();
                 DoGameLoop();
                 break;
         }
@@ -81,6 +83,8 @@ public class GameManager : MonoBehaviour, IManager
 
     private void QuitToMainMenu()
     {
+        StopAllCoroutines();
+
         SetGameState(GameState.MainMenu);
     }
 
@@ -136,9 +140,10 @@ public class GameManager : MonoBehaviour, IManager
 
                 TerrainManager.SetVisible(true);
                 SetVisible(true);
+
                 // Disable the golf ball if we dont need it
                 TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
-
+                GolfBallShotPreview.gameObject.SetActive(false);
 
                 break;
             case GameState.InGame:
@@ -154,6 +159,7 @@ public class GameManager : MonoBehaviour, IManager
 
                 // Disable the golf ball if we dont need it
                 TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
+                GolfBallShotPreview.gameObject.SetActive(Gamerule.UseGolfBall);
 
                 if (Gamerule.UseHUD)
                 {
@@ -279,14 +285,16 @@ public class GameManager : MonoBehaviour, IManager
     }
 
 
-
-    private void DoGameLoop()
+    private void UpdateLOD()
     {
         if (Gamerule.UseViewDistance)
         {
             TerrainManager.UpdateLOD(CameraManager.MainCamera.transform.position, TerrainManager.GolfBall.Position);
         }
+    }
 
+    private void DoGameLoop()
+    {
         if (Gamerule.UseGolfBall && TerrainManager.HasTerrain)
         {
             // Taking a shot
