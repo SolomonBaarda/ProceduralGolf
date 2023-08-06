@@ -176,12 +176,15 @@ public class TerrainGenerator : MonoBehaviour
         // Partially sequential
         List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
+        var invalidBiomes = CalculateInvalidBiomesForCourse();
+
         Logger.Log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
+
         // Create the object and set the data
-        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.name);
+        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, invalidBiomes, TerrainSettings.name);
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
         Logger.Log(message);
@@ -191,6 +194,22 @@ public class TerrainGenerator : MonoBehaviour
 
         // Callback when done
         callback(terrain);
+    }
+
+    private HashSet<Biome.Type> CalculateInvalidBiomesForCourse()
+    {
+        // Calculate which biomes are allowed
+        // Always allow none as otherwise we couldn't shoot the ball
+        HashSet<Biome.Type> allowedBiomes = new HashSet<Biome.Type>() { Biome.Type.None };
+        foreach (var setting in TerrainSettings.Course)
+        {
+            foreach (var biome in setting.RequiredBiomes)
+            {
+                allowedBiomes.Add(biome);
+            }
+        }
+
+        return Biome.GetAllBiomes().Except(allowedBiomes).ToHashSet();
     }
 
 
@@ -464,12 +483,12 @@ public class TerrainGenerator : MonoBehaviour
 
     private static List<Vector2Int> CalculateShortestPathOnCourseFromStartToEnd(TerrainMap map, Vector2Int start, Vector2Int end)
     {
-        var openList = new List<Node>() { new Node(end, 0, (start-end).sqrMagnitude, null) };
+        var openList = new List<Node>() { new Node(end, 0, (start - end).sqrMagnitude, null) };
         var closedList = new List<Node>();
 
-        while(openList.Count > 0)
+        while (openList.Count > 0)
         {
-            openList.Sort((x,y) => x.Cost.CompareTo(y.Cost));
+            openList.Sort((x, y) => x.Cost.CompareTo(y.Cost));
 
             // Get the current node
             // Should have the lowest cost
@@ -478,13 +497,13 @@ public class TerrainGenerator : MonoBehaviour
             closedList.Add(currentNode);
 
             // We have found the goal
-            if(start.Equals(currentNode.Position))
+            if (start.Equals(currentNode.Position))
             {
                 // Backtrack from here to get the path
                 var path = new List<Vector2Int>();
 
                 Node c = currentNode;
-                while(c != null)
+                while (c != null)
                 {
                     path.Add(c.Position);
                     c = c.Parent;
@@ -500,8 +519,8 @@ public class TerrainGenerator : MonoBehaviour
                 Vector2Int child = currentNode.Position + direction;
 
                 // Ensure valid position
-                if (child.x >= 0 && child.y >= 0 && child.x < map.Width &&child.y < map.Height && 
-                    map.Greens[child.y * map.Width + child.x])
+                if (child.x >= 0 && child.y >= 0 && child.x < map.Width && child.y < map.Height &&
+                    map.Greens[(child.y * map.Width) + child.x])
                 {
                     // Distance travelled
                     int newDistance = currentNode.Distance + 1;
@@ -527,7 +546,7 @@ public class TerrainGenerator : MonoBehaviour
             foreach (var newChild in children)
             {
                 // Skip child if it has already been visited
-                if(closedList.Any(x => x.Position.Equals(newChild.Position))) continue;
+                if (closedList.Any(x => x.Position.Equals(newChild.Position))) continue;
 
                 int index = openList.FindIndex(x => x.Position.Equals(newChild.Position));
                 if (index >= 0 && index < openList.Count)
@@ -620,7 +639,7 @@ public class TerrainGenerator : MonoBehaviour
         ConcurrentBag<Tuple<Vector3, Vector3, List<Vector3>>> startFinishPathCourses = new ConcurrentBag<Tuple<Vector3, Vector3, List<Vector3>>>();
 
         // Sort courses by size for consistency
-        coursePoints.Sort((x,y) => x.Count.CompareTo(y.Count));
+        coursePoints.Sort((x, y) => x.Count.CompareTo(y.Count));
 
         // Calculate the start and end positions for each of those courses
         For(0, coursePoints.Count, (int index) =>
@@ -662,9 +681,9 @@ public class TerrainGenerator : MonoBehaviour
                 var pathPoints = CalculateShortestPathOnCourseFromStartToEnd(map, start, hole);
 
                 var indexesToKeep = new List<int>();
-                
+
                 // Simplify the 2D line
-                LineUtility.Simplify(pathPoints.Select(x=>new Vector2(x.x, x.y)).ToList(), TerrainSettings.CourseCameraPathSimplificationStrength, indexesToKeep);
+                LineUtility.Simplify(pathPoints.Select(x => new Vector2(x.x, x.y)).ToList(), TerrainSettings.CourseCameraPathSimplificationStrength, indexesToKeep);
 
                 var worldPoints = new List<Vector3>();
 
@@ -690,7 +709,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         // Sort by distance to the origin
-        courses.Sort((x,y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
+        courses.Sort((x, y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
 
         return courses;
     }

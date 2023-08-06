@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System;
 
 public class TerrainData
 {
@@ -9,11 +8,14 @@ public class TerrainData
     public List<TerrainChunkData> Chunks;
     public List<CourseData> Courses;
 
-    public TerrainData(int seed, List<TerrainChunkData> chunks, List<CourseData> courses, string terrainSettingsName)
+    public HashSet<Biome.Type> InvalidBiomesForCurrentCourse;
+
+    public TerrainData(int seed, List<TerrainChunkData> chunks, List<CourseData> courses, HashSet<Biome.Type> invalidBiomesForCurrentCourse, string terrainSettingsName)
     {
         Seed = seed;
         Courses = courses;
         Chunks = chunks;
+        InvalidBiomesForCurrentCourse = invalidBiomesForCurrentCourse;
         TerrainSettingsName = terrainSettingsName;
     }
 }

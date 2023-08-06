@@ -20,6 +20,8 @@ public class GolfBall : MonoBehaviour
     public readonly static RigidPreset Preset_Ice = new RigidPreset(0f, 1f);
     [SerializeField] private RigidPreset CurrentPreset;
 
+    public HashSet<Biome.Type> InvalidBiomesForCurrentCourse = new HashSet<Biome.Type>();
+
     // States
     public PlayState State;
     public bool IsOnGround { get; private set; } = false;
@@ -229,7 +231,7 @@ public class GolfBall : MonoBehaviour
         if (!IsFrozen)
         {
             // We are in water or there is nothing below us (left the map)
-            if (CurrentBiome == Biome.Type.Water)
+            if (InvalidBiomesForCurrentCourse.Contains(CurrentBiome))
             {
                 OnOutOfBounds.Invoke();
             }

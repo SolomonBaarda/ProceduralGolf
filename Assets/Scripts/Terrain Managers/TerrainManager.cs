@@ -126,16 +126,22 @@ public class TerrainManager : MonoBehaviour, IManager
             data.Courses[i].Number = i;
         }
 
+        GolfBall.InvalidBiomesForCurrentCourse = data.InvalidBiomesForCurrentCourse;
+
         // Assign the terrain at the end
         HasTerrain = true;
         CurrentLoadedTerrain = data;
         IsLoading = false;
 
         // Debug
-        string message = "* Loaded terrain in " + (DateTime.Now - before).TotalSeconds.ToString("0.0")
-            + " seconds with " + data.Chunks.Count + " chunks and " + data.Courses.Count + " holes.";
+        Logger.Log($"* Loaded terrain in {(DateTime.Now - before).TotalSeconds:0.0} seconds with {data.Chunks.Count} chunks and {data.Courses.Count} holes.");
 
-        Logger.Log(message);
+        string invalidBiomesString = "";
+        foreach (var biome in data.InvalidBiomesForCurrentCourse)
+        {
+            invalidBiomesString += $"{biome}, ";
+        }
+        Logger.Log($"* Invalid biomes for current course: {invalidBiomesString}");
     }
 
     private void FixedUpdate()
