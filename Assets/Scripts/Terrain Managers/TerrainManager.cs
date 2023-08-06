@@ -162,6 +162,14 @@ public class TerrainManager : MonoBehaviour, IManager
         }
     }
 
+    public void MakeAllChunksVisible()
+    {
+        foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())
+        {
+            chunk.SetLODIndex(0, true);
+        }
+    }
+
     public void UpdateLOD(Vector3 currentCameraPositionm, Vector3 currentGolfBallPosition)
     {
         foreach (TerrainChunk chunk in TerrainChunkManager.GetAllChunks())

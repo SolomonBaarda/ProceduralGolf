@@ -185,6 +185,10 @@ public class GameManager : MonoBehaviour, IManager
         {
             TerrainManager.Restart();
         }
+        else
+        {
+            SetGameState(GameState.InGame);
+        }
 
         if (Gamerule.UseHUD)
         {
@@ -278,6 +282,11 @@ public class GameManager : MonoBehaviour, IManager
         {
             Debug.LogError("Terrain manager does not have terrain");
             yield break;
+        }
+
+        if (!Gamerule.UseViewDistance)
+        {
+            TerrainManager.MakeAllChunksVisible();
         }
 
         // Start the game
