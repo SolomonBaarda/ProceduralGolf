@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering.Universal;
 
 public class GameManager : MonoBehaviour, IManager
 {
@@ -72,7 +71,7 @@ public class GameManager : MonoBehaviour, IManager
                 break;
             case GameState.GameLoading:
                 break;
-            case GameState.CoursePreview: 
+            case GameState.CoursePreview:
                 break;
             case GameState.InGame:
                 DoGameLoop();
@@ -283,7 +282,7 @@ public class GameManager : MonoBehaviour, IManager
 
     private void DoGameLoop()
     {
-        if(Gamerule.UseViewDistance)
+        if (Gamerule.UseViewDistance)
         {
             TerrainManager.UpdateLOD(CameraManager.MainCamera.transform.position, TerrainManager.GolfBall.Position);
         }
@@ -355,9 +354,18 @@ public class GameManager : MonoBehaviour, IManager
 
                         // Update the shot preview
                         Vector3[] positions = TerrainManager.GolfBall.CalculateShotPreviewWorldPositions(1000, 0.1f).ToArray();
-                        GolfBallShotPreview.UpdateShotPreview(TerrainManager.GolfBall.Angle.ToString("0") + "°", TerrainManager.GolfBall.Angle, positions, TerrainManager.GolfBall.transform.rotation, out Vector3 shotPeakPos, out Vector3 shotMinPos);
 
-                        CameraManager.SetShotPeakHeightFromGround((shotPeakPos- positions[0]).y);
+                        if (positions.Length > 0)
+                        {
+                            GolfBallShotPreview.UpdateShotPreview(TerrainManager.GolfBall.Angle.ToString("0") + "°", TerrainManager.GolfBall.Angle, positions, TerrainManager.GolfBall.transform.rotation, out Vector3 shotPeakPos, out _);
+                            CameraManager.SetShotPeakHeightFromGround((shotPeakPos - positions[0]).y);
+                        }
+                        else
+                        {
+                            Debug.LogError("Shot preview positions have not been calculated");
+                        }
+
+
 
 
                         // Update the HUD to display the correct values

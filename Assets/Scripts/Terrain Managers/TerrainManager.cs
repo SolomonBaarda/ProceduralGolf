@@ -120,8 +120,6 @@ public class TerrainManager : MonoBehaviour, IManager
             yield return null;
         }
 
-        //data.Courses.Sort((x, y) => x.Start.sqrMagnitude.CompareTo(y.Start.sqrMagnitude));
-
         // Assign hole numbers
         for (int i = 0; i < data.Courses.Count; i++)
         {

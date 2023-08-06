@@ -13,11 +13,13 @@ public class TerrainManagerEditor : Editor
 
         TerrainManager m = (TerrainManager)target;
 
+        if (GUILayout.Button("Skip to end of course"))
+        {
+            var current = m.CurrentLoadedTerrain.Courses[m.GolfBall.Progress.CurrentCourse];
+            m.GolfBall.transform.position = current.Hole;
+        }
+
     }
-
-
-
-
 
 
 }
