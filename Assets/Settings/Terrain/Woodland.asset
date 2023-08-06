@@ -55,7 +55,7 @@ MonoBehaviour:
     NoiseThresholdMin: 0
     NoiseThresholdMax: 1
     Offset: 0
-    Multiplier: 0.75
+    Multiplier: 0.65
     Biome: 0
     ClampHeightToZero: 0
     CombinationMode: 0
@@ -90,9 +90,9 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    NoiseThresholdMin: 0.55
+    NoiseThresholdMin: 0.45
     NoiseThresholdMax: 1
-    Offset: 0.55
+    Offset: -0.45
     Multiplier: 0.25
     Biome: 2
     ClampHeightToZero: 1
@@ -128,9 +128,9 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    NoiseThresholdMin: 0.7
+    NoiseThresholdMin: 0.65
     NoiseThresholdMax: 1
-    Offset: 0
+    Offset: -0.65
     Multiplier: 0.25
     Biome: 3
     ClampHeightToZero: 1
@@ -150,8 +150,8 @@ MonoBehaviour:
       m_RotationOrder: 4
     NoiseThresholdMin: 0.75
     NoiseThresholdMax: 1
-    Offset: 0
-    Multiplier: 1
+    Offset: -0.75
+    Multiplier: 4
     Biome: 4
     ClampHeightToZero: 0
     CombinationMode: 1
@@ -160,8 +160,8 @@ MonoBehaviour:
     UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0
-      NoiseThresholdMax: 0.35
+      NoiseThresholdMin: 0.6
+      NoiseThresholdMax: 1
   PoissonSamplingIterations: 5
   PoissonSamplingRadius: 13
   ProceduralObjects:
@@ -177,15 +177,15 @@ MonoBehaviour:
     UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0.55
-      NoiseThresholdMax: 0.7
+      NoiseThresholdMin: 0.45
+      NoiseThresholdMax: 0.65
   Course:
   - Do: 1
     RequiredBiomes: 03000000020000000400000005000000
     UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0.75
+      NoiseThresholdMin: 0.65
       NoiseThresholdMax: 1
   Holes:
   - Do: 1
@@ -193,6 +193,6 @@ MonoBehaviour:
     UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0.85
+      NoiseThresholdMin: 0.7
       NoiseThresholdMax: 1
-  MinimumWorldDistanceBetweenHoles: 200
+  MinimumWorldDistanceBetweenHoles: 250

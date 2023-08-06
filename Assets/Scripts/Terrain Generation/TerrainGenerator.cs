@@ -986,52 +986,55 @@ public class TerrainGenerator : MonoBehaviour
         // Loop through each position
         foreach (Vector2 pos in localPositions)
         {
-            TerrainSettings.ObjectSettings attempt = TerrainSettings.ProceduralObjects[r.Next(0, TerrainSettings.ProceduralObjects.Count)];
-
-            if (attempt.Do && r.NextDouble() <= attempt.Chance)
+            foreach (var attempt in TerrainSettings.ProceduralObjects)
             {
-                if (Utils.GetClosestIndex(pos, Vector2.zero, worldBoundsSize, map.Width, map.Height, out int x, out int y))
+                if (attempt.Do && r.NextDouble() <= attempt.Chance)
                 {
-                    int terrainMapIndex = (y * map.Width) + x;
-                    Biome.Type biome = map.Biomes[terrainMapIndex];
-
-                    // The biome for this position is valid
-                    if (attempt.RequiredBiomes.Contains(biome))
+                    if (Utils.GetClosestIndex(pos, Vector2.zero, worldBoundsSize, map.Width, map.Height, out int x, out int y))
                     {
-                        // Check that the mask is valid if we are using it
-                        bool maskvalid = true;
-                        if (attempt.UseMask)
+                        int terrainMapIndex = (y * map.Width) + x;
+                        Biome.Type biome = map.Biomes[terrainMapIndex];
+
+                        // The biome for this position is valid
+                        if (attempt.RequiredBiomes.Contains(biome))
                         {
-                            for (int j = 0; j < attempt.Masks.Count; j++)
+                            // Check that the mask is valid if we are using it
+                            bool maskvalid = true;
+                            if (attempt.UseMask)
                             {
-                                TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
-                                // Mask is not valid here
-                                if (!(maskValues.Noise[terrainMapIndex] >= attempt.Masks[j].NoiseThresholdMin &&
-                                    maskValues.Noise[terrainMapIndex] <= attempt.Masks[j].NoiseThresholdMax))
+                                for (int j = 0; j < attempt.Masks.Count; j++)
                                 {
-                                    maskvalid = false;
-                                    break;
+                                    TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
+                                    // Mask is not valid here
+                                    if (!(maskValues.Noise[terrainMapIndex] >= attempt.Masks[j].NoiseThresholdMin &&
+                                        maskValues.Noise[terrainMapIndex] <= attempt.Masks[j].NoiseThresholdMax))
+                                    {
+                                        maskvalid = false;
+                                        break;
+                                    }
                                 }
                             }
-                        }
 
-                        if (!attempt.UseMask || maskvalid)
-                        {
-                            // If we get here then this object must be valid at the position
-                            worldObjects.Add(new TerrainMap.WorldObjectData()
+                            if (!attempt.UseMask || maskvalid)
                             {
-                                LocalPosition = new Vector3(pos.x, map.Heights[terrainMapIndex] - WorldObjectYOffset, pos.y),
-                                Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
-                                Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
-                                ClosestIndexX = x,
-                                ClosestIndexY = y,
-                            });
+                                // If we get here then this object must be valid at the position
+                                worldObjects.Add(new TerrainMap.WorldObjectData()
+                                {
+                                    LocalPosition = new Vector3(pos.x, map.Heights[terrainMapIndex] - WorldObjectYOffset, pos.y),
+                                    Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
+                                    Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
+                                    ClosestIndexX = x,
+                                    ClosestIndexY = y,
+                                });
+
+                                break;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    Debug.LogError("GenerateTerrainMapProceduralObjects: Failed to choose closest terrain map index for position");
+                    else
+                    {
+                        Debug.LogError("GenerateTerrainMapProceduralObjects: Failed to choose closest terrain map index for position");
+                    }
                 }
             }
         }
