@@ -134,8 +134,8 @@ public class TerrainGenerator : MonoBehaviour
         // Now calculate the final height for the vertex
         For(0, map.Heights.Length, (int index) =>
         {
-            // Normalise the height
-            map.Heights[index] = (map.Heights[index] - minHeight) / maxMinusMin;
+            // DON'T Normalise the height
+            //map.Heights[index] = (map.Heights[index] - minHeight) / maxMinusMin;
 
             // Apply the curve
             if (TerrainSettings.UseHeightDistributionCurve)
@@ -249,20 +249,19 @@ public class TerrainGenerator : MonoBehaviour
                 TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[index];
 
                 // Only generate the noise if this layer uses it
-                //if (!layerSettings.ShareOtherLayerNoise)
+                if (layerSettings.ShareOtherLayerNoise)
                 {
-                    int seed = CurrentSettings.Seed.GetHashCode() + index.GetHashCode();
-
-                    // Generate the noise for this layer and normalise it
-                    float[] noise = Noise.GetNoise(layerSettings.Settings, seed, map.Width, map.Height, out float min, out float max);
-                    Noise.NormaliseNoise(ref noise, min, max);
-
-                    map.Layers[index] = new TerrainMap.Layer(noise, layerSettings.Biome);
+                    map.Layers[index] = new TerrainMap.Layer(new float[] { }, layerSettings.Biome);
+                    return;
                 }
-                //else
-                //{
-                //    map.Layers.Add(new TerrainMap.Layer(new float[] { }, layerSettings.Biome));
-                //}
+
+                int seed = CurrentSettings.Seed.GetHashCode() + index.GetHashCode();
+
+                // Generate the noise for this layer and normalise it
+                float[] noise = Noise.GetNoise(layerSettings.Settings, seed, map.Width, map.Height, out float min, out float max);
+                Noise.NormaliseNoise(ref noise, min, max);
+
+                map.Layers[index] = new TerrainMap.Layer(noise, layerSettings.Biome);
             });
 
         // Now calculate the actual heights from the noise and the biomes
@@ -338,7 +337,7 @@ public class TerrainGenerator : MonoBehaviour
                                 map.Biomes[index] = layerSettings.Biome;
                             }
 
-                            float value = currentLayer.Noise[index] * layerSettings.Multiplier;
+                            float value = (currentLayer.Noise[index] + layerSettings.Offset) * layerSettings.Multiplier;
 
                             switch (layerSettings.CombinationMode)
                             {

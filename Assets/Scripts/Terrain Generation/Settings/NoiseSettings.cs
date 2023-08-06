@@ -4,6 +4,7 @@
 public class NoiseSettings : VariablePreset
 {
     [Header("General")]
+    public FastNoiseLite.RotationType3D RotationType;
     public float Frequency = 0.05f;
     public FastNoiseLite.NoiseType NoiseType;
     public Vector2 Offset = Vector2.zero;
@@ -14,17 +15,12 @@ public class NoiseSettings : VariablePreset
     public float Lacunarity = 2;
     public float Gain = 0.5f;
     public float WeightedStrength = 0f;
+    public float PingPongStrength = 0f;
 
     [Header("Cellular")]
     public FastNoiseLite.CellularDistanceFunction DistanceFunction = FastNoiseLite.CellularDistanceFunction.EuclideanSq;
     public FastNoiseLite.CellularReturnType ReturnType = FastNoiseLite.CellularReturnType.Distance;
     public float Jitter = 1f;
-
-    //[Header("Domain Warp")]
-    //public FastNoiseLite.DomainWarpType DomainWarp = FastNoiseLite.DomainWarpType.
-
-    //[Header("Domain Warp Fractal")]
-    //public FastNoiseLite.DomainWarpType
 
     public override void ValidateValues()
     {

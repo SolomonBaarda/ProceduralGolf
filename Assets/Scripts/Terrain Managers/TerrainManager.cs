@@ -134,7 +134,7 @@ public class TerrainManager : MonoBehaviour, IManager
         IsLoading = false;
 
         // Debug
-        Logger.Log($"* Loaded terrain in {(DateTime.Now - before).TotalSeconds:0.0} seconds with {data.Chunks.Count} chunks and {data.Courses.Count} holes.");
+        Logger.Log($"* Loaded terrain in {(DateTime.Now - before).TotalSeconds:0.0} seconds with {data.Chunks.Count} chunks and {data.Courses.Count} courses.");
 
         string invalidBiomesString = "";
         foreach (var biome in data.InvalidBiomesForCurrentCourse)

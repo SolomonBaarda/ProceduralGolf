@@ -252,7 +252,7 @@ public class GameManager : MonoBehaviour, IManager
 
     private void LoadTerrain(TerrainData data)
     {
-        if (data.Courses.Count == 0)
+        if (data.Courses.Count == 0 && Gamerule.UseGolfBall)
         {
             Debug.LogError("NO GOLF COURSES!");
 

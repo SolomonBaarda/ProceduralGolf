@@ -65,6 +65,7 @@ public class TerrainSettings : VariablePreset
         public float NoiseThresholdMax = 1.0f;
 
         [Header("Output")]
+        public float Offset = 0.0f;
         public float Multiplier = 1.0f;
         public Biome.Type Biome;
         public bool ClampHeightToZero = true;
