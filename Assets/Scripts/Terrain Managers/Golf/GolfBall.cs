@@ -83,6 +83,8 @@ public class GolfBall : MonoBehaviour
     public float Rotation;
     public float Angle;
 
+    const float DefaultRotation = 0.0f, DefaultPower = 0.5f, DefaultAngle = 40.0f;
+
     /// <summary>
     /// Radius of the Golf Ball
     /// </summary>
@@ -119,11 +121,7 @@ public class GolfBall : MonoBehaviour
 
     public void Reset()
     {
-        // Reset all movement
-        rigid.velocity = Vector3.zero;
-        rigid.angularVelocity = Vector3.zero;
 
-        SetDefaultShotValues();
     }
 
     private void FixedUpdate()
@@ -137,7 +135,7 @@ public class GolfBall : MonoBehaviour
         // Get the current biome
         CurrentBiome = IsOnGround ? TerrainChunk.GetBiomeSamplePoint(groundCollisions[0], transform.position) : Biome.Type.None;
 
-        if(IsOnGround && wasOnGroundLastFrame)
+        if (IsOnGround && wasOnGroundLastFrame)
         {
             ConsecutiveFramesOnGround++;
         }
@@ -160,6 +158,10 @@ public class GolfBall : MonoBehaviour
                     // First frame of shooting
                     if (State == PlayState.Rolling)
                     {
+                        // Keep rotation as it is
+                        Angle = DefaultAngle;
+                        Power = DefaultPower;
+
                         WaitForNextShot();
                         OnRollingFinished.Invoke();
                     }
@@ -301,8 +303,6 @@ public class GolfBall : MonoBehaviour
 
     public void WaitForNextShot()
     {
-        Reset();
-
         if (!IsFrozen)
         {
             StartCoroutine(FreezeUntilShoot());
@@ -345,19 +345,25 @@ public class GolfBall : MonoBehaviour
         ValidateValues();
     }
 
-    private void SetDefaultShotValues()
+    public void MoveGolfBallAndWaitForNextShot(Vector3 pos, float initialRotation = DefaultRotation, float initialPower = DefaultPower, float initialAngle = DefaultAngle)
     {
+        StopAllCoroutines();
+
+        // Reset all movement
+        rigid.velocity = Vector3.zero;
+        rigid.angularVelocity = Vector3.zero;
+
+        transform.position = pos;
+
+        Rotation = initialRotation;
+
         // Default values
-        Power = 0.5f;
-        Angle = 40;
-
-        // Face the direction we were rolling last @TODO
-        //transform.forward = LastDirectionWhenRolling;
-        //Quaternion.Euler(LastDirectionWhenRolling).eulerAngles.y
-
-        Rotation = transform.eulerAngles.y;
+        Power = initialPower;
+        Angle = initialAngle;
 
         ValidateValues();
+
+        WaitForNextShot();
     }
 
     private void ValidateValues()
@@ -469,7 +475,7 @@ public class GolfBall : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         // Draw the shot preview
-        if(State == PlayState.Aiming)
+        if (State == PlayState.Aiming)
         {
             Gizmos.color = Color.green;
             foreach (Vector3 pos in CalculateShotPreviewWorldPositions())
@@ -481,7 +487,7 @@ public class GolfBall : MonoBehaviour
         else
         {
             Gizmos.color = Color.blue;
-            Gizmos.DrawLine(transform.position, transform.position + Forward / 2);
+            Gizmos.DrawLine(transform.position, transform.position + (Forward / 2));
         }
     }
 

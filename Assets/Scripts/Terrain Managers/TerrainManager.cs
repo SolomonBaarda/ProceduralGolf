@@ -60,7 +60,11 @@ public class TerrainManager : MonoBehaviour, IManager
         NextHolePosition.position = course.Hole;
         NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + (Vector3.up * 100) });
 
-        SpawnGolfBall(course);
+        // Calculate the facing direction based off the course preview camera path
+        var facingHoleDirection = Quaternion.LookRotation(course.PathStartToEnd[1] - course.PathStartToEnd[0], Vector3.up);
+
+        // And move the ball there
+        GolfBall.MoveGolfBallAndWaitForNextShot(course.Start + (Vector3.up * GolfBall.Radius), facingHoleDirection.eulerAngles.y);
     }
 
     public void Reset()
@@ -78,7 +82,7 @@ public class TerrainManager : MonoBehaviour, IManager
 
         GolfBall.gameObject.SetActive(visible);
         NextHoleBeacon.gameObject.SetActive(visible);
-        NextHolePosition.gameObject.SetActive(visible); 
+        NextHolePosition.gameObject.SetActive(visible);
     }
 
     /// <summary>
@@ -180,7 +184,7 @@ public class TerrainManager : MonoBehaviour, IManager
             Vector3 distanceFromBall = currentGolfBallPosition - chunk.Bounds.center;
 
             // Enable collisions for the 2x2 chunks surrounding the ball
-            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= TerrainChunkData.ChunkSizeWorldUnits && 
+            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= TerrainChunkData.ChunkSizeWorldUnits &&
                 Math.Abs(distanceFromBall.z) <= TerrainChunkData.ChunkSizeWorldUnits;
 
             if (collisionsEnabled && viewLOD >= LODViewSettings.Count)
@@ -224,43 +228,9 @@ public class TerrainManager : MonoBehaviour, IManager
         {
             GolfBall.Stats.Shot s = GolfBall.Progress.ShotsCurrentCourse.Peek();
 
-            MoveGolfBallAndWaitForNextShot(s.PositionFrom);
-
-            GolfBall.SetValues(s.Rotation, s.Angle, s.Power);
+            GolfBall.MoveGolfBallAndWaitForNextShot(s.PositionFrom, s.Rotation, s.Power, s.Angle);
         }
     }
-
-    private void SpawnGolfBall(CourseData hole)
-    {
-        Vector3 spawnPoint = hole.Start;
-
-        /*
-        if (GroundCheck.DoRaycastDown(hole.Start + (UP * 25), out RaycastHit hit, 50))
-        {
-            spawnPoint = hit.point;
-        }
-        else
-        {
-            Logger.Log("FAILED TO SPAWN GOLF BALL PROPERLY");
-        }
-        */
-
-        // And move the ball there
-        MoveGolfBallAndWaitForNextShot(spawnPoint + (Vector3.up * GolfBall.Radius));
-    }
-
-    private void MoveGolfBallAndWaitForNextShot(Vector3 position)
-    {
-        // Reset
-        GolfBall.StopAllCoroutines();
-        GolfBall.Reset();
-
-        // Position
-        GolfBall.transform.position = position;
-        // Freeze the ball
-        GolfBall.WaitForNextShot();
-    }
-
 
     private void OnDrawGizmos()
     {
