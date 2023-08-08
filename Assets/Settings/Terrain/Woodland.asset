@@ -39,6 +39,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  BaseHeight: 1
   HeightMultiplier: 10
   MainBiome: 1
   ForceMinHeightZero: 0
@@ -54,6 +55,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     NoiseThresholdMin: 0
     NoiseThresholdMax: 1
+    OneMinus: 0
     Offset: 0
     Multiplier: 0.65
     Biome: 0
@@ -92,6 +94,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     NoiseThresholdMin: 0.45
     NoiseThresholdMax: 1
+    OneMinus: 0
     Offset: -0.45
     Multiplier: 0.25
     Biome: 2
@@ -130,6 +133,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     NoiseThresholdMin: 0.65
     NoiseThresholdMax: 1
+    OneMinus: 0
     Offset: -0.65
     Multiplier: 0.25
     Biome: 3
@@ -150,6 +154,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     NoiseThresholdMin: 0.9
     NoiseThresholdMax: 1
+    OneMinus: 0
     Offset: 0
     Multiplier: 0
     Biome: 2
@@ -173,6 +178,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     NoiseThresholdMin: 0.75
     NoiseThresholdMax: 1
+    OneMinus: 0
     Offset: -0.75
     Multiplier: 4
     Biome: 4

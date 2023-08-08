@@ -279,7 +279,7 @@ public class TerrainGenerator : MonoBehaviour
 
                 // Set the default biome and height
                 map.Biomes[index] = TerrainSettings.MainBiome;
-                map.Heights[index] = 0.0f;
+                map.Heights[index] = TerrainSettings.BaseHeight;
 
                 Vector2Int directionToCentre = new Vector2Int(x, y) - new Vector2Int(map.Width / 2, map.Height / 2);
                 float distanceFalloffRadius = Math.Min(map.Width, map.Height) / 2.0f;
@@ -337,7 +337,8 @@ public class TerrainGenerator : MonoBehaviour
                                 map.Biomes[index] = layerSettings.Biome;
                             }
 
-                            float value = (currentLayer.Noise[index] + layerSettings.Offset) * layerSettings.Multiplier;
+                            float sample = layerSettings.OneMinus ? 1.0f - currentLayer.Noise[index] : currentLayer.Noise[index];
+                            float value = (sample + layerSettings.Offset) * layerSettings.Multiplier;
 
                             switch (layerSettings.CombinationMode)
                             {
@@ -358,6 +359,9 @@ public class TerrainGenerator : MonoBehaviour
                                     break;
                                 case TerrainSettings.LayerSettings.Mode.Set:
                                     map.Heights[index] = value;
+                                    break;
+                                case TerrainSettings.LayerSettings.Mode.Pow:
+                                    map.Heights[index] = Mathf.Pow(map.Heights[index], value);
                                     break;
                             }
 

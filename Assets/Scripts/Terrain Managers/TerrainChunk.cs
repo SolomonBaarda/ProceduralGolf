@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class TerrainChunk : MonoBehaviour
 {
@@ -57,6 +56,12 @@ public class TerrainChunk : MonoBehaviour
             {
                 meshCollider.enabled = collisionsEnabled;
                 meshFilter.sharedMesh = Data.Meshes[lod];
+
+                // Update the colliders for all children as well
+                foreach (var collider in GetComponentsInChildren<Collider>())
+                {
+                    collider.enabled = collisionsEnabled;
+                }
 
                 gameObject.SetActive(true);
             }

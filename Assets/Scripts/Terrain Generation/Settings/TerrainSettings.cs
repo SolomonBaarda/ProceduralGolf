@@ -14,6 +14,7 @@ public class TerrainSettings : VariablePreset
     public bool UseHeightDistributionCurve = false;
     public AnimationCurve HeightDistribution;
 
+    public float BaseHeight = 1.0f;
     public float HeightMultiplier = 1.0f;
     public Biome.Type MainBiome;
     public bool ForceMinHeightZero = true;
@@ -65,12 +66,13 @@ public class TerrainSettings : VariablePreset
         public float NoiseThresholdMax = 1.0f;
 
         [Header("Output")]
+        public bool OneMinus = false;
         public float Offset = 0.0f;
         public float Multiplier = 1.0f;
         public Biome.Type Biome;
         public bool ClampHeightToZero = true;
         public Mode CombinationMode;
-        public enum Mode { Add, Subtract, Divide, Multiply, Modulus, Set };
+        public enum Mode { Add, Subtract, Divide, Multiply, Modulus, Set, Pow };
 
         [Header("Share another layer's noise")]
         public bool ShareOtherLayerNoise = false;
