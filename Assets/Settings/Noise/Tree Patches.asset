@@ -12,14 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e3c32715cc46b14f8da824198e36a66, type: 3}
   m_Name: Tree Patches
   m_EditorClassIdentifier: 
+  RotationType: 0
   Frequency: 0.025
   NoiseType: 0
   Offset: {x: 0, y: 0}
-  FractalType: 1
-  Octaves: 3
-  Lacunarity: 1.75
-  Gain: 0.5
+  FractalType: 0
+  Octaves: 1
+  Lacunarity: 1
+  Gain: 1
   WeightedStrength: 1
+  PingPongStrength: 1
   DistanceFunction: 1
   ReturnType: 1
   Jitter: 1

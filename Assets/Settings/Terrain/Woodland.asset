@@ -140,6 +140,29 @@ MonoBehaviour:
     UseMask: 0
     Masks: []
   - Apply: 1
+    Settings: {fileID: 11400000, guid: c04b86d09a797af4687ddc14aa0230d4, type: 2}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0.9
+    NoiseThresholdMax: 1
+    Offset: 0
+    Multiplier: 0
+    Biome: 2
+    ClampHeightToZero: 0
+    CombinationMode: 0
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
+    UseMask: 1
+    Masks:
+    - LayerIndex: 1
+      NoiseThresholdMin: 0.6
+      NoiseThresholdMax: 1
+  - Apply: 1
     Settings: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0, type: 2}
     UseDistanceFromOriginCurve: 0
     DistanceFromOriginCurve:
@@ -179,6 +202,18 @@ MonoBehaviour:
     - LayerIndex: 1
       NoiseThresholdMin: 0.45
       NoiseThresholdMax: 0.65
+  - Do: 1
+    RequiredBiomes: 02000000
+    Prefabs:
+    - {fileID: 117604, guid: a43974b0aa5c1c5429277c002857235a, type: 3}
+    - {fileID: 117604, guid: 5392eb940a53c4f4caa43af3a318ba9a, type: 3}
+    - {fileID: 117604, guid: a6a6f29597a4c2e4aa70f3d734b2ef26, type: 3}
+    Chance: 0.95
+    UseMask: 1
+    Masks:
+    - LayerIndex: 3
+      NoiseThresholdMin: 0.9
+      NoiseThresholdMax: 1
   Course:
   - Do: 1
     RequiredBiomes: 03000000020000000400000005000000

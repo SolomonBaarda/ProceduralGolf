@@ -85,15 +85,6 @@ public class CameraManager : MonoBehaviour, IManager
 
     public void StartCoursePreview(CinemachineSmoothPath.Waypoint[] path, OnCoursePreviewCompleted callback)
     {
-        // Update map camera
-        /*
-        Vector3 pos = (data.Start + data.Hole) / 2;
-        pos.y = MapCamera.transform.position.y;
-        MapCamera.transform.position = pos;
-        MapCamera.orthographicSize = DefaultMapCameraZoom;
-        MapCamera.enabled = false;
-        */
-
         StartCoroutine(DoCoursePreview(path, callback));
     }
 

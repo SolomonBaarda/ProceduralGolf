@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 
+[RequireComponent(typeof(LineRenderer))]
 public class LinePreview : MonoBehaviour
 {
+    [SerializeField]
     private LineRenderer LineRenderer;
 
     public Gradient LineColour;
@@ -13,9 +15,6 @@ public class LinePreview : MonoBehaviour
 
     private void Awake()
     {
-        // Add the line renderer
-        LineRenderer = gameObject.AddComponent<LineRenderer>();
-
         LineRenderer.widthCurve = AnimationCurve.Linear(0f, 1f, 1f, 1f);
         LineRenderer.widthMultiplier = LineWidth;
 
