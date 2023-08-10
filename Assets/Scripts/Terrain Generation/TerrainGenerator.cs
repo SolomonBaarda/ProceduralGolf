@@ -759,7 +759,8 @@ public class TerrainGenerator : MonoBehaviour
                 // Create the buffers
                 data.SetVertexBufferParams(newChunkSize * newChunkSize, // Num vertexes
                     new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, dimension: 3, stream: 0),
-                    new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, dimension: 4, stream: 1)
+                    new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, dimension:2, stream: 1),
+                    new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, dimension: 4, stream: 2)
                 );
 
                 data.SetIndexBufferParams(
@@ -769,7 +770,8 @@ public class TerrainGenerator : MonoBehaviour
 
                 // Get references to the buffers
                 var positions = data.GetVertexData<Vector3>(stream: 0);
-                var colours = data.GetVertexData<Color32>(stream: 1);
+                var UVs = data.GetVertexData<Vector2>(stream: 1);
+                var colours = data.GetVertexData<Color32>(stream: 2);
                 var triangles = data.GetIndexData<UInt32>();
 
 
@@ -787,6 +789,9 @@ public class TerrainGenerator : MonoBehaviour
 
                         // Calculate the vertex position
                         positions[vertexIndex] = CalculateWorldVertexPositionFromTerrainMapIndex(map, terrainMapX, terrainMapY, distanceBetweenNoiseSamples);
+
+                        // Calculate the primary texture coordinates
+                        UVs[vertexIndex] = new Vector2((float)(x) / chunkSize, (float)(y) / chunkSize);
 
                         // Set the colour
                         colours[vertexIndex] = TextureSettings.GetColour(map.Biomes[(terrainMapY * map.Width) + terrainMapX]);
