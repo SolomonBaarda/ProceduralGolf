@@ -102,4 +102,9 @@ public class MainMenuManager : MonoBehaviour, IManager
         Application.OpenURL("https://www.flaticon.com/authors/juicy-fish");
     }
 
+    public void OpenProrookie123Credits()
+    {
+        Application.OpenURL("https://sketchfab.com/prorookie123");
+    }
+
 }
