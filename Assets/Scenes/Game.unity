@@ -1224,8 +1224,9 @@ MonoBehaviour:
   GolfBall: {fileID: 5612774800490992908}
   NextHoleBeacon: {fileID: 1041538519}
   NextHolePosition: {fileID: 642023518}
+  NextHoleFlag: {fileID: 0}
   LODViewSettings:
-  - 300
+  - 500
   - 1000
 --- !u!114 &187293245
 MonoBehaviour:
@@ -4783,7 +4784,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 648003253}
-  m_LocalRotation: {x: -0.0051850975, y: -0.86229455, z: 0.0064250827, w: 0.5063398}
+  m_LocalRotation: {x: -0.0051850677, y: -0.8622946, z: 0.0064250827, w: 0.5063397}
   m_LocalPosition: {x: 23.348656, y: 26.172966, z: 5.6195116}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -5444,7 +5445,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 762619620}
-  m_LocalRotation: {x: 0.15906493, y: 0.8267314, z: -0.44303438, w: -0.30811396}
+  m_LocalRotation: {x: 0.15906492, y: 0.8267314, z: -0.44303435, w: -0.30811393}
   m_LocalPosition: {x: 1915.236, y: 1856.068, z: 1201.5835}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -6398,7 +6399,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1053671504}
-  m_LocalRotation: {x: 0.24246748, y: 0.03789945, z: -0.011398114, w: 0.969352}
+  m_LocalRotation: {x: 0.24246746, y: 0.037899435, z: -0.01139807, w: 0.969352}
   m_LocalPosition: {x: 22.631847, y: 28.111774, z: 1.7494698}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
