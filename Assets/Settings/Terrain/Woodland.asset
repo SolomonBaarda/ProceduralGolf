@@ -41,7 +41,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   BaseHeight: 1
   HeightMultiplier: 10
-  MainBiome: 1
+  BackgroundBiome: 1
   ForceMinHeightZero: 0
   TerrainLayers:
   - Apply: 1

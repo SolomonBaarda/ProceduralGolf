@@ -8,6 +8,7 @@ public class TerrainManager : MonoBehaviour, IManager
 {
     [Header("References")]
     public TerrainChunkManager TerrainChunkManager;
+    public MinimapManager MinimapManager;
     public CameraManager CameraManager;
     public GolfBall GolfBall;
 
@@ -59,6 +60,8 @@ public class TerrainManager : MonoBehaviour, IManager
         // Update course game object positions
         NextHolePosition.position = course.Hole;
         NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + (Vector3.up * 100) });
+
+        MinimapManager.UpdateMinimapForCourse(course.Hole);
 
         // Calculate the facing direction based off the course preview camera path
         var facingHoleDirection = Quaternion.LookRotation(course.PathStartToEnd[1] - course.PathStartToEnd[0], Vector3.up);

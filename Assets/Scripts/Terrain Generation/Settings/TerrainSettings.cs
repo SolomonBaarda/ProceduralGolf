@@ -16,7 +16,7 @@ public class TerrainSettings : VariablePreset
 
     public float BaseHeight = 1.0f;
     public float HeightMultiplier = 1.0f;
-    public Biome.Type MainBiome;
+    public Biome.Type BackgroundBiome;
     public bool ForceMinHeightZero = true;
 
     [Header("Terrain Layer Settings")]

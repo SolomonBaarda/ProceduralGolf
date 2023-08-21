@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour, IManager
     public MainMenuManager MainMenuManager;
     public HUDManager HUDManager;
     public CameraManager CameraManager;
+    public MinimapManager MinimapManager;
 
     [Header("Golf Ball")]
     public ShotPreview GolfBallShotPreview;
@@ -283,6 +284,8 @@ public class GameManager : MonoBehaviour, IManager
             Debug.LogError("Terrain manager does not have terrain");
             yield break;
         }
+
+        MinimapManager.MinimapCamera.backgroundColor = data.BackgroundColour;
 
         if (!Gamerule.UseViewDistance)
         {

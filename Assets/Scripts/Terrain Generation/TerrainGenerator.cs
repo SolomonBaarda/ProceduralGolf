@@ -184,7 +184,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Create the object and set the data
-        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, invalidBiomes, TerrainSettings.name);
+        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, invalidBiomes, TextureSettings.GetColour(TerrainSettings.BackgroundBiome), TerrainSettings.name);
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
         Logger.Log(message);
@@ -278,7 +278,7 @@ public class TerrainGenerator : MonoBehaviour
                 int index = (y * map.Width) + x;
 
                 // Set the default biome and height
-                map.Biomes[index] = TerrainSettings.MainBiome;
+                map.Biomes[index] = TerrainSettings.BackgroundBiome;
                 map.Heights[index] = TerrainSettings.BaseHeight;
 
                 Vector2Int directionToCentre = new Vector2Int(x, y) - new Vector2Int(map.Width / 2, map.Height / 2);
