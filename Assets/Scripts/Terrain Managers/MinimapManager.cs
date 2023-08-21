@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MinimapManager : MonoBehaviour, IManager 
@@ -15,22 +16,35 @@ public class MinimapManager : MonoBehaviour, IManager
     public Transform GolfballMinimapIcon;
     public Transform HoleMinimapIcon;
 
+    [Space]
+    public LineRenderer PathStartToEnd;
 
-    public void UpdateMinimapForCourse(Vector3 holePosition)
+    public bool DisplayPathToHole = false;
+
+    public void UpdateMinimapForCourse(Vector3 holePosition, List<Vector3> pathStartToEnd)
     {
+        // Update flag icon
         Vector3 holePos = holePosition;
         holePos.y = MinimapIconsHeight;
 
         HoleMinimapIcon.position = holePos;
+
+        // Update path from start to end
+        PathStartToEnd.positionCount = pathStartToEnd.Count;
+        PathStartToEnd.SetPositions(pathStartToEnd.Select(x => new Vector3(x.x, MinimapIconsHeight, x.z)).ToArray());
     }
 
     private void Update()
     {
+        // Update minimap background
         MinimapCamera.transform.position = GolfBall.position + CameraFollowOffset;
 
+        // Update ball position
         Vector3 ballPos = GolfBall.position;
         ballPos.y = MinimapIconsHeight;
         GolfballMinimapIcon.transform.position = ballPos;
+
+
     }
 
 
