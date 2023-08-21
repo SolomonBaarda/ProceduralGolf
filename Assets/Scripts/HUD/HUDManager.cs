@@ -15,6 +15,7 @@ public class HUDManager : MonoBehaviour, IManager
     [Space]
     public GameObject ShootingMenu;
     public GameObject MainHUD;
+    public GameObject ScoreboardButton;
 
     [Header("Shooting Window")]
     public PointerSlider MainSlider;
@@ -38,9 +39,6 @@ public class HUDManager : MonoBehaviour, IManager
     public GameObject ScoreRowPrefab;
     public GameObject ScoreRowParent;
     public List<ScoreboardRow> ScoreboardRows = new List<ScoreboardRow>();
-
-    [Header("Minimap")]
-    public GameObject Minimap;
 
     public void Reset()
     {

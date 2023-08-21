@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -63,7 +62,6 @@ public class MainMenuManager : MonoBehaviour, IManager
         }
     }
 
-
     public void GenerateRandomSeed()
     {
         SeedInput.text = Noise.RandomSeed.ToString();
@@ -87,21 +85,25 @@ public class MainMenuManager : MonoBehaviour, IManager
         PlayMenuParent.SetActive(!loading);
     }
 
+    // Trees
     public void OpenBrokenVectorCredits()
     {
         Application.OpenURL("https://assetstore.unity.com/publishers/12124");
     }
 
+    // Skybox
     public void OpenYuki2022Credits()
     {
         Application.OpenURL("https://assetstore.unity.com/publishers/57827");
     }
 
+    // Icons
     public void OpenJuicyFishCredits()
     {
         Application.OpenURL("https://www.flaticon.com/authors/juicy-fish");
     }
 
+    // Flagpole
     public void OpenProrookie123Credits()
     {
         Application.OpenURL("https://sketchfab.com/prorookie123");

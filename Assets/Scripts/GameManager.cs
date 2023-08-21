@@ -433,6 +433,8 @@ public class GameManager : MonoBehaviour, IManager
 
             GolfBall.Stats.Pot[] holes = TerrainManager.GolfBall.Progress.CoursesCompleted.ToArray();
 
+            HUDManager.ScoreboardButton.SetActive(holes.Length > 0);
+
             if (holes != null && holes.Length > 0)
             {
                 // Add rows until we have enough
