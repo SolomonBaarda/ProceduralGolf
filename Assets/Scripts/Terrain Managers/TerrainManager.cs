@@ -26,6 +26,17 @@ public class TerrainManager : MonoBehaviour, IManager
     public UnityAction<CourseData> OnCourseStarted;
     public UnityAction<CourseData> OnCourseCompleted;
 
+    [Header("Fireworks")]
+    public Transform FireworkParent;
+    public float FireworkHeight = 20.0f;
+    public float FireworkRadiusVariance = 10.0f;
+    public float FireworkDisplaySeconds = 5.0f;
+    public int MaxNumConcurrentFireworks = 20;
+    public int FireworkChancePerFrame = 5;
+
+    public List<GameObject> FireworkPrefabs = new List<GameObject>();
+
+
     private void Awake()
     {
         OnCourseStarted += StartCourse;
@@ -42,8 +53,27 @@ public class TerrainManager : MonoBehaviour, IManager
     private void CourseCompleted(CourseData course)
     {
         GolfBall.HoleReached(course.Number, DateTime.Now);
-
         Debug.Log($"* Course #{course.Number} completed");
+
+        StartCoroutine(PlayFireworksOnCourseEnd(course));
+    }
+
+    private IEnumerator PlayFireworksOnCourseEnd(CourseData course)
+    {
+        Vector3 fireworkCentre = course.Hole + Vector3.up * FireworkHeight;
+
+        if (FireworkPrefabs.Count == 0)
+        {
+            Debug.LogError("No firework prefabs have been set");
+            yield break;
+        }
+
+        for (float t = 0; t < FireworkDisplaySeconds; t += Time.deltaTime)
+        {
+            TrySpawnRandomFirework(fireworkCentre);
+
+            yield return null;
+        }
 
         // Get the next course if there is one
         if (GetCourse(course.Number + 1, out CourseData next))
@@ -53,6 +83,22 @@ public class TerrainManager : MonoBehaviour, IManager
         else
         {
             Debug.LogError("No more courses left");
+        }
+    }
+
+    private void TrySpawnRandomFirework(Vector3 centre)
+    {
+        // Ensure we don't have too many fireworks at the same time
+        if(FireworkParent.childCount < MaxNumConcurrentFireworks)
+        {
+            if(UnityEngine.Random.Range(0, FireworkChancePerFrame) == 0)
+            {
+                GameObject prefab = FireworkPrefabs[UnityEngine.Random.Range(0, FireworkPrefabs.Count)];
+                Vector3 randomPosition = centre + (UnityEngine.Random.insideUnitSphere * FireworkRadiusVariance);
+                Quaternion randomRotation = Quaternion.Euler(0, UnityEngine.Random.Range(0.0f, 360.0f), 0);
+
+                Instantiate(prefab, randomPosition, randomRotation, FireworkParent);
+            }
         }
     }
 

@@ -1204,6 +1204,7 @@ Transform:
   - {fileID: 1208001001}
   - {fileID: 1943703577}
   - {fileID: 642023518}
+  - {fileID: 783598288}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1227,6 +1228,19 @@ MonoBehaviour:
   LODViewSettings:
   - 500
   - 1000
+  FireworkParent: {fileID: 783598288}
+  FireworkHeight: 20
+  FireworkRadiusVariance: 10
+  FireworkDisplaySeconds: 5
+  MaxNumConcurrentFireworks: 20
+  FireworkChancePerFrame: 5
+  FireworkPrefabs:
+  - {fileID: 168542, guid: 5702e2a6fea804b45b49b70d8feaf7ae, type: 3}
+  - {fileID: 120410, guid: 6636b3078b0905e489f698a11b7a6b6b, type: 3}
+  - {fileID: 175238, guid: 26d069e6f78e6f8478e4dc0152bd6939, type: 3}
+  - {fileID: 100748, guid: cd4d7020429cde74db076ffa72495419, type: 3}
+  - {fileID: 110790, guid: 0f75f6db4a318f54382e0c98b2226db8, type: 3}
+  - {fileID: 180128, guid: 6586ff0f14125534cae2f5d8f04b7871, type: 3}
 --- !u!114 &187293245
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6236,6 +6250,37 @@ MonoBehaviour:
         m_Calls: []
   m_LegacyBlendHint: 0
   m_ComponentOwner: {fileID: 455151879}
+--- !u!1 &783598287
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 783598288}
+  m_Layer: 0
+  m_Name: Fireworks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &783598288
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 783598287}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 187293243}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &868901083
 GameObject:
   m_ObjectHideFlags: 0

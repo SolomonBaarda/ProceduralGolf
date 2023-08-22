@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour, IManager
 
 
         TerrainManager.OnCourseStarted += OnStartCourse;
-        TerrainManager.OnCourseCompleted += (x) => { UpdateHUDCourseProgressScreen(); UpdateHUDShotCounter(); };
+        TerrainManager.OnCourseCompleted += (x) => { SetGameState(GameState.CourseEnd); UpdateHUDCourseProgressScreen(); UpdateHUDShotCounter(); };
 
         MainMenuManager.OnPressStartGame.AddListener(StartGame);
         MainMenuManager.OnPressQuit.AddListener(QuitApplication);
@@ -76,6 +76,8 @@ public class GameManager : MonoBehaviour, IManager
             case GameState.InGame:
                 UpdateLOD();
                 DoGameLoop();
+                break;
+            case GameState.CourseEnd:
                 break;
         }
     }
@@ -160,6 +162,21 @@ public class GameManager : MonoBehaviour, IManager
                 }
 
                 HUDManager.SetVisible(Gamerule.UseHUD);
+
+                break;
+            case GameState.CourseEnd:
+
+                MainMenuManager.SetVisible(false);
+                MainMenuManager.SetLoading(false);
+                LoadingScreenManager.SetVisible(false);
+                HUDManager.SetVisible(false);
+
+                TerrainManager.SetVisible(true);
+                SetVisible(true);
+
+                // Disable the golf ball if we dont need it
+                TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
+                GolfBallShotPreview.gameObject.SetActive(false);
 
                 break;
         }
@@ -497,6 +514,7 @@ public class GameManager : MonoBehaviour, IManager
         MainMenu = 0,
         GameLoading = 1,
         CoursePreview = 2,
-        InGame = 3
+        InGame = 3,
+        CourseEnd = 4
     }
 }
