@@ -5912,7 +5912,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 712307677}
-  m_LocalRotation: {x: 0.46184093, y: 0.027498167, z: 0.12538022, w: 0.8776255}
+  m_LocalRotation: {x: 0.4618409, y: 0.027498152, z: 0.12538019, w: 0.8776255}
   m_LocalPosition: {x: 17.094715, y: 25.936083, z: 11.995136}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -11033,7 +11033,7 @@ MonoBehaviour:
   PathStartToEnd: {fileID: 1257441756}
   PathHintNumDashesPerWorldUnit: 0.02
   ShotPreview: {fileID: 576534612}
-  ShotPreviewNumDashesPerWorldUnit: 0.01
+  ShotPreviewNumDashesPerWorldUnit: 0.03
 --- !u!1 &1797953127
 GameObject:
   m_ObjectHideFlags: 0

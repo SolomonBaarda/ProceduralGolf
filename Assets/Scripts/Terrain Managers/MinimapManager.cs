@@ -31,8 +31,14 @@ public class MinimapManager : MonoBehaviour, IManager
         GolfBall.OnRollingFinished += UpdateMinimapBeforeShot;
     }
 
-    public void UpdateMinimapShotPreview(Vector3 estimatedLandingPoint)
+    public void UpdateMinimapShotPreview(Vector3 estimatedLandingPoint, float ballAimingDirectionAngle)
     {
+        // Rotate the ball sprite
+        Vector3 ballRotation = GolfballMinimapIcon.eulerAngles;
+        ballRotation.y = ballAimingDirectionAngle;
+        GolfballMinimapIcon.eulerAngles = ballRotation;
+
+        // Update the shot preview
         ShotPreview.positionCount = 2;
         ShotPreview.SetPositions(new Vector3[]
         {
