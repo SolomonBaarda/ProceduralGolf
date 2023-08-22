@@ -191,7 +191,6 @@ public class GameManager : MonoBehaviour, IManager
 
     public void RestartGameFromFirstCourse()
     {
-
         TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
 
         if (Gamerule.UseGolfBall)
@@ -305,6 +304,8 @@ public class GameManager : MonoBehaviour, IManager
         {
             TerrainManager.MakeAllChunksVisible();
         }
+
+        yield return null;
 
         // Start the game
         RestartGameFromFirstCourse();
