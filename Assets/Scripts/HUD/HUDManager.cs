@@ -13,8 +13,8 @@ public class HUDManager : MonoBehaviour, IManager
     public Canvas CanvasScoreboard;
     public Canvas CanvasOptions;
     [Space]
-    public GameObject ShootingMenu;
-    public GameObject MainHUD;
+    public GameObject ButtonsCanvas;
+    public GameObject ShootingCanvas;
     public GameObject ScoreboardButton;
 
     [Header("Shooting Window")]
@@ -53,9 +53,15 @@ public class HUDManager : MonoBehaviour, IManager
     {
         gameObject.SetActive(visible);
         HideAllMenus();
+
+        if(visible)
+        {
+            ButtonsCanvas.SetActive(true);
+            ShootingCanvas.SetActive(true);
+        }
     }
 
-    private void HideAllMenus()
+    public void HideAllMenus()
     {
         CanvasScoreboard.gameObject.SetActive(false);
         CanvasOptions.gameObject.SetActive(false);

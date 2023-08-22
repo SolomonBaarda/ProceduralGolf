@@ -25,11 +25,13 @@ public class TerrainManager : MonoBehaviour, IManager
     [Header("Events")]
     public UnityAction<CourseData> OnCourseStarted;
     public UnityAction<CourseData> OnCourseCompleted;
+    public UnityAction<GolfBall.Stats.Pot[]> OnGameOver;
 
     [Header("Fireworks")]
     public Transform FireworkParent;
     public float FireworkHeight = 20.0f;
     public float FireworkRadiusVariance = 10.0f;
+    [Min(2)]
     public float FireworkDisplaySeconds = 5.0f;
     public int MaxNumConcurrentFireworks = 20;
     public int FireworkChancePerFrame = 5;
@@ -60,7 +62,7 @@ public class TerrainManager : MonoBehaviour, IManager
 
     private IEnumerator PlayFireworksOnCourseEnd(CourseData course)
     {
-        CameraManager.DoCourseEndPreview(FireworkDisplaySeconds);
+        CameraManager.DoCourseEndPreview(1.0f, FireworkDisplaySeconds - 2, 1.0f);
 
         Vector3 fireworkCentre = course.Hole + Vector3.up * FireworkHeight;
 
@@ -84,7 +86,8 @@ public class TerrainManager : MonoBehaviour, IManager
         }
         else
         {
-            Debug.LogError("No more courses left");
+            OnGameOver.Invoke(GolfBall.Progress.CoursesCompleted.ToArray());
+            Debug.Log("* All courses completed");
         }
     }
 

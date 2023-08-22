@@ -115,4 +115,10 @@ public class MainMenuManager : MonoBehaviour, IManager
         Application.OpenURL("https://assetstore.unity.com/publishers/13489");
     }
 
+    // Loading icons
+    public void OpenSyntyStudiosCredits()
+    {
+        Application.OpenURL("https://assetstore.unity.com/publishers/5217");
+    }
+
 }

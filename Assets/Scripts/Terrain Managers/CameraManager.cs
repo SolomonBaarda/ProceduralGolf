@@ -141,20 +141,26 @@ public class CameraManager : MonoBehaviour, IManager
         callback();
     }
 
-    public void DoCourseEndPreview(float durationSeconds)
+    public void DoCourseEndPreview(float startSeconds, float spinSeconds, float endSeconds)
     {
-        StartCoroutine(DoCourseEnd(durationSeconds));
+        StartCoroutine(DoCourseEnd(startSeconds, spinSeconds, endSeconds));
     }
 
-    private IEnumerator DoCourseEnd(float seconds)
+    private IEnumerator DoCourseEnd(float start, float seconds, float end)
     {
         MainStates.SetTrigger(OnCourseEndTrigger);
+
+        CourseEndDollyCart.m_Position = 0;
+        yield return new WaitForSeconds(start);
 
         for (float totalTime = 0; totalTime < seconds; totalTime += Time.deltaTime)
         {
             CourseEndDollyCart.m_Position = totalTime / seconds;
             yield return null;
         }
+
+        CourseEndDollyCart.m_Position = 1;
+        yield return new WaitForSeconds(end);
     }
 
 

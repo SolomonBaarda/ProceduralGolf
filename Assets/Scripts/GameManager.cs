@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour, IManager
 
         TerrainManager.OnCourseStarted += OnStartCourse;
         TerrainManager.OnCourseCompleted += (x) => { SetGameState(GameState.CourseEnd); UpdateHUDCourseProgressScreen(); UpdateHUDShotCounter(); };
+        TerrainManager.OnGameOver += OnGameOver;
 
         MainMenuManager.OnPressStartGame.AddListener(StartGame);
         MainMenuManager.OnPressQuit.AddListener(QuitApplication);
@@ -330,7 +331,7 @@ public class GameManager : MonoBehaviour, IManager
 
             if (Gamerule.UseHUD && HUDManager != null)
             {
-                HUDManager.ShootingMenu.SetActive(isAiming);
+                HUDManager.ShootingCanvas.SetActive(isAiming);
 
                 CameraManager.SetGolfBallYVelocity(TerrainManager.GolfBall.rigid.velocity.y);
 
@@ -482,8 +483,13 @@ public class GameManager : MonoBehaviour, IManager
         }
     }
 
-
-
+    private void OnGameOver(GolfBall.Stats.Pot[] stats)
+    {
+        HUDManager.SetVisible(true);
+        HUDManager.HideAllMenus();
+        HUDManager.ShootingCanvas.SetActive(false);
+        HUDManager.CanvasScoreboard.gameObject.SetActive(true);
+    }
 
 
 
