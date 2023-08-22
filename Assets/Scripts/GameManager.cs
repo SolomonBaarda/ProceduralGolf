@@ -379,6 +379,8 @@ public class GameManager : MonoBehaviour, IManager
                         {
                             GolfBallShotPreview.UpdateShotPreview(TerrainManager.GolfBall.Angle.ToString("0") + "°", TerrainManager.GolfBall.Angle, positions, TerrainManager.GolfBall.transform.rotation, out Vector3 shotPeakPos, out _);
                             CameraManager.SetShotPeakHeightFromGround((shotPeakPos - positions[0]).y);
+
+                            MinimapManager.UpdateMinimapShotPreview(positions[positions.Length - 1]);
                         }
                         else
                         {

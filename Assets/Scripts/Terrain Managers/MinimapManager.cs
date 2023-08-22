@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class MinimapManager : MonoBehaviour, IManager 
 {
@@ -19,13 +17,38 @@ public class MinimapManager : MonoBehaviour, IManager
 
     [Header("Path hint")]
     public LineRenderer PathStartToEnd;
-    public float NumDashesPerWorldUnit = 3.0f;
+    public float PathHintNumDashesPerWorldUnit = 0.02f;
 
     List<Vector2> fullCoursePath2D = new List<Vector2>();
+
+    [Header("Shot preview")]
+    public LineRenderer ShotPreview;
+    public float ShotPreviewNumDashesPerWorldUnit = 0.02f;
+
 
     private void Awake()
     {
         GolfBall.OnRollingFinished += UpdateMinimapBeforeShot;
+    }
+
+    public void UpdateMinimapShotPreview(Vector3 estimatedLandingPoint)
+    {
+        ShotPreview.positionCount = 2;
+        ShotPreview.SetPositions(new Vector3[]
+        {
+            new Vector3(GolfBall.transform.position.x, MinimapIconsHeight, GolfBall.transform.position.z ),
+            new Vector3(estimatedLandingPoint.x, MinimapIconsHeight, estimatedLandingPoint.z)
+        });
+
+        float pathLength = 
+            (
+                new Vector2(estimatedLandingPoint.x, estimatedLandingPoint.z) - 
+                new Vector2(GolfBall.transform.position.x, GolfBall.transform.position.z)
+            ).magnitude;
+
+        Material dashedPathMat = ShotPreview.material;
+        float numDashes = pathLength * ShotPreviewNumDashesPerWorldUnit;
+        dashedPathMat.SetFloat("_NumberOfDashes", numDashes);
     }
 
     private void UpdateMinimapBeforeShot()
@@ -86,15 +109,11 @@ public class MinimapManager : MonoBehaviour, IManager
             PathStartToEnd.SetPositions(pathFromCurrentPos2D.Select(x => new Vector3(x.x, MinimapIconsHeight, x.y)).ToArray());
 
             // Calculate the path length
-            float pathLengthSqr = 0.0f;
-            for (int i = 1; i < pathFromCurrentPos2D.Count; i++)
-            {
-                pathLengthSqr += (pathFromCurrentPos2D[i - 1] - pathFromCurrentPos2D[i]).magnitude;
-            }
+            float pathLength = Utils.CalculatePathLengthWorldUnits(pathFromCurrentPos2D);
 
             // Update the dashed line material to show the correct number of dashes for the distance
             Material dashedPathMat = PathStartToEnd.material;
-            float numDashes = pathLengthSqr * NumDashesPerWorldUnit;
+            float numDashes = pathLength * PathHintNumDashesPerWorldUnit;
             dashedPathMat.SetFloat("_NumberOfDashes", numDashes);
         }
     }

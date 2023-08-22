@@ -143,6 +143,19 @@ public static class Utils
     }
 
 
+
+    public static float CalculatePathLengthWorldUnits(List<Vector2> points)
+    {
+        float length = 0.0f;
+        for (int i = 0; i < points.Count - 1; i++)
+        {
+            length += (points[i + 1] - points[i]).magnitude;
+        }
+
+        return length;
+    }
+
+
     public static void EMPTY() { }
     public static void EMPTY<T>(T _) { }
 
