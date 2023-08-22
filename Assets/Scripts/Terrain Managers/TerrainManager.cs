@@ -61,13 +61,14 @@ public class TerrainManager : MonoBehaviour, IManager
         NextHolePosition.position = course.Hole;
         NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + (Vector3.up * 100) });
 
-        MinimapManager.UpdateMinimapForCourse(course.Hole, course.PathStartToEnd);
-
         // Calculate the facing direction based off the course preview camera path
         var facingHoleDirection = Quaternion.LookRotation(course.PathStartToEnd[1] - course.PathStartToEnd[0], Vector3.up);
 
         // And move the ball there
         GolfBall.MoveGolfBallAndWaitForNextShot(course.Start + (Vector3.up * GolfBall.Radius), facingHoleDirection.eulerAngles.y);
+
+        // Now update the minimap since everything should be in position
+        MinimapManager.UpdateMinimapForCourse(course.Hole, course.PathStartToEnd);
     }
 
     public void Reset()

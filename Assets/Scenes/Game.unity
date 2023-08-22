@@ -5776,7 +5776,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 712307677}
-  m_LocalRotation: {x: 0.46184093, y: 0.027498167, z: 0.12538022, w: 0.8776255}
+  m_LocalRotation: {x: 0.4618409, y: 0.027498152, z: 0.12538019, w: 0.8776255}
   m_LocalPosition: {x: 17.094715, y: 25.936083, z: 11.995136}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -8619,7 +8619,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c5d9e256daf8e63459a94dca6b3f7f9e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8663,8 +8663,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 1, g: 1, b: 1, a: 0.29411766}
+      key1: {r: 1, g: 1, b: 1, a: 0.29411766}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -8688,7 +8688,7 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_ColorSpace: -1
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
@@ -10887,14 +10887,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8113fe3adb712b74db099b63738f51ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GolfBall: {fileID: 4213627501115095108}
+  GolfBall: {fileID: 5612774800490992908}
   MinimapCamera: {fileID: 678529469}
   CameraFollowOffset: {x: 0, y: 100, z: 0}
   MinimapIconsHeight: 50
   GolfballMinimapIcon: {fileID: 620137531}
   HoleMinimapIcon: {fileID: 692680616}
   PathStartToEnd: {fileID: 1257441756}
-  DisplayPathToHole: 0
+  NumDashesPerWorldUnit: 0.02
 --- !u!1 &1797953127
 GameObject:
   m_ObjectHideFlags: 0
