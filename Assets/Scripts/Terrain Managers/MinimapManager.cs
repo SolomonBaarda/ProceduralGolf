@@ -18,12 +18,14 @@ public class MinimapManager : MonoBehaviour, IManager
     [Header("Path hint")]
     public LineRenderer PathStartToEnd;
     public float PathHintNumDashesPerWorldUnit = 0.02f;
+    public float PathHintDashesSpeed = 1.0f;
 
     List<Vector2> fullCoursePath2D = new List<Vector2>();
 
     [Header("Shot preview")]
     public LineRenderer ShotPreview;
     public float ShotPreviewNumDashesPerWorldUnit = 0.02f;
+    public float ShotPreviewDashesSpeed = 1.0f;
 
 
     private void Awake()
@@ -55,6 +57,7 @@ public class MinimapManager : MonoBehaviour, IManager
         Material dashedPathMat = ShotPreview.material;
         float numDashes = pathLength * ShotPreviewNumDashesPerWorldUnit;
         dashedPathMat.SetFloat("_NumberOfDashes", numDashes);
+        dashedPathMat.SetFloat("_DashMovementSpeed", ShotPreviewDashesSpeed);
     }
 
     private void UpdateMinimapBeforeShot()
@@ -121,6 +124,7 @@ public class MinimapManager : MonoBehaviour, IManager
             Material dashedPathMat = PathStartToEnd.material;
             float numDashes = pathLength * PathHintNumDashesPerWorldUnit;
             dashedPathMat.SetFloat("_NumberOfDashes", numDashes);
+            dashedPathMat.SetFloat("_DashMovementSpeed", PathHintDashesSpeed);
         }
     }
 

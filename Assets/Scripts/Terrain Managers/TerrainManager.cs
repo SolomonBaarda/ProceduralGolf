@@ -12,7 +12,6 @@ public class TerrainManager : MonoBehaviour, IManager
     public CameraManager CameraManager;
     public GolfBall GolfBall;
 
-    public LinePreview NextHoleBeacon;
     public Transform NextHolePosition;
 
     public TerrainData CurrentLoadedTerrain { get; private set; }
@@ -59,7 +58,6 @@ public class TerrainManager : MonoBehaviour, IManager
     {
         // Update course game object positions
         NextHolePosition.position = course.Hole;
-        NextHoleBeacon.SetPoints(new Vector3[] { course.Hole, course.Hole + (Vector3.up * 100) });
 
         // Calculate the facing direction based off the course preview camera path
         var facingHoleDirection = Quaternion.LookRotation(course.PathStartToEnd[1] - course.PathStartToEnd[0], Vector3.up);
@@ -85,7 +83,6 @@ public class TerrainManager : MonoBehaviour, IManager
         TerrainChunkManager.SetVisible(visible);
 
         GolfBall.gameObject.SetActive(visible);
-        NextHoleBeacon.gameObject.SetActive(visible);
         NextHolePosition.gameObject.SetActive(visible);
     }
 
@@ -157,12 +154,6 @@ public class TerrainManager : MonoBehaviour, IManager
             {
                 OnCourseCompleted.Invoke(target);
             }
-
-            // Update the next hole beacon width
-            float distanceSqr = (target.Hole - CameraManager.MainCamera.transform.position).sqrMagnitude;
-            const float maximumDistance = TerrainChunkData.ChunkSizeWorldUnits * 2;
-            float percent = Mathf.Clamp01(distanceSqr / (maximumDistance * maximumDistance));
-            NextHoleBeacon.UpdateLineWidth(Mathf.Lerp(0.05f, 10, percent));
         }
     }
 

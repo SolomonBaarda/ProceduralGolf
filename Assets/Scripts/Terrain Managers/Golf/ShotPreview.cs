@@ -4,7 +4,9 @@ using UnityEngine;
 public class ShotPreview : MonoBehaviour
 {
     [Header("Line Previews")]
-    public LinePreview ShotPreviewMain;
+    public LineRenderer ShotPreviewMain;
+    public float ShotPreviewNumDashesPerWorldUnit = 0.02f;
+    public float ShotPreviewDashesSpeed = 1.0f;
 
     [Header("Key positions")]
     public Transform AimingPosition;
@@ -24,7 +26,14 @@ public class ShotPreview : MonoBehaviour
         ShotAnglePosition.SetPositionAndRotation(previewPositions[0], rotation);
 
         // Update the shot preview
-        ShotPreviewMain.SetPoints(previewPositions);
+        ShotPreviewMain.positionCount = previewPositions.Length;
+        ShotPreviewMain.SetPositions(previewPositions);
+
+        float length = Utils.CalculatePathLengthWorldUnits(previewPositions);
+        Material dashedPathMat = ShotPreviewMain.material;
+        dashedPathMat.SetFloat("_NumberOfDashes", length * ShotPreviewNumDashesPerWorldUnit);
+        dashedPathMat.SetFloat("_DashMovementSpeed", ShotPreviewDashesSpeed);
+
 
         // Update the start and end positions
         StartingPosition.SetPositionAndRotation(previewPositions[0], rotation);
