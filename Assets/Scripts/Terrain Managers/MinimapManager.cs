@@ -44,7 +44,13 @@ public class MinimapManager : MonoBehaviour, IManager
         ballPos.y = MinimapIconsHeight;
         GolfballMinimapIcon.transform.position = ballPos;
 
+        // Calculate if the flag is visible on the minimap
+        Vector3 diff = HoleMinimapIcon.position - GolfBall.transform.position;
+        Vector2 distanceToHole = new Vector2(diff.x, diff.z);
+        bool isHoleVisibleOnMinimap = distanceToHole.sqrMagnitude <= MinimapCamera.orthographicSize * MinimapCamera.orthographicSize;
 
+        // Make the direction hint visible if the hole is off the screen
+        PathStartToEnd.enabled = !isHoleVisibleOnMinimap;
     }
 
 
