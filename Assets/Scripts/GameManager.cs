@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour, IManager
 
 
         TerrainManager.OnCourseStarted += OnStartCourse;
-        TerrainManager.OnCourseCompleted += UpdateHUDShotCounter;
+        TerrainManager.OnCourseCompleted += (x) => { UpdateHUDCourseProgressScreen(); UpdateHUDShotCounter(); };
 
         MainMenuManager.OnPressStartGame.AddListener(StartGame);
         MainMenuManager.OnPressQuit.AddListener(QuitApplication);
@@ -180,6 +180,7 @@ public class GameManager : MonoBehaviour, IManager
 
     public void RestartGameFromFirstCourse()
     {
+
         TerrainManager.GolfBall.gameObject.SetActive(Gamerule.UseGolfBall);
 
         if (Gamerule.UseGolfBall)
@@ -193,6 +194,7 @@ public class GameManager : MonoBehaviour, IManager
 
         if (Gamerule.UseHUD)
         {
+            UpdateHUDCourseProgressScreen();
             UpdateHUDShotCounter();
         }
     }
@@ -213,6 +215,7 @@ public class GameManager : MonoBehaviour, IManager
     private void OnCoursePreviewCompleted()
     {
         SetGameState(GameState.InGame);
+        TerrainManager.GolfBall.Progress.TimeStartedCurrentCourse = DateTime.Now;
 
         Logger.Log("Game has started. There are " + TerrainManager.CurrentLoadedTerrain.Courses.Count + " courses.");
     }
@@ -420,62 +423,54 @@ public class GameManager : MonoBehaviour, IManager
         if (HUDManager) HUDManager.Reset();
     }
 
-    private void UpdateHUDShotCounter<T>(T t)
-    {
-        UpdateHUDShotCounter();
-    }
-
     private void UpdateHUDShotCounter()
     {
-        if (HUDManager != null)
-        {
-            // Update the shots counter
-            HUDManager.Shots.text = TerrainManager.GolfBall.Progress.ShotsForThisHole.ToString();
-
-
-            GolfBall.Stats.Pot[] holes = TerrainManager.GolfBall.Progress.CoursesCompleted.ToArray();
-
-            HUDManager.ScoreboardButton.SetActive(holes.Length > 0);
-
-            if (holes != null && holes.Length > 0)
-            {
-                // Add rows until we have enough
-                while (HUDManager.ScoreboardRows.Count < holes.Length - 1)
-                {
-                    GameObject g = Instantiate(HUDManager.ScoreRowPrefab, HUDManager.ScoreRowParent.transform);
-                    ScoreboardRow row = g.GetComponent<ScoreboardRow>();
-
-                    HUDManager.ScoreboardRows.Add(row);
-                }
-
-                // Update each ones data
-                for (int holeIndex = 0; holeIndex < holes.Length - 1; holeIndex++)
-                {
-                    int rowIndex = HUDManager.ScoreboardRows.Count - 1 - holeIndex;
-
-                    HUDManager.ScoreboardRows[rowIndex].HoleNumber.text = "#" + holes[holeIndex].CourseNumber;
-                    HUDManager.ScoreboardRows[rowIndex].Shots.text = holes[holeIndex].ShotsTaken.ToString();
-
-
-                    TimeSpan time = holes[holeIndex].TimeReached - holes[holeIndex + 1].TimeReached;
-
-                    // Set the time message 
-                    string timeMessage;
-                    if (time.Minutes > 0)
-                    {
-                        timeMessage = time.Minutes + "m " + (time.TotalSeconds % 60).ToString("0.0") + "s";
-                    }
-                    else
-                    {
-                        timeMessage = time.TotalSeconds.ToString("0.0") + "s";
-                    }
-
-                    HUDManager.ScoreboardRows[rowIndex].Time.text = timeMessage;
-                }
-            }
-        }
+        // Update the shots counter
+        HUDManager.Shots.text = TerrainManager.GolfBall.Progress.ShotsForThisHole.ToString();
     }
 
+    private void UpdateHUDCourseProgressScreen()
+    {
+        GolfBall.Stats.Pot[] holes = TerrainManager.GolfBall.Progress.CoursesCompleted.ToArray();
+
+        HUDManager.ScoreboardButton.SetActive(holes.Length > 0);
+
+        if (holes != null && holes.Length > 0)
+        {
+            // Add rows until we have enough
+            while (HUDManager.ScoreboardRows.Count < holes.Length)
+            {
+                GameObject g = Instantiate(HUDManager.ScoreRowPrefab, HUDManager.ScoreRowParent.transform);
+                ScoreboardRow row = g.GetComponent<ScoreboardRow>();
+
+                HUDManager.ScoreboardRows.Add(row);
+            }
+
+            // Update each ones data
+            for (int holeIndex = 0; holeIndex < holes.Length; holeIndex++)
+            {
+                int rowIndex = HUDManager.ScoreboardRows.Count - 1 - holeIndex;
+
+                HUDManager.ScoreboardRows[rowIndex].HoleNumber.text = $"#{holes[holeIndex].CourseNumber + 1}";
+                HUDManager.ScoreboardRows[rowIndex].Shots.text = holes[holeIndex].ShotsTaken.ToString();
+
+
+                // Set the time message 
+                string timeMessage;
+                if (holes[holeIndex].Time.Minutes > 0)
+                {
+                    timeMessage = $"{holes[holeIndex].Time.Minutes}m {holes[holeIndex].Time.TotalSeconds % 60:0.0}s";
+                }
+                else
+                {
+                    timeMessage = $"{holes[holeIndex].Time.TotalSeconds % 60:0.0}s";
+                }
+
+                HUDManager.ScoreboardRows[rowIndex].Time.text = timeMessage;
+            }
+
+        }
+    }
 
 
 

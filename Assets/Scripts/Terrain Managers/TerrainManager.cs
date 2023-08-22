@@ -43,6 +43,8 @@ public class TerrainManager : MonoBehaviour, IManager
     {
         GolfBall.HoleReached(course.Number, DateTime.Now);
 
+        Debug.Log($"* Course #{course.Number} completed");
+
         // Get the next course if there is one
         if (GetCourse(course.Number + 1, out CourseData next))
         {

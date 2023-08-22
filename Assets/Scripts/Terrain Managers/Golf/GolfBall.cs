@@ -397,7 +397,7 @@ public class GolfBall : MonoBehaviour
     public void HoleReached(int courseNumber, DateTime reached)
     {
         // Add the hole 
-        Progress.CoursesCompleted.Push(new Stats.Pot(courseNumber, reached, Progress.ShotsForThisHole));
+        Progress.CoursesCompleted.Push(new Stats.Pot(courseNumber, reached - Progress.TimeStartedCurrentCourse, Progress.ShotsForThisHole));
         Progress.ShotsCurrentCourse.Clear();
     }
 
@@ -405,6 +405,8 @@ public class GolfBall : MonoBehaviour
     public class Stats
     {
         public Stack<Pot> CoursesCompleted = new Stack<Pot>();
+
+        public DateTime TimeStartedCurrentCourse;
 
         public Stack<Shot> ShotsCurrentCourse = new Stack<Shot>();
         public int ShotsForThisHole => ShotsCurrentCourse.Count;
@@ -426,13 +428,13 @@ public class GolfBall : MonoBehaviour
         public class Pot
         {
             public int CourseNumber;
-            public DateTime TimeReached;
+            public TimeSpan Time;
             public int ShotsTaken;
 
-            public Pot(int courseNumber, in DateTime time, in int shots)
+            public Pot(int courseNumber, in TimeSpan duration, in int shots)
             {
                 CourseNumber = courseNumber;
-                TimeReached = time;
+                Time = duration;
                 ShotsTaken = shots;
             }
         }
