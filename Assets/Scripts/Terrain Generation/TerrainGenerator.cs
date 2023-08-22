@@ -148,7 +148,7 @@ public class TerrainGenerator : MonoBehaviour
         });
 
 
-        Logger.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        Debug.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -161,7 +161,7 @@ public class TerrainGenerator : MonoBehaviour
             GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width, map.Height) * distanceBetweenNoiseSamples);
 
 
-        Logger.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        Debug.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -169,7 +169,7 @@ public class TerrainGenerator : MonoBehaviour
         int chunkSize = TerrainSettings.SamplePointFrequency;
         ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
-        Logger.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        Debug.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -178,7 +178,7 @@ public class TerrainGenerator : MonoBehaviour
 
         var invalidBiomes = CalculateInvalidBiomesForCourse();
 
-        Logger.Log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        Debug.Log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -187,7 +187,7 @@ public class TerrainGenerator : MonoBehaviour
         TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, invalidBiomes, TextureSettings.GetColour(TerrainSettings.BackgroundBiome), TerrainSettings.name);
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
-        Logger.Log(message);
+        Debug.Log(message);
         yield return null;
 
         IsGenerating = false;

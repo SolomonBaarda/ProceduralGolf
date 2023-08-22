@@ -109,4 +109,10 @@ public class MainMenuManager : MonoBehaviour, IManager
         Application.OpenURL("https://sketchfab.com/prorookie123");
     }
 
+    // Loading icons
+    public void OpenInfimaGamesCredits()
+    {
+        Application.OpenURL("https://assetstore.unity.com/publishers/13489");
+    }
+
 }

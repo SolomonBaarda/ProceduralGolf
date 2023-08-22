@@ -57,8 +57,6 @@ public class GameManager : MonoBehaviour, IManager
         HUDManager.OnShootPressed.AddListener(TerrainManager.GolfBall.Shoot);
         HUDManager.OnShootPressed.AddListener(UpdateHUDShotCounter);
 
-        Logger.OnLogMessage.AddListener(message => { LoadingScreenManager.Info.text = message; });
-
         TerrainManager.GolfBall.OnOutOfBounds += TerrainManager.UndoShot;
 
         QuitToMainMenu();
@@ -111,12 +109,6 @@ public class GameManager : MonoBehaviour, IManager
                 CameraManager.StartMainMenu();
 
                 SetVisible(false);
-
-                // TODO TEST:
-                //StopAllCoroutines();
-                //CameraManager.StopAllCoroutines();
-                //TerrainManager.GolfBall.StopAllCoroutines();
-                //TerrainGenerator.StopAllCoroutines();
 
                 break;
             case GameState.GameLoading:
@@ -217,7 +209,7 @@ public class GameManager : MonoBehaviour, IManager
         SetGameState(GameState.InGame);
         TerrainManager.GolfBall.Progress.TimeStartedCurrentCourse = DateTime.Now;
 
-        Logger.Log("Game has started. There are " + TerrainManager.CurrentLoadedTerrain.Courses.Count + " courses.");
+        Debug.Log($"Game has started. There are {TerrainManager.CurrentLoadedTerrain.Courses.Count} courses.");
     }
 
 

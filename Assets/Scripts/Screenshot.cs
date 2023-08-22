@@ -23,7 +23,7 @@ public class Screenshot : MonoBehaviour
         string path = GetScreenshotName();
         ScreenCapture.CaptureScreenshot(path, ScreenCapture.StereoScreenCaptureMode.BothEyes);
 
-        Logger.Log("Saved screenshot at: " + path);
+        Debug.Log("Saved screenshot at: " + path);
     }
 
 
@@ -63,7 +63,7 @@ public class Screenshot : MonoBehaviour
         string filename = GetScreenshotName();
         System.IO.File.WriteAllBytes(filename, bytes);
 
-        Logger.Log("Saved screenshot at: " + filename);
+        Debug.Log("Saved screenshot at: " + filename);
 
 
     }
