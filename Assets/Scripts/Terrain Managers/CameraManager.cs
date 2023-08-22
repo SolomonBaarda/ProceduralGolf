@@ -31,7 +31,10 @@ public class CameraManager : MonoBehaviour, IManager
     public const float CoursePreviewMainSeconds = 7.0f;
     public const float CoursePreviewEndSeconds = 2.0f;
 
-    private const string OnMainMenuTrigger = "OnMainMenu", OnCoursePreviewTrigger = "OnCoursePreviewStart", OnGameStartTrigger = "OnGameStart";
+    [Header("Course End Camera")]
+    public CinemachineDollyCart CourseEndDollyCart;
+
+    private const string OnMainMenuTrigger = "OnMainMenu", OnCoursePreviewTrigger = "OnCoursePreviewStart", OnGameStartTrigger = "OnGameStart", OnCourseEndTrigger = "OnCourseEndPreviewStart";
 
 
     public void Reset()
@@ -138,7 +141,21 @@ public class CameraManager : MonoBehaviour, IManager
         callback();
     }
 
+    public void DoCourseEndPreview(float durationSeconds)
+    {
+        StartCoroutine(DoCourseEnd(durationSeconds));
+    }
 
+    private IEnumerator DoCourseEnd(float seconds)
+    {
+        MainStates.SetTrigger(OnCourseEndTrigger);
+
+        for (float totalTime = 0; totalTime < seconds; totalTime += Time.deltaTime)
+        {
+            CourseEndDollyCart.m_Position = totalTime / seconds;
+            yield return null;
+        }
+    }
 
 
 

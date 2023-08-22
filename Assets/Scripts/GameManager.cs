@@ -78,6 +78,7 @@ public class GameManager : MonoBehaviour, IManager
                 DoGameLoop();
                 break;
             case GameState.CourseEnd:
+                UpdateLOD();
                 break;
         }
     }

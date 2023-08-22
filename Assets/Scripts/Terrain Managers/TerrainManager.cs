@@ -60,6 +60,8 @@ public class TerrainManager : MonoBehaviour, IManager
 
     private IEnumerator PlayFireworksOnCourseEnd(CourseData course)
     {
+        CameraManager.DoCourseEndPreview(FireworkDisplaySeconds);
+
         Vector3 fireworkCentre = course.Hole + Vector3.up * FireworkHeight;
 
         if (FireworkPrefabs.Count == 0)
