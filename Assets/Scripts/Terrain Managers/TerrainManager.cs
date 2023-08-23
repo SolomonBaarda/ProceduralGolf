@@ -87,7 +87,6 @@ public class TerrainManager : MonoBehaviour, IManager
         else
         {
             OnGameOver.Invoke(GolfBall.Progress.CoursesCompleted.ToArray());
-            Debug.Log("All courses completed");
         }
     }
 

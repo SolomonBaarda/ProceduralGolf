@@ -56,6 +56,7 @@ public class HUDManager : MonoBehaviour, IManager
 
         if(visible)
         {
+            CanvasInteraction.gameObject.SetActive(true);
             ButtonsCanvas.SetActive(true);
             ShootingCanvas.SetActive(true);
         }

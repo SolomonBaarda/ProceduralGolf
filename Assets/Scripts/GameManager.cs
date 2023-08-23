@@ -420,6 +420,7 @@ public class GameManager : MonoBehaviour, IManager
                         break;
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
+
                         break;
                 }
             }
@@ -486,8 +487,11 @@ public class GameManager : MonoBehaviour, IManager
 
     private void OnGameOver(GolfBall.Stats.Pot[] stats)
     {
+        Debug.Log("All courses completed");
+
         HUDManager.SetVisible(true);
         HUDManager.HideAllMenus();
+
         HUDManager.ShootingCanvas.SetActive(false);
         HUDManager.CanvasScoreboard.gameObject.SetActive(true);
     }
