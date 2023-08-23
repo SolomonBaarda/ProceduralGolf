@@ -121,4 +121,11 @@ public class MainMenuManager : MonoBehaviour, IManager
         Application.OpenURL("https://assetstore.unity.com/publishers/5217");
     }
 
+    // Toon shader
+    public void OpenDELTationCredits()
+    {
+        Application.OpenURL("https://github.com/Delt06/urp-toon-shader");
+    }
+    
+
 }
