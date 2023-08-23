@@ -126,14 +126,6 @@ public class TerrainGenerator : MonoBehaviour
 
         GenerateTerrain(map);
 
-        // Now calculate the final height for the vertex
-        For(0, map.Heights.Length, (int index) =>
-        {
-            // And scale by a fixed value
-            map.Heights[index] *= TerrainSettings.HeightMultiplier;
-        });
-
-
         UnityEngine.Debug.Log($"Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
@@ -207,14 +199,6 @@ public class TerrainGenerator : MonoBehaviour
         chunk = terrainMapIndex / chunkMinusOne;
         chunkRelativeIndex = new Vector2Int(terrainMapIndex.x % chunkMinusOne, terrainMapIndex.y % chunkMinusOne);
     }
-
-    public static Vector2Int WorldToChunk(Vector3 position)
-    {
-        Vector3 pos = position / TerrainChunkData.ChunkSizeWorldUnits;
-        return new Vector2Int((int)pos.x, (int)pos.z);
-    }
-
-    //static bool ChunkRelativeIndexToTerrainMap(int chunkSize, Vector2Int chunk, Vector2Int chunkRelativeIndex, out Vector2Int terrainMapIndex) { }
 
 
     /// <summary>
@@ -367,6 +351,9 @@ public class TerrainGenerator : MonoBehaviour
                     map.Heights[index] = 0;
                 }
 
+                // Now calculate the final height for the vertex
+                // And scale by a fixed value
+                map.Heights[index] *= TerrainSettings.HeightMultiplier;
 
 
                 // Calculate if this point can be a green
@@ -572,6 +559,7 @@ public class TerrainGenerator : MonoBehaviour
         UnityEngine.Debug.LogError("Failed to find shortest path for course");
         return new List<Vector2Int>() { start, end };
     }
+
 
     /// <summary>
     /// Calculate start/hole positions for each golf course
