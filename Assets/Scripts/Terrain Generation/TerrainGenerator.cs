@@ -132,24 +132,25 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // SEQUENTIAL
-
         // Now that biomes have been assigned, we can calculate the procedural object positions
         map.WorldObjects = !atLeastOneObject ?
             new List<TerrainMap.WorldObjectData>() :
             GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width, map.Height) * distanceBetweenNoiseSamples);
 
-
         UnityEngine.Debug.Log($"Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
+
 
         // Now subdivide the data into chunks and calculate the mesh data
         int chunkSize = TerrainSettings.SamplePointFrequency;
         ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
+
         UnityEngine.Debug.Log($"Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
+
 
         // Partially sequential
         List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
@@ -165,9 +166,11 @@ public class TerrainGenerator : MonoBehaviour
         // Create the object and set the data
         TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, invalidBiomes, TextureSettings.GetColour(TerrainSettings.BackgroundBiome), TerrainSettings.name);
 
+
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
         UnityEngine.Debug.Log(message);
         yield return null;
+
 
         IsGenerating = false;
 
@@ -238,6 +241,7 @@ public class TerrainGenerator : MonoBehaviour
         // Now calculate the actual heights from the noise and the biomes
         For(0, map.Height, (int y) =>
         {
+            // Make thread local copies of the animation curve as sharing these objects blocks access
             List<AnimationCurve> threadSafeCurves = new List<AnimationCurve>();
             for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
             {
@@ -807,42 +811,6 @@ public class TerrainGenerator : MonoBehaviour
                     }
                 }
 
-#if false
-
-                // Calculate UVs
-                // Now not needed
-
-                // Get the minimum and maximum points
-                Vector2 min = Vertices[0], max = Vertices[0];
-                for (int y = 0; y < Height; y++)
-                {
-                    for (int x = 0; x < Width; x++)
-                    {
-                        Vector3 v = Vertices[(y * Width) + x];
-
-                        if (v.x < min.x) { min.x = v.x; }
-                        if (v.x > max.x) { max.x = v.x; }
-
-                        if (v.z < min.y) { min.y = v.z; }
-                        if (v.z > max.y) { max.y = v.z; }
-                    }
-                }
-
-                Vector2 size = max - min;
-
-                // Now assign each UV
-                for (int y = 0; y < Height; y++)
-                {
-                    for (int x = 0; x < Width; x++)
-                    {
-                        Vector3 point = Vertices[(y * Width) + x];
-
-                        UVs[(y * Width) + x] = (max - new Vector2(point.x, point.z)) / size;
-                    }
-                }
-
-#endif
-
                 // Now set the sub mesh
                 data.subMeshCount = 1;
                 data.SetSubMesh(0, new SubMeshDescriptor(0, triangles.Length, MeshTopology.Triangles));
@@ -858,10 +826,6 @@ public class TerrainGenerator : MonoBehaviour
         {
             for (int chunkX = 0; chunkX < numChunksX; chunkX++)
             {
-                // Calculate chunk bounds
-                //Vector3 centre = new Vector3((distanceBetweenNoiseSamples * (chunkSize - 1) * chunkX) + offset.x, 0, (distanceBetweenNoiseSamples * (chunkSize - 1) * chunkY) + offset.y);
-                //Bounds bounds = new Bounds(centre, new Vector3(TerrainChunkManager.ChunkSizeWorldUnits, 0, TerrainChunkManager.ChunkSizeWorldUnits));
-
                 Vector2Int chunk = new Vector2Int(chunkX, chunkY);
 
                 // Populate the biomes array with data
