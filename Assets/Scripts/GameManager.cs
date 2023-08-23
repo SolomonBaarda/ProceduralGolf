@@ -332,7 +332,7 @@ public class GameManager : MonoBehaviour, IManager
 
             if (Gamerule.UseHUD && HUDManager != null)
             {
-                HUDManager.ShootingCanvas.SetActive(isAiming);
+                HUDManager.CanvasInteraction.gameObject.SetActive(isAiming);
 
                 CameraManager.SetGolfBallYVelocity(TerrainManager.GolfBall.rigid.velocity.y);
 
