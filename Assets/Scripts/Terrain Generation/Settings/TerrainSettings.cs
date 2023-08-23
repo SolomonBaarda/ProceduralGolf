@@ -16,6 +16,11 @@ public class TerrainSettings : VariablePreset
     public Biome.Type BackgroundBiome;
     public bool ForceMinHeightZero = true;
 
+    [Header("Water Settings")]
+    public bool DoWater = false;
+    public float WaterHeight = 0.0f;
+    public Biome.Type UnderwaterBiome;
+
     [Header("Terrain Layer Settings")]
     public List<LayerSettings> TerrainLayers = new List<LayerSettings>();
 

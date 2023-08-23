@@ -28,11 +28,11 @@ MonoBehaviour:
   - Biome: 4
     Colour:
       serializedVersion: 2
-      rgba: 4284402892
+      rgba: 4282633420
   - Biome: 5
     Colour:
       serializedVersion: 2
-      rgba: 4289937459
+      rgba: 4278865257
   - Biome: 6
     Colour:
       serializedVersion: 2

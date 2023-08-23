@@ -124,7 +124,7 @@ public class TerrainGenerator : MonoBehaviour
         Vector2 offset = Vector2.zero;
         float distanceBetweenNoiseSamples = TerrainChunkData.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
 
-        GenerateTerrain(map);
+        GenerateTerrain(map, out float waterHeight);
 
         UnityEngine.Debug.Log($"Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
@@ -164,7 +164,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Create the object and set the data
-        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, invalidBiomes, TextureSettings.GetColour(TerrainSettings.BackgroundBiome), TerrainSettings.name);
+        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.DoWater, waterHeight, invalidBiomes, TextureSettings.GetColour(TerrainSettings.BackgroundBiome), TerrainSettings.name);
 
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
@@ -210,7 +210,7 @@ public class TerrainGenerator : MonoBehaviour
     /// <param name="map"></param>
     /// <param name="offset"></param>
     /// <param name="distanceBetweenNoiseSamples"></param>
-    private void GenerateTerrain(TerrainMap map)
+    private void GenerateTerrain(TerrainMap map, out float waterHeight)
     {
         for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
         {
@@ -237,6 +237,9 @@ public class TerrainGenerator : MonoBehaviour
 
                 map.Layers[index] = new TerrainMap.Layer(noise, layerSettings.Biome);
             });
+
+        // Calculate the height of the water layer
+        waterHeight = TerrainSettings.WaterHeight * TerrainSettings.HeightMultiplier;
 
         // Now calculate the actual heights from the noise and the biomes
         For(0, map.Height, (int y) =>
@@ -355,9 +358,23 @@ public class TerrainGenerator : MonoBehaviour
                     map.Heights[index] = 0;
                 }
 
+
+                // Check if this point is underwater
+                if (TerrainSettings.DoWater && map.Heights[index] <= TerrainSettings.WaterHeight)
+                {
+                    map.Biomes[index] = TerrainSettings.UnderwaterBiome;
+                }
+
+
                 // Now calculate the final height for the vertex
                 // And scale by a fixed value
                 map.Heights[index] *= TerrainSettings.HeightMultiplier;
+
+
+
+
+
+
 
 
                 // Calculate if this point can be a green

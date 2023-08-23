@@ -12,6 +12,8 @@ public class TerrainManager : MonoBehaviour, IManager
     public CameraManager CameraManager;
     public GolfBall GolfBall;
 
+    public Transform Water;
+
     public Transform NextHolePosition;
 
     public TerrainData CurrentLoadedTerrain { get; private set; }
@@ -153,6 +155,10 @@ public class TerrainManager : MonoBehaviour, IManager
         Reset();
         IsLoading = true;
 
+        Water.gameObject.SetActive(data.DoWater);
+        Vector3 waterPos = Water.position;
+        waterPos.y = data.WaterHeight;
+        Water.position = waterPos;
 
         // Load terrain
         foreach (TerrainChunkData chunk in data.Chunks)

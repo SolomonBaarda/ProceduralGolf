@@ -14,35 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NumChunksToGenerateSize: 10
   CourseCameraPathSimplificationStrength: 7.5
-  UseHeightDistributionCurve: 0
-  HeightDistribution:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 2
-      outSlope: 2
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   BaseHeight: 1
   HeightMultiplier: 10
   BackgroundBiome: 1
   ForceMinHeightZero: 0
+  DoWater: 1
+  WaterHeight: 0.5
+  UnderwaterBiome: 5
   TerrainLayers:
   - Apply: 1
     Settings: {fileID: 11400000, guid: 44c6a708a136f3a48a611ae69a10d9a3, type: 2}
@@ -190,6 +168,33 @@ MonoBehaviour:
     Masks:
     - LayerIndex: 1
       NoiseThresholdMin: 0.6
+      NoiseThresholdMax: 1
+    - LayerIndex: 1
+      NoiseThresholdMin: 0.6
+      NoiseThresholdMax: 1
+  - Apply: 1
+    Settings: {fileID: 11400000, guid: 9aff127d4e9e7814899c346123646095, type: 2}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0.8
+    NoiseThresholdMax: 1
+    OneMinus: 0
+    Offset: -0.775
+    Multiplier: 10
+    Biome: 0
+    ClampHeightToZero: 0
+    CombinationMode: 1
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
+    UseMask: 0
+    Masks:
+    - LayerIndex: 1
+      NoiseThresholdMin: 0.4
       NoiseThresholdMax: 1
   PoissonSamplingIterations: 5
   PoissonSamplingRadius: 13
