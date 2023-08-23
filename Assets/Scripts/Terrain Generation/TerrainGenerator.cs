@@ -1,10 +1,12 @@
-﻿#define GOLF_PARALLEL_ROUTINES
-//#define DEBUG_FLOOD_FILL
+﻿//#define GOLF_PARALLEL_ROUTINES
+//#define UnityEngine.Debug_FLOOD_FILL
 
+using C5;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -36,7 +38,7 @@ public class TerrainGenerator : MonoBehaviour
     {
         if (IsGenerating)
         {
-            Debug.LogError("Terrain is already being generated");
+            UnityEngine.Debug.LogError("Terrain is already being generated");
             return;
         }
 
@@ -61,7 +63,7 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         if (!atLeastOneObject)
-            Debug.LogError("No procedural objects have been added");
+            UnityEngine.Debug.LogError("No procedural objects have been added");
 
         CurrentSettings = settings;
 
@@ -109,7 +111,7 @@ public class TerrainGenerator : MonoBehaviour
 
     private IEnumerator WaitForGenerate(bool atLeastOneObject, OnCourseGenerated callback)
     {
-        Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
+        UnityEngine.Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
 
         DateTime startTimestamp = DateTime.Now, lastTimestamp = startTimestamp;
         IsGenerating = true;
@@ -130,7 +132,6 @@ public class TerrainGenerator : MonoBehaviour
         AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
         float maxMinusMin = maxHeight - minHeight;
 
-
         // Now calculate the final height for the vertex
         For(0, map.Heights.Length, (int index) =>
         {
@@ -148,7 +149,7 @@ public class TerrainGenerator : MonoBehaviour
         });
 
 
-        Debug.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        UnityEngine.Debug.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -161,7 +162,7 @@ public class TerrainGenerator : MonoBehaviour
             GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width, map.Height) * distanceBetweenNoiseSamples);
 
 
-        Debug.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        UnityEngine.Debug.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -169,16 +170,17 @@ public class TerrainGenerator : MonoBehaviour
         int chunkSize = TerrainSettings.SamplePointFrequency;
         ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
-        Debug.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        UnityEngine.Debug.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
         // Partially sequential
         List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
+        // Sequential but short
         var invalidBiomes = CalculateInvalidBiomesForCourse();
 
-        Debug.Log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        UnityEngine.Debug.Log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -187,7 +189,7 @@ public class TerrainGenerator : MonoBehaviour
         TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, invalidBiomes, TextureSettings.GetColour(TerrainSettings.BackgroundBiome), TerrainSettings.name);
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
-        Debug.Log(message);
+        UnityEngine.Debug.Log(message);
         yield return null;
 
         IsGenerating = false;
@@ -196,11 +198,11 @@ public class TerrainGenerator : MonoBehaviour
         callback(terrain);
     }
 
-    private HashSet<Biome.Type> CalculateInvalidBiomesForCourse()
+    private System.Collections.Generic.HashSet<Biome.Type> CalculateInvalidBiomesForCourse()
     {
         // Calculate which biomes are allowed
         // Always allow none as otherwise we couldn't shoot the ball
-        HashSet<Biome.Type> allowedBiomes = new HashSet<Biome.Type>() { Biome.Type.None };
+        var allowedBiomes = new System.Collections.Generic.HashSet<Biome.Type>() { Biome.Type.None };
         foreach (var setting in TerrainSettings.Course)
         {
             foreach (var biome in setting.RequiredBiomes)
@@ -458,7 +460,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
 
-    private class Node
+    private class Node : IComparable
     {
         public Vector2Int Position;
 
@@ -482,22 +484,54 @@ public class TerrainGenerator : MonoBehaviour
         }
 
         public int Cost => Distance + Heuristic;
+
+        public override bool Equals(object obj)
+        {
+            return obj is Node node && Position.Equals(node.Position);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Position);
+        }
+
+        public int CompareTo(object obj)
+        {
+            return Cost.CompareTo((obj as Node).Cost);
+        }
     }
 
     private static List<Vector2Int> CalculateShortestPathOnCourseFromStartToEnd(TerrainMap map, Vector2Int start, Vector2Int end)
     {
-        var openList = new List<Node>() { new Node(end, 0, (start - end).sqrMagnitude, null) };
-        var closedList = new List<Node>();
+        // Structure for efficiently prioritising nodes
+        // Interval heap is required for replacing already open nodes with the shorter path
+        var openList = new IntervalHeap<Node>();
 
+        // Structures for quickly checking if a node is open or closed
+        var openNodeHandles = new Dictionary<Vector2Int, IPriorityQueueHandle<Node>>();
+        var closedNodes = new System.Collections.Generic.HashSet<Vector2Int>();
+
+
+        void AddNodeToOpenList(Node n)
+        {
+            IPriorityQueueHandle<Node> handle = null;
+            openList.Add(ref handle, n);
+            openNodeHandles.Add(n.Position, handle);
+        }
+
+        // Add the initial node
+        var initial = new Node(end, 0, (start - end).sqrMagnitude, null);
+        AddNodeToOpenList(initial);
+
+
+        // Main loop
         while (openList.Count > 0)
         {
-            openList.Sort((x, y) => x.Cost.CompareTo(y.Cost));
+            // Get the current node with the lowest cost
+            var currentNode = openList.DeleteMin();
+            openNodeHandles.Remove(currentNode.Position);
+            closedNodes.Add(currentNode.Position);
 
-            // Get the current node
-            // Should have the lowest cost
-            var currentNode = openList[0];
-            openList.RemoveAt(0);
-            closedList.Add(currentNode);
 
             // We have found the goal
             if (start.Equals(currentNode.Position))
@@ -515,6 +549,7 @@ public class TerrainGenerator : MonoBehaviour
                 return path;
             }
 
+
             List<Node> children = new List<Node>();
 
             void AddIfValidChild(Vector2Int direction)
@@ -522,7 +557,7 @@ public class TerrainGenerator : MonoBehaviour
                 Vector2Int child = currentNode.Position + direction;
 
                 // Ensure valid position
-                if (child.x >= 0 && child.y >= 0 && child.x < map.Width && child.y < map.Height &&
+                if (child.x >= 0 && child.y >= 0 && child.x < map.Width && child.y < map.Height && 
                     map.Greens[(child.y * map.Width) + child.x])
                 {
                     // Distance travelled
@@ -535,6 +570,8 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
 
+
+            // Add all possible children
             AddIfValidChild(Vector2Int.up);
             AddIfValidChild(Vector2Int.down);
             AddIfValidChild(Vector2Int.left);
@@ -546,29 +583,36 @@ public class TerrainGenerator : MonoBehaviour
             AddIfValidChild(new Vector2Int(1, -1));
             AddIfValidChild(new Vector2Int(-1, -1));
 
+            
+            // Check each child
             foreach (var newChild in children)
             {
                 // Skip child if it has already been visited
-                if (closedList.Any(x => x.Position.Equals(newChild.Position))) continue;
+                if (closedNodes.Contains(newChild.Position)) continue;
 
-                int index = openList.FindIndex(x => x.Position.Equals(newChild.Position));
-                if (index >= 0 && index < openList.Count)
+                
+                // See if the node is already in the open list
+                if (openNodeHandles.TryGetValue(newChild.Position, out var existingHandle) && openList.Find(existingHandle, out var existing))
                 {
-                    // Update this node to be the new shortest path
-                    if (newChild.Distance < openList[index].Distance)
+                    // We have a new shortest path
+                    if (newChild.Distance < existing.Distance)
                     {
-                        openList[index] = newChild;
+                        // Handles remain the same
+
+                        // Replace the existing node with the new node
+                        openList.Replace(existingHandle, newChild);
                     }
                 }
                 else
                 {
                     // If this is a new node then add it to the open list
-                    openList.Add(newChild);
+                    AddNodeToOpenList(newChild);
                 }
             }
         }
 
-        return new List<Vector2Int>();
+        UnityEngine.Debug.LogError("Failed to find shortest path for course");
+        return new List<Vector2Int>() { start, end };
     }
 
     /// <summary>
@@ -605,7 +649,6 @@ public class TerrainGenerator : MonoBehaviour
             }
         }
 
-
 #if DEBUG_FLOOD_FILL
 
         Texture2D t = new Texture2D(map.Width, map.Height);
@@ -633,9 +676,9 @@ public class TerrainGenerator : MonoBehaviour
         t.Apply();
 
         byte[] png = t.EncodeToPNG();
-        File.WriteAllBytes(Application.dataPath + "/debug_floodfill.png", png);
+        File.WriteAllBytes(Application.dataPath + "/UnityEngine.Debug_floodfill.png", png);
 
-        Debug.LogWarning($"Wrote flood fill debug image to \"{Application.dataPath + "/debug_floodfill.png"}\"");
+        UnityEngine.Debug.LogWarning($"Wrote flood fill UnityEngine.Debug image to \"{Application.dataPath + "/UnityEngine.Debug_floodfill.png"}\"");
 
 #endif
 
@@ -960,7 +1003,7 @@ public class TerrainGenerator : MonoBehaviour
             }
             else
             {
-                Debug.LogError("SplitIntoChunks: Missing dict chunk for world object");
+                UnityEngine.Debug.LogError("SplitIntoChunks: Missing dict chunk for world object");
             }
         }
 
@@ -975,7 +1018,7 @@ public class TerrainGenerator : MonoBehaviour
             }
             else
             {
-                Debug.LogError("ERROR");
+                UnityEngine.Debug.LogError("ERROR");
             }
 
         }
@@ -1042,7 +1085,7 @@ public class TerrainGenerator : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogError("GenerateTerrainMapProceduralObjects: Failed to choose closest terrain map index for position");
+                        UnityEngine.Debug.LogError("GenerateTerrainMapProceduralObjects: Failed to choose closest terrain map index for position");
                     }
                 }
             }
