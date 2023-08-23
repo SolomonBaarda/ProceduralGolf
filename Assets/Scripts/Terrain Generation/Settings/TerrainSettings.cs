@@ -11,9 +11,6 @@ public class TerrainSettings : VariablePreset
 
     public float CourseCameraPathSimplificationStrength = 10.0f;
 
-    public bool UseHeightDistributionCurve = false;
-    public AnimationCurve HeightDistribution;
-
     public float BaseHeight = 1.0f;
     public float HeightMultiplier = 1.0f;
     public Biome.Type BackgroundBiome;

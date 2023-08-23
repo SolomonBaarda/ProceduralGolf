@@ -124,25 +124,11 @@ public class TerrainGenerator : MonoBehaviour
         Vector2 offset = Vector2.zero;
         float distanceBetweenNoiseSamples = TerrainChunkData.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
 
-        GenerateTerrain(map, out float minHeight, out float maxHeight);
-
-        // Use height curve to calculate new height distribution
-        // TODO BLOCKING HEIGHT CURVE OBJ
-        AnimationCurve threadSafe = new AnimationCurve(TerrainSettings.HeightDistribution.keys);
-        float maxMinusMin = maxHeight - minHeight;
+        GenerateTerrain(map);
 
         // Now calculate the final height for the vertex
         For(0, map.Heights.Length, (int index) =>
         {
-            // DON'T Normalise the height
-            //map.Heights[index] = (map.Heights[index] - minHeight) / maxMinusMin;
-
-            // Apply the curve
-            if (TerrainSettings.UseHeightDistributionCurve)
-            {
-                map.Heights[index] = threadSafe.Evaluate(map.Heights[index]);
-            }
-
             // And scale by a fixed value
             map.Heights[index] *= TerrainSettings.HeightMultiplier;
         });
@@ -237,7 +223,7 @@ public class TerrainGenerator : MonoBehaviour
     /// <param name="map"></param>
     /// <param name="offset"></param>
     /// <param name="distanceBetweenNoiseSamples"></param>
-    private void GenerateTerrain(TerrainMap map, out float minHeight, out float maxHeight)
+    private void GenerateTerrain(TerrainMap map)
     {
         for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
         {
@@ -427,34 +413,7 @@ public class TerrainGenerator : MonoBehaviour
                 }
             }
         });
-
-        // TODO PARALLELISE:
-
-        minHeight = map.Heights[0];
-        maxHeight = minHeight;
-
-        foreach (float height in map.Heights)
-        {
-            if (height < minHeight)
-            {
-                minHeight = height;
-            }
-
-            if (height > maxHeight)
-            {
-                maxHeight = height;
-            }
-        }
     }
-
-
-
-
-
-
-
-
-
 
 
 
