@@ -1,4 +1,4 @@
-﻿//#define GOLF_PARALLEL_ROUTINES
+﻿#define GOLF_PARALLEL_ROUTINES
 //#define UnityEngine.Debug_FLOOD_FILL
 
 using C5;
@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -149,7 +148,7 @@ public class TerrainGenerator : MonoBehaviour
         });
 
 
-        UnityEngine.Debug.Log($"* Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        UnityEngine.Debug.Log($"Generated terrain in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -162,7 +161,7 @@ public class TerrainGenerator : MonoBehaviour
             GenerateTerrainMapProceduralObjects(map, TerrainSettings.PoissonSamplingRadius, TerrainSettings.PoissonSamplingIterations, new Vector2(map.Width, map.Height) * distanceBetweenNoiseSamples);
 
 
-        UnityEngine.Debug.Log($"* Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        UnityEngine.Debug.Log($"Generated object positions in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -170,7 +169,7 @@ public class TerrainGenerator : MonoBehaviour
         int chunkSize = TerrainSettings.SamplePointFrequency;
         ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
 
-        UnityEngine.Debug.Log($"* Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        UnityEngine.Debug.Log($"Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
@@ -180,7 +179,7 @@ public class TerrainGenerator : MonoBehaviour
         // Sequential but short
         var invalidBiomes = CalculateInvalidBiomesForCourse();
 
-        UnityEngine.Debug.Log($"* Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        UnityEngine.Debug.Log($"Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 

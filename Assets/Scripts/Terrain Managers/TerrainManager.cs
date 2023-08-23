@@ -55,7 +55,7 @@ public class TerrainManager : MonoBehaviour, IManager
     private void CourseCompleted(CourseData course)
     {
         GolfBall.HoleReached(course.Number, DateTime.Now);
-        Debug.Log($"* Course #{course.Number} completed");
+        Debug.Log($"Course #{course.Number} completed");
 
         StartCoroutine(PlayFireworksOnCourseEnd(course));
     }
@@ -87,7 +87,7 @@ public class TerrainManager : MonoBehaviour, IManager
         else
         {
             OnGameOver.Invoke(GolfBall.Progress.CoursesCompleted.ToArray());
-            Debug.Log("* All courses completed");
+            Debug.Log("All courses completed");
         }
     }
 
@@ -188,14 +188,14 @@ public class TerrainManager : MonoBehaviour, IManager
         IsLoading = false;
 
         // Debug
-        Debug.Log($"* Loaded terrain in {(DateTime.Now - before).TotalSeconds:0.0} seconds with {data.Chunks.Count} chunks and {data.Courses.Count} courses.");
+        Debug.Log($"Loaded terrain in {(DateTime.Now - before).TotalSeconds:0.0} seconds with {data.Chunks.Count} chunks and {data.Courses.Count} courses.");
 
         string invalidBiomesString = "";
         foreach (var biome in data.InvalidBiomesForCurrentCourse)
         {
             invalidBiomesString += $"{biome}, ";
         }
-        Debug.Log($"* Invalid biomes for current course: {invalidBiomesString}");
+        Debug.Log($"Invalid biomes for current course: {invalidBiomesString}");
     }
 
     private void FixedUpdate()
