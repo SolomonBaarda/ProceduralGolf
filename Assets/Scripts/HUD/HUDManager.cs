@@ -12,6 +12,9 @@ public class HUDManager : MonoBehaviour, IManager
     public Canvas CanvasInteraction;
     public Canvas CanvasScoreboard;
     public Canvas CanvasOptions;
+    public Canvas CanvasFullscreenMap;
+
+
     [Space]
     public GameObject ButtonsCanvas;
     public GameObject ShootingCanvas;
@@ -40,6 +43,9 @@ public class HUDManager : MonoBehaviour, IManager
     public GameObject ScoreRowParent;
     public List<ScoreboardRow> ScoreboardRows = new List<ScoreboardRow>();
 
+    //[Header("Fullscreen Map")]
+
+
     public void Reset()
     {
         for (int i = 0; i < ScoreRowParent.transform.childCount; i++)
@@ -66,6 +72,7 @@ public class HUDManager : MonoBehaviour, IManager
     {
         CanvasScoreboard.gameObject.SetActive(false);
         CanvasOptions.gameObject.SetActive(false);
+        CanvasFullscreenMap.gameObject.SetActive(false);
     }
 
     public void ShootPressed() { OnShootPressed.Invoke(); HideAllMenus(); }
