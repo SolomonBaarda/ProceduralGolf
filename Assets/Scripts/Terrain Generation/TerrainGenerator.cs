@@ -1002,6 +1002,7 @@ public class TerrainGenerator : MonoBehaviour
                 {
                     if (Utils.GetClosestIndex(pos, Vector2.zero, worldBoundsSize, map.Width, map.Height, out int x, out int y))
                     {
+                        // Closest terrain map index
                         int terrainMapIndex = (y * map.Width) + x;
                         Biome.Type biome = map.Biomes[terrainMapIndex];
 
@@ -1027,10 +1028,20 @@ public class TerrainGenerator : MonoBehaviour
 
                             if (!attempt.UseMask || maskvalid)
                             {
+                                // Calculate the minimum height of the 2x2 of surrounding vertices
+                                float minimumHeight = Mathf.Min
+                                (
+                                    map.Heights[terrainMapIndex],
+                                    map.Heights[terrainMapIndex - map.Width - 1],
+                                    map.Heights[terrainMapIndex - map.Width + 1],
+                                    map.Heights[terrainMapIndex + map.Width - 1],
+                                    map.Heights[terrainMapIndex + map.Width + 1]
+                                );
+
                                 // If we get here then this object must be valid at the position
                                 worldObjects.Add(new TerrainMap.WorldObjectData()
                                 {
-                                    LocalPosition = new Vector3(pos.x, map.Heights[terrainMapIndex] - WorldObjectYOffset, pos.y),
+                                    LocalPosition = new Vector3(pos.x, minimumHeight - WorldObjectYOffset, pos.y),
                                     Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
                                     Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
                                     ClosestIndexX = x,

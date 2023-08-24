@@ -126,6 +126,11 @@ public class MainMenuManager : MonoBehaviour, IManager
     {
         Application.OpenURL("https://github.com/Delt06/urp-toon-shader");
     }
-    
+
+    // Water shader
+    public void OpenIgniteCodersCredits()
+    {
+        Application.OpenURL("https://assetstore.unity.com/publishers/53014");
+    }
 
 }

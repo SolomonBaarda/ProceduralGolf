@@ -234,6 +234,9 @@ MonoBehaviour:
     - LayerIndex: 1
       NoiseThresholdMin: 0.45
       NoiseThresholdMax: 0.65
+    - LayerIndex: 6
+      NoiseThresholdMin: 0
+      NoiseThresholdMax: 0.75
   - Do: 1
     RequiredBiomes: 02000000
     Prefabs:
