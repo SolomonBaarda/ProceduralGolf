@@ -14,6 +14,8 @@ public class TerrainManager : MonoBehaviour, IManager
 
     public MeshFilter WaterMesh;
     public MeshRenderer WaterRenderer;
+    public MeshFilter WaterMeshMinimap;
+
 
     public Transform NextHolePosition;
 
@@ -183,15 +185,22 @@ public class TerrainManager : MonoBehaviour, IManager
 
         GolfBall.InvalidBiomesForCurrentCourse = data.InvalidBiomesForCurrentCourse;
 
+
         // Assign water mesh
-        WaterMesh.mesh = data.WaterMesh;
         WaterMesh.gameObject.SetActive(data.DoWater);
+        WaterMeshMinimap.gameObject.SetActive(data.DoWater);
+
+        WaterMesh.mesh = data.WaterMesh;
+        WaterMeshMinimap.mesh = data.WaterMesh;
+
         Vector3 waterPos = WaterMesh.transform.position;
         waterPos.y = data.WaterMeshHeight;
         WaterMesh.transform.position = waterPos;
+        WaterMeshMinimap.transform.position = waterPos;
 
         Material waterMaterial = WaterRenderer.material;
         waterMaterial.SetVector("_NormalTiling", new Vector2(data.WaterMeshTiling, data.WaterMeshTiling));
+
 
         // Assign the terrain at the end
         HasTerrain = true;
