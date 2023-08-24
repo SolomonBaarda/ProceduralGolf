@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Fairway
   m_EditorClassIdentifier: 
   RotationType: 0
-  Frequency: 0.004
+  Frequency: 0.005
   NoiseType: 0
   Offset: {x: 0, y: 0}
   FractalType: 3
