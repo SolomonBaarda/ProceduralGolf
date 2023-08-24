@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
-
+using UnityEditor.PackageManager.UI;
 
 public class PointerSlider : HeldButton, IDragHandler
 {
@@ -13,13 +13,20 @@ public class PointerSlider : HeldButton, IDragHandler
     public Image Background;
     public Gradient Gradient;
 
+    public float Sensitivity = 5.0f;
+
     public Vector2 DeltaPosition { get { if (IsPressed) { return delta; } else { return Vector2.zero; } } }
     private Vector2 delta;
     private bool isDragging;
     private bool coroutineIsRunning;
 
 
+    private Vector2 window = new Vector2();
 
+    private void Awake()
+    {
+        window = new Vector2(Screen.width, Screen.height);
+    }
 
     public new void OnDrag(PointerEventData eventData)
     {
@@ -27,9 +34,8 @@ public class PointerSlider : HeldButton, IDragHandler
         // Need to reset delta somehow
         base.OnDrag(eventData);
 
-        delta = eventData.delta;
+        delta = eventData.delta / window * Time.deltaTime * 10000.0f * Sensitivity;
         isDragging = true;
-
 
         // Start the courotine if we need to
         if (!coroutineIsRunning)
