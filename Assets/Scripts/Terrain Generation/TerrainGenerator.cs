@@ -118,10 +118,9 @@ public class TerrainGenerator : MonoBehaviour
         // TERRAIN LAYERS
 
         // Construct the terrain map for the whole course
-        int size = TerrainSettings.NumChunksToGenerateSize * TerrainSettings.SamplePointFrequency;
+        int size = TerrainSettings.NumChunksToGenerateSize * (TerrainSettings.SamplePointFrequency - 1) + 1;
         TerrainMap map = new TerrainMap(size, size);
 
-        Vector2 offset = Vector2.zero;
         float distanceBetweenNoiseSamples = TerrainChunkData.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
 
         GenerateTerrain(map, out float waterHeight);
@@ -144,8 +143,9 @@ public class TerrainGenerator : MonoBehaviour
 
         // Now subdivide the data into chunks and calculate the mesh data
         int chunkSize = TerrainSettings.SamplePointFrequency;
-        ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, offset, distanceBetweenNoiseSamples);
+        ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, distanceBetweenNoiseSamples);
 
+        Mesh waterMesh = TerrainSettings.DoWater ? GenerateWaterMesh(map, waterHeight, distanceBetweenNoiseSamples) : null;
 
         UnityEngine.Debug.Log($"Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
@@ -164,7 +164,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
         // Create the object and set the data
-        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.DoWater, waterHeight, invalidBiomes, TextureSettings.GetColour(TerrainSettings.BackgroundBiome), TerrainSettings.name);
+        TerrainData terrain = new TerrainData(CurrentSettings.Seed, data.Values.ToList(), courses, TerrainSettings.DoWater, waterMesh, waterHeight, map.Width, invalidBiomes, TextureSettings.GetColour(TerrainSettings.BackgroundBiome), TerrainSettings.name);
 
 
         string message = $"Finished generating terrain. Completed in {(DateTime.Now - startTimestamp).TotalSeconds:0.0} seconds";
@@ -732,15 +732,46 @@ public class TerrainGenerator : MonoBehaviour
         return new Vector3(x * distanceBetweenNoiseSamples, map.Heights[(y * map.Width) + x], y * distanceBetweenNoiseSamples);
     }
 
+    private Mesh GenerateWaterMesh(TerrainMap map, float waterHeight, float distanceBetweenNoiseSamples)
+    {
+        Vector3 min = CalculateWorldVertexPositionFromTerrainMapIndex(map, 0, 0, distanceBetweenNoiseSamples);
+        Vector3 max = CalculateWorldVertexPositionFromTerrainMapIndex(map, map.Width - 1, map.Height - 1, distanceBetweenNoiseSamples);
+
+        Mesh m = new Mesh()
+        {
+            vertices = new Vector3[] 
+            {
+                // For some reason setting water height here does nothing
+                new Vector3(min.x, 0, min.z), 
+                new Vector3(min.x, 0, max.z), 
+                new Vector3(max.x, 0, min.z), 
+                new Vector3(max.x, 0, max.z) 
+            },
+            triangles = new int[] 
+            { 
+                0, 1, 2, 
+                1, 3, 2 
+            },
+            normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up },
+            uv = new Vector2[] { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 0), new Vector2(1, 1) },
+        };
+        
+        m.RecalculateTangents();
+        m.RecalculateBounds();
+        m.Optimize();
+
+        return m;
+    }
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="map"></param>
-    private ConcurrentDictionary<Vector2Int, TerrainChunkData> SplitIntoChunksAndGenerateMeshData(TerrainMap map, int chunkSize, Vector2 offset, float distanceBetweenNoiseSamples)
+    private ConcurrentDictionary<Vector2Int, TerrainChunkData> SplitIntoChunksAndGenerateMeshData(TerrainMap map, int chunkSize, float distanceBetweenNoiseSamples)
     {
         ConcurrentDictionary<Vector2Int, TerrainChunkData> chunkData = new ConcurrentDictionary<Vector2Int, TerrainChunkData>();
 
-        int numChunksY = map.Height / chunkSize, numChunksX = map.Width / chunkSize;
+        int numChunksY = map.Height / (chunkSize - 1), numChunksX = map.Width / (chunkSize - 1);
 
         var writableMeshData = Mesh.AllocateWritableMeshData(numChunksY * numChunksX * MeshSettings.LevelOfDetail.Count);
         Mesh[] meshes = new Mesh[numChunksY * numChunksX * MeshSettings.LevelOfDetail.Count];
@@ -801,7 +832,7 @@ public class TerrainGenerator : MonoBehaviour
                         positions[vertexIndex] = CalculateWorldVertexPositionFromTerrainMapIndex(map, terrainMapX, terrainMapY, distanceBetweenNoiseSamples);
 
                         // Calculate the primary texture coordinates
-                        UVs[vertexIndex] = new Vector2((float)(x) / chunkSize, (float)(y) / chunkSize);
+                        UVs[vertexIndex] = new Vector2((float)x / chunkSize, (float)y / chunkSize);
 
                         // Set the colour
                         colours[vertexIndex] = TextureSettings.GetColour(map.Biomes[(terrainMapY * map.Width) + terrainMapX]);

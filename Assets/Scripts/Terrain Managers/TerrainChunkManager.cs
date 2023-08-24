@@ -10,7 +10,6 @@ public class TerrainChunkManager : MonoBehaviour, IManager
 
     private Dictionary<Vector2Int, TerrainChunk> TerrainChunks = new Dictionary<Vector2Int, TerrainChunk>();
 
-
     public TerrainChunk TryAddChunk(TerrainChunkData data)
     {
         if (TerrainChunks.TryGetValue(data.Position, out TerrainChunk c))

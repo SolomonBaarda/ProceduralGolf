@@ -12,7 +12,8 @@ public class TerrainManager : MonoBehaviour, IManager
     public CameraManager CameraManager;
     public GolfBall GolfBall;
 
-    public Transform Water;
+    public MeshFilter WaterMesh;
+    public MeshRenderer WaterRenderer;
 
     public Transform NextHolePosition;
 
@@ -154,12 +155,7 @@ public class TerrainManager : MonoBehaviour, IManager
         DateTime before = DateTime.Now;
         Reset();
         IsLoading = true;
-
-        Water.gameObject.SetActive(data.DoWater);
-        Vector3 waterPos = Water.position;
-        waterPos.y = data.WaterHeight;
-        Water.position = waterPos;
-
+       
         // Load terrain
         foreach (TerrainChunkData chunk in data.Chunks)
         {
@@ -186,6 +182,16 @@ public class TerrainManager : MonoBehaviour, IManager
         }
 
         GolfBall.InvalidBiomesForCurrentCourse = data.InvalidBiomesForCurrentCourse;
+
+        // Assign water mesh
+        WaterMesh.mesh = data.WaterMesh;
+        WaterMesh.gameObject.SetActive(data.DoWater);
+        Vector3 waterPos = WaterMesh.transform.position;
+        waterPos.y = data.WaterMeshHeight;
+        WaterMesh.transform.position = waterPos;
+
+        Material waterMaterial = WaterRenderer.material;
+        waterMaterial.SetVector("_NormalTiling", new Vector2(data.WaterMeshTiling, data.WaterMeshTiling));
 
         // Assign the terrain at the end
         HasTerrain = true;

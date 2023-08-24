@@ -10,19 +10,23 @@ public class TerrainData
     public List<CourseData> Courses;
 
     public bool DoWater;
-    public float WaterHeight;
+    public Mesh WaterMesh;
+    public float WaterMeshHeight;
+    public int WaterMeshTiling;
 
     public HashSet<Biome.Type> InvalidBiomesForCurrentCourse;
     public Color32 BackgroundColour;
 
-    public TerrainData(int seed, List<TerrainChunkData> chunks, List<CourseData> courses, bool doWater, float waterHeight,
+    public TerrainData(int seed, List<TerrainChunkData> chunks, List<CourseData> courses, bool doWater, Mesh waterMesh, float waterMeshHeight, int waterMeshTiling,
         HashSet<Biome.Type> invalidBiomesForCurrentCourse, Color32 backgroundColour, string terrainSettingsName)
     {
         Seed = seed;
         Courses = courses;
         Chunks = chunks;
         DoWater = doWater;
-        WaterHeight = waterHeight;
+        WaterMesh = waterMesh;
+        WaterMeshHeight = waterMeshHeight;
+        WaterMeshTiling = waterMeshTiling;
         InvalidBiomesForCurrentCourse = invalidBiomesForCurrentCourse;
         BackgroundColour = backgroundColour;
         TerrainSettingsName = terrainSettingsName;
