@@ -1,0 +1,206 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8d50202f2395ee43855d310482cbefb, type: 3}
+  m_Name: Tundra
+  m_EditorClassIdentifier: 
+  NumChunksToGenerateSize: 10
+  CourseCameraPathSimplificationStrength: 7.5
+  BaseHeight: 0.1
+  HeightMultiplier: 10
+  BackgroundBiome: 8
+  ForceMinHeightZero: 1
+  DoWater: 0
+  WaterHeight: 0
+  UnderwaterBiome: 4
+  TerrainLayers:
+  - Apply: 1
+    Settings: {fileID: 11400000, guid: 652e283c036b7a34f9a127d6c760f8db, type: 2}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0.75
+        value: 1.0000012
+        inSlope: 0.0145803485
+        outSlope: 0.0145803485
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.26594973
+      - serializedVersion: 3
+        time: 1
+        value: 0.000074748605
+        inSlope: -7.1917686
+        outSlope: -7.1917686
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.06708336
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0
+    NoiseThresholdMax: 1
+    OneMinus: 0
+    Offset: 0
+    Multiplier: 0.5
+    Biome: 9
+    ClampHeightToZero: 0
+    CombinationMode: 0
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
+    UseMask: 0
+    Masks:
+    - LayerIndex: 0
+      NoiseThresholdMin: 0
+      NoiseThresholdMax: 0.5
+  - Apply: 1
+    Settings: {fileID: 11400000, guid: dda91e03024e4434699e8533ae76d703, type: 2}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0.75
+        value: 1.0000012
+        inSlope: 0.0145803485
+        outSlope: 0.0145803485
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.26594973
+      - serializedVersion: 3
+        time: 1
+        value: 0.000074748605
+        inSlope: -7.1917686
+        outSlope: -7.1917686
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.06708336
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0.2
+    NoiseThresholdMax: 1
+    OneMinus: 0
+    Offset: -0.2
+    Multiplier: 6
+    Biome: 9
+    ClampHeightToZero: 0
+    CombinationMode: 0
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
+    UseMask: 0
+    Masks: []
+  - Apply: 1
+    Settings: {fileID: 0}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0.3
+    NoiseThresholdMax: 1
+    OneMinus: 0
+    Offset: -0.3
+    Multiplier: 6
+    Biome: 10
+    ClampHeightToZero: 0
+    CombinationMode: 0
+    ShareOtherLayerNoise: 1
+    LayerIndexShareNoise: 1
+    UseMask: 0
+    Masks: []
+  - Apply: 1
+    Settings: {fileID: 0}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0.8
+    NoiseThresholdMax: 1
+    OneMinus: 0
+    Offset: -0.8
+    Multiplier: 20
+    Biome: 8
+    ClampHeightToZero: 0
+    CombinationMode: 0
+    ShareOtherLayerNoise: 1
+    LayerIndexShareNoise: 1
+    UseMask: 0
+    Masks: []
+  - Apply: 1
+    Settings: {fileID: 0}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0.9
+    NoiseThresholdMax: 1
+    OneMinus: 0
+    Offset: -0.9
+    Multiplier: 5
+    Biome: 9
+    ClampHeightToZero: 0
+    CombinationMode: 1
+    ShareOtherLayerNoise: 1
+    LayerIndexShareNoise: 1
+    UseMask: 0
+    Masks: []
+  - Apply: 1
+    Settings: {fileID: 11400000, guid: 901e65ef209326d4598982228a4dbd6a, type: 2}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0.6
+    NoiseThresholdMax: 1
+    OneMinus: 0
+    Offset: -0.55
+    Multiplier: 10
+    Biome: 8
+    ClampHeightToZero: 0
+    CombinationMode: 1
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
+    UseMask: 1
+    Masks:
+    - LayerIndex: 1
+      NoiseThresholdMin: 0
+      NoiseThresholdMax: 0.15
+  PoissonSamplingIterations: 5
+  PoissonSamplingRadius: 13
+  ProceduralObjects: []
+  Course:
+  - Do: 1
+    RequiredBiomes: 09000000
+    UseMask: 0
+    Masks: []
+  Holes:
+  - Do: 1
+    RequiredBiomes: 0900000008000000
+    UseMask: 0
+    Masks: []
+  MinimumWorldDistanceBetweenHoles: 250

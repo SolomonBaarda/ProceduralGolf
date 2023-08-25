@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8e3c32715cc46b14f8da824198e36a66, type: 3}
-  m_Name: Lake
+  m_Name: Tundra Mountains
   m_EditorClassIdentifier: 
   RotationType: 0
-  Frequency: 0.01
+  Frequency: 0.015
   NoiseType: 0
   Offset: {x: 0, y: 0}
   FractalType: 1
   Octaves: 3
-  Lacunarity: 2
-  Gain: 0.2
+  Lacunarity: 2.5
+  Gain: 0.6
   WeightedStrength: 1
   PingPongStrength: 0
   DistanceFunction: 1
