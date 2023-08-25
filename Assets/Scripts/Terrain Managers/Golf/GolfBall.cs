@@ -190,6 +190,8 @@ public class GolfBall : MonoBehaviour
         {
             switch (CurrentBiome)
             {
+                case Biome.Type.None:
+                    break;
                 case Biome.Type.ShortGrass:
                     CurrentPreset = Preset_GrassShort;
                     break;
@@ -202,11 +204,20 @@ public class GolfBall : MonoBehaviour
                 case Biome.Type.NormalSand:
                     CurrentPreset = Preset_Sand;
                     break;
+                case Biome.Type.HardSand:
+                    CurrentPreset = Preset_Sand;
+                    break;
+                case Biome.Type.SoftSand:
+                    CurrentPreset = Preset_Sand;
+                    break;
                 case Biome.Type.Water:
                     CurrentPreset = Preset_Water;
                     break;
                 case Biome.Type.Ice:
                     CurrentPreset = Preset_Ice;
+                    break;
+                default:
+                    Debug.LogError("Missing golf ball preset for biome");
                     break;
             }
         }
