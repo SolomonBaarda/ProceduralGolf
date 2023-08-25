@@ -168,5 +168,8 @@ MonoBehaviour:
   - Do: 1
     RequiredBiomes: 03000000
     UseMask: 1
-    Masks: []
+    Masks:
+    - LayerIndex: 0
+      NoiseThresholdMin: 0.8
+      NoiseThresholdMax: 1
   MinimumWorldDistanceBetweenHoles: 250

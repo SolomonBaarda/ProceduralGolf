@@ -25,7 +25,7 @@ public class TerrainGenerator : MonoBehaviour
 
     public bool IsGenerating { get; private set; } = false;
 
-    private const float WorldObjectYOffset = 0.2f;
+    private const float WorldObjectYOffset = 0.05f;
 
     private const int NumAttemptsToChooseRandomCoursePositions = 100;
 
