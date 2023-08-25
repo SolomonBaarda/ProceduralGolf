@@ -43,7 +43,10 @@ public class PointerSlider : HeldButton, IDragHandler
         }
     }
 
-
+    public void UpdateSensitivity(float value)
+    {
+        Sensitivity = value;
+    }
 
     private IEnumerator WaitUntilDragStops()
     {
