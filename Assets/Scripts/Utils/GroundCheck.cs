@@ -6,5 +6,5 @@ public static class GroundCheck
 
     public static LayerMask GroundMask => LayerMask.GetMask("Ground");
 
-    public static LayerMask SolidObjectsMask => LayerMask.GetMask("Ground", "Water", "WorldObject");
+    public static LayerMask SolidObjectsMask => LayerMask.GetMask("Ground", "Water", "WorldObject", "Water");
 }

@@ -14,6 +14,7 @@ public class TerrainManager : MonoBehaviour, IManager
 
     public MeshFilter WaterMesh;
     public MeshRenderer WaterRenderer;
+    public MeshCollider WaterCollider;
     public MeshFilter WaterMeshMinimap;
 
 
@@ -191,6 +192,7 @@ public class TerrainManager : MonoBehaviour, IManager
         WaterMeshMinimap.gameObject.SetActive(data.DoWater);
 
         WaterMesh.mesh = data.WaterMesh;
+        WaterCollider.sharedMesh = data.WaterMesh;
         WaterMeshMinimap.mesh = data.WaterMesh;
 
         Vector3 waterPos = WaterMesh.transform.position;
