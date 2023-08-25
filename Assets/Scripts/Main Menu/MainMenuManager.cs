@@ -18,6 +18,10 @@ public class MainMenuManager : MonoBehaviour, IManager
 
     public GameObject InvalidSeedText;
 
+
+    public TMP_Text VersionNumber;
+
+
     private void Awake()
     {
         InvalidSeedText.SetActive(false);
@@ -42,6 +46,8 @@ public class MainMenuManager : MonoBehaviour, IManager
                 }
             }
         );
+
+        VersionNumber.text = $"v{Application.version} (Unity {Application.unityVersion})";
     }
 
     public void QuitGame()
