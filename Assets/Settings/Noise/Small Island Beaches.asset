@@ -17,8 +17,8 @@ MonoBehaviour:
   NoiseType: 0
   Offset: {x: 0, y: 0}
   FractalType: 1
-  Octaves: 3
-  Lacunarity: 1.75
+  Octaves: 1
+  Lacunarity: 1
   Gain: 0.5
   WeightedStrength: 1
   PingPongStrength: 0

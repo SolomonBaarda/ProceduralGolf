@@ -15,7 +15,7 @@ MonoBehaviour:
   NumChunksToGenerateSize: 10
   CourseCameraPathSimplificationStrength: 7.5
   BaseHeight: 0
-  HeightMultiplier: 10
+  HeightMultiplier: 12
   BackgroundBiome: 4
   ForceMinHeightZero: 0
   DoWater: 1
@@ -29,7 +29,7 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.75
+        time: 0.65
         value: 1.0000012
         inSlope: 0.0145803485
         outSlope: 0.0145803485
@@ -62,7 +62,7 @@ MonoBehaviour:
     UseMask: 0
     Masks: []
   - Apply: 1
-    Settings: {fileID: 11400000, guid: 39b83b32c0467ce4da4866b1499994a2, type: 2}
+    Settings: {fileID: 11400000, guid: 3256283a29688f844994f55a9b2d16d9, type: 2}
     UseDistanceFromOriginCurve: 0
     DistanceFromOriginCurve:
       serializedVersion: 2
@@ -89,17 +89,20 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     NoiseThresholdMin: 0
-    NoiseThresholdMax: 0.5
+    NoiseThresholdMax: 0.6
     OneMinus: 0
     Offset: 0
     Multiplier: 0
     Biome: 5
     ClampHeightToZero: 0
     CombinationMode: 0
-    ShareOtherLayerNoise: 1
+    ShareOtherLayerNoise: 0
     LayerIndexShareNoise: 0
-    UseMask: 0
-    Masks: []
+    UseMask: 1
+    Masks:
+    - LayerIndex: 0
+      NoiseThresholdMin: 0
+      NoiseThresholdMax: 0.5
   - Apply: 1
     Settings: {fileID: 0}
     UseDistanceFromOriginCurve: 0
@@ -127,10 +130,10 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    NoiseThresholdMin: 0.7
+    NoiseThresholdMin: 0.75
     NoiseThresholdMax: 1
     OneMinus: 0
-    Offset: -0.7
+    Offset: -0.75
     Multiplier: 4
     Biome: 3
     ClampHeightToZero: 0
@@ -151,8 +154,11 @@ MonoBehaviour:
     - {fileID: 117604, guid: 5392eb940a53c4f4caa43af3a318ba9a, type: 3}
     - {fileID: 117604, guid: a6a6f29597a4c2e4aa70f3d734b2ef26, type: 3}
     Chance: 0.8
-    UseMask: 0
-    Masks: []
+    UseMask: 1
+    Masks:
+    - LayerIndex: 0
+      NoiseThresholdMin: 0.51
+      NoiseThresholdMax: 0.7
   Course:
   - Do: 1
     RequiredBiomes: 020000000300000005000000
