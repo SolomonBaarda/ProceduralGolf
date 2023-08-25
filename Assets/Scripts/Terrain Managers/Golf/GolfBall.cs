@@ -273,7 +273,6 @@ public class GolfBall : MonoBehaviour
         float time = 0;
         for (int i = 0; i < maxSteps; i++)
         {
-
             float displacementX = Utils.CalculateDisplacementSUVAT(initialForce.x, time, Physics.gravity.x);
             float displacementY = Utils.CalculateDisplacementSUVAT(initialForce.y, time, Physics.gravity.y);
             float displacementZ = Utils.CalculateDisplacementSUVAT(initialForce.z, time, Physics.gravity.z);

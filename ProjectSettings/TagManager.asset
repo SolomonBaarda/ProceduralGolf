@@ -17,7 +17,7 @@ TagManager:
   - Ball
   - WorldObject
   - 
-  - 
+  - Camera
   - Minimap
   - IngameHUD
   - PostProcessing

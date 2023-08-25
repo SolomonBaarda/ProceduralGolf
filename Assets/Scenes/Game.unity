@@ -2500,6 +2500,7 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
+  Sensitivity: 5
 --- !u!1 &339541873
 GameObject:
   m_ObjectHideFlags: 0
@@ -3714,8 +3715,7 @@ MonoBehaviour:
   m_AnimatedTarget: {fileID: 478942838}
   m_LayerIndex: 0
   m_ShowDebugText: 0
-  m_ChildCameras:
-  - {fileID: 1306902960}
+  m_ChildCameras: []
   m_Instructions:
   - m_FullHash: -1810066073
     m_VirtualCamera: {fileID: 1306902960}
@@ -4242,6 +4242,7 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
+  Sensitivity: 5
 --- !u!1 &522040008
 GameObject:
   m_ObjectHideFlags: 0
@@ -5471,12 +5472,7 @@ MonoBehaviour:
   m_AnimatedTarget: {fileID: 599200119}
   m_LayerIndex: 0
   m_ShowDebugText: 0
-  m_ChildCameras:
-  - {fileID: 1053671506}
-  - {fileID: 712307680}
-  - {fileID: 1412557923}
-  - {fileID: 648003255}
-  - {fileID: 1056162046}
+  m_ChildCameras: []
   m_Instructions:
   - m_FullHash: 345631915
     m_VirtualCamera: {fileID: 1053671506}
@@ -7965,6 +7961,7 @@ GameObject:
   - component: {fileID: 1056162045}
   - component: {fileID: 1056162046}
   - component: {fileID: 1056162047}
+  - component: {fileID: 1056162048}
   m_Layer: 0
   m_Name: Game Shot Landing Camera
   m_TagString: Untagged
@@ -8043,6 +8040,36 @@ MonoBehaviour:
   m_Damping: 1
   m_MinFOV: 3
   m_MaxFOV: 60
+--- !u!114 &1056162048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056162044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e501d18bb52cf8c40b1853ca4904654f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_CollideAgainst:
+    serializedVersion: 2
+    m_Bits: 144
+  m_IgnoreTag: 
+  m_TransparentLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_MinimumDistanceFromTarget: 0.1
+  m_AvoidObstacles: 1
+  m_DistanceLimit: 0
+  m_MinimumOcclusionTime: 0
+  m_CameraRadius: 0.75
+  m_Strategy: 2
+  m_MaximumEffort: 4
+  m_SmoothingTime: 0
+  m_Damping: 0.2
+  m_DampingWhenOccluded: 0
+  m_OptimalTargetDistance: 0
 --- !u!1 &1071740925
 GameObject:
   m_ObjectHideFlags: 0
