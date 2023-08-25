@@ -131,7 +131,7 @@ public class GolfBall : MonoBehaviour
         bool wasOnGroundLastFrame = IsOnGround;
 
         // Get the onground value
-        Collider[] groundCollisions = GroundCheck.DoSphereCast(transform.position, sphereCollider.radius + 0.01f);
+        Collider[] groundCollisions = Physics.OverlapSphere(transform.position, sphereCollider.radius + 0.01f, GroundCheck.GroundMask);
         IsOnGround = groundCollisions.Length > 0;
 
         // Get the current biome
@@ -279,7 +279,7 @@ public class GolfBall : MonoBehaviour
 
     private List<Vector3> CalculateShotPreviewWorldPositions(Vector3 initialForce, int maxSteps = 100, float timePerStep = 0.25f)
     {
-        List<Vector3> positions = new List<Vector3>();
+        List<Vector3> positions = new List<Vector3>() { transform.position };
 
         float time = 0;
         for (int i = 0; i < maxSteps; i++)
@@ -288,27 +288,28 @@ public class GolfBall : MonoBehaviour
             float displacementY = Utils.CalculateDisplacementSUVAT(initialForce.y, time, Physics.gravity.y);
             float displacementZ = Utils.CalculateDisplacementSUVAT(initialForce.z, time, Physics.gravity.z);
 
-            Vector3 worldPosition = new Vector3(displacementX, displacementY, displacementZ) + transform.position;
+            Vector3 lastPosition = positions[i];
+            Vector3 newWorldPosition = transform.position + new Vector3(displacementX, displacementY, displacementZ);
+            Vector3 distance = newWorldPosition - lastPosition;
 
-            // Break out if this was the first position to go below the ground
-            if (!GroundCheck.DoRaycastDown(worldPosition, out _, 100000))
+            // Check that the new position is acessible from the previous position
+            if (!Physics.Raycast(lastPosition, distance.normalized, out RaycastHit hit, distance.magnitude, GroundCheck.SolidObjectsMask))
             {
-                if (positions.Count - 1 >= 0)
-                {
-                    // Calculate the position on the ground
-                    Vector3 lastPosition = positions[positions.Count - 1];
-                    Vector3 direction = (worldPosition - lastPosition).normalized;
-                    if (GroundCheck.DoRaycast(lastPosition, direction, out RaycastHit hit, 1000))
-                    {
-                        positions.Add(hit.point);
-                    }
-                }
+                // Add it if it is
+                positions.Add(newWorldPosition);
+            }
+            else
+            {
+                // If not, then choose the last point of collision
+                positions.Add(hit.point);
+                // And break out as this is the last position
                 break;
             }
 
-            positions.Add(worldPosition);
             time += timePerStep;
         }
+
+        positions.RemoveAt(0);
 
         return positions;
     }

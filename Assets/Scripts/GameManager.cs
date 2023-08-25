@@ -414,10 +414,14 @@ public class GameManager : MonoBehaviour, IManager
                         HUDManager.PowerSlider.Background.color = p;
 
                         break;
+
+
                     // Flying mode
                     case GolfBall.PlayState.Flying:
 
                         break;
+
+
                     // Rolling mode
                     case GolfBall.PlayState.Rolling:
 

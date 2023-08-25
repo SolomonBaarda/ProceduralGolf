@@ -22,12 +22,6 @@ public class MinimapManager : MonoBehaviour, IManager
 
     List<Vector2> fullCoursePath2D = new List<Vector2>();
 
-    [Header("Shot preview")]
-    public LineRenderer ShotPreview;
-    public float ShotPreviewNumDashesPerWorldUnit = 0.02f;
-    public float ShotPreviewDashesSpeed = 1.0f;
-
-
     private void Awake()
     {
         GolfBall.OnRollingFinished += UpdateMinimapBeforeShot;
@@ -41,6 +35,7 @@ public class MinimapManager : MonoBehaviour, IManager
         GolfballMinimapIcon.eulerAngles = ballRotation;
 
         // Update the shot preview
+        /*
         ShotPreview.positionCount = 2;
         ShotPreview.SetPositions(new Vector3[]
         {
@@ -58,6 +53,7 @@ public class MinimapManager : MonoBehaviour, IManager
         float numDashes = pathLength * ShotPreviewNumDashesPerWorldUnit;
         dashedPathMat.SetFloat("_NumberOfDashes", numDashes);
         dashedPathMat.SetFloat("_DashMovementSpeed", ShotPreviewDashesSpeed);
+        */
     }
 
     private void UpdateMinimapBeforeShot()
