@@ -199,7 +199,7 @@ public class GolfBall : MonoBehaviour
                 case Biome.Type.LongGrass:
                     CurrentPreset = Preset_GrassLong;
                     break;
-                case Biome.Type.Sand:
+                case Biome.Type.NormalSand:
                     CurrentPreset = Preset_Sand;
                     break;
                 case Biome.Type.Water:
