@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a8d50202f2395ee43855d310482cbefb, type: 3}
-  m_Name: Desert
+  m_Name: Dunes
   m_EditorClassIdentifier: 
   NumChunksToGenerateSize: 10
   CourseCameraPathSimplificationStrength: 7.5
   BaseHeight: 1
   HeightMultiplier: 10
-  BackgroundBiome: 5
+  BackgroundBiome: 7
   ForceMinHeightZero: 0
   DoWater: 0
   WaterHeight: 0.75
@@ -93,7 +93,7 @@ MonoBehaviour:
     OneMinus: 0
     Offset: 0
     Multiplier: 0
-    Biome: 6
+    Biome: 5
     ClampHeightToZero: 0
     CombinationMode: 0
     ShareOtherLayerNoise: 1
@@ -110,7 +110,7 @@ MonoBehaviour:
     Masks:
     - LayerIndex: 0
       NoiseThresholdMin: 0
-      NoiseThresholdMax: 0.25
+      NoiseThresholdMax: 0.4
   Holes:
   - Do: 1
     RequiredBiomes: 06000000
@@ -118,5 +118,5 @@ MonoBehaviour:
     Masks:
     - LayerIndex: 0
       NoiseThresholdMin: 0
-      NoiseThresholdMax: 0.2
+      NoiseThresholdMax: 0.15
   MinimumWorldDistanceBetweenHoles: 250

@@ -9018,7 +9018,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1306902958}
-  m_LocalRotation: {x: -0.04003477, y: 0.31762898, z: -0.1277707, w: 0.9387139}
+  m_LocalRotation: {x: -0.04003477, y: 0.31762895, z: -0.12777069, w: 0.9387139}
   m_LocalPosition: {x: -5.2950616, y: 28.011108, z: -35.116287}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -10157,7 +10157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MeshSettings: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
-  TerrainSettings: {fileID: 11400000, guid: 7f7daf0548666424288ecaaa14d81d28, type: 2}
+  TerrainSettings: {fileID: 11400000, guid: d147f672ed62bcd48bbfbad3331925c1, type: 2}
   TextureSettings: {fileID: 11400000, guid: 9e788a4a2ac8e7d49ab7dbea7ef4e3e1, type: 2}
   CurrentSettings:
     Seed: 0

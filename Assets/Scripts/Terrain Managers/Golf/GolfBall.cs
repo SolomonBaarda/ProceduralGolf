@@ -18,8 +18,8 @@ public class GolfBall : MonoBehaviour
         new RigidPreset(1.5f, 1.0f), // ShortGrass
         new RigidPreset(20.0f, 0.5f), // Water
         new RigidPreset(9.0f, 0.8f), // NormalSand
-        new RigidPreset(9.0f, 0.8f), // HardSand
-        new RigidPreset(9.0f, 0.8f), // SoftSand
+        new RigidPreset(6.0f, 0.9f), // HardSand
+        new RigidPreset(15.0f, 0.4f), // SoftSand
         new RigidPreset(0.0f, 1.0f), // Ice
         new RigidPreset(9.0f, 0.8f), // Snow
         new RigidPreset(1.5f, 1.0f), // Regolith
