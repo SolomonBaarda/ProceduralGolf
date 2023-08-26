@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8d50202f2395ee43855d310482cbefb, type: 3}
   m_Name: Dunes
   m_EditorClassIdentifier: 
-  NumChunksToGenerateSize: 10
+  NumChunksToGenerateSize: 5
   CourseCameraPathSimplificationStrength: 7.5
   BaseHeight: 1
   HeightMultiplier: 10
@@ -29,22 +29,22 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.75
+        time: 0.59999996
         value: 1.0000012
-        inSlope: 0.0145803485
-        outSlope: 0.0145803485
+        inSlope: 0.06500853
+        outSlope: 0.06500853
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.26594973
+        outWeight: 0.2761304
       - serializedVersion: 3
-        time: 0.9985045
-        value: 3.00242
-        inSlope: 12.595227
-        outSlope: 12.595227
+        time: 1.01
+        value: 1.4999931
+        inSlope: 3.1809835
+        outSlope: 3.1809835
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.06674785
+        inWeight: 0.06355881
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -68,22 +68,22 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.75
+        time: 0.59999996
         value: 1.0000012
-        inSlope: 0.0145803485
-        outSlope: 0.0145803485
+        inSlope: 0.06500853
+        outSlope: 0.06500853
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.26594973
+        outWeight: 0.2761304
       - serializedVersion: 3
         time: 1
-        value: 0.000074748605
-        inSlope: -7.1917686
-        outSlope: -7.1917686
+        value: 1.4991844
+        inSlope: 3.1809835
+        outSlope: 3.1809835
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.06708336
+        inWeight: 0.06355881
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
