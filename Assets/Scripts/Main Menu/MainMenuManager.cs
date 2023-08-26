@@ -23,6 +23,8 @@ public class MainMenuManager : MonoBehaviour, IManager
 
     public TMP_Text VersionNumber;
 
+    public TMP_Text CurrentMapText;
+
 
 
     public List<WorldSettings> GenerationSettings = new List<WorldSettings>();
@@ -76,6 +78,8 @@ public class MainMenuManager : MonoBehaviour, IManager
             var setting = GenerationSettings[i];
             setting.Background.SetActive(i == CurrentSetting);
         }
+
+        CurrentMapText.text = $"Map: {GenerationSettings[CurrentSetting].Name}";
     }
 
     public void SelectNextSettings()
