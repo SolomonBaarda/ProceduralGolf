@@ -139,4 +139,10 @@ public class MainMenuManager : MonoBehaviour, IManager
         Application.OpenURL("https://assetstore.unity.com/publishers/53014");
     }
 
+    // Desert models
+    public void Open23SpaceRobotsandCountingCredits()
+    {
+        Application.OpenURL("https://assetstore.unity.com/publishers/21779");
+    }
+
 }
