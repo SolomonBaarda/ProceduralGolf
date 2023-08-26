@@ -101,11 +101,22 @@ MonoBehaviour:
     UseMask: 0
     Masks: []
   PoissonSamplingIterations: 5
-  PoissonSamplingRadius: 13
-  ProceduralObjects: []
+  PoissonSamplingRadius: 50
+  ProceduralObjects:
+  - Do: 1
+    RequiredBiomes: 05000000
+    Prefabs:
+    - {fileID: 185962, guid: 9739a89a5ec460c4b94bb52719a0931c, type: 3}
+    - {fileID: 110776, guid: 63ff2386a1262d64f99de6e3e1183874, type: 3}
+    Chance: 0.507
+    UseMask: 1
+    Masks:
+    - LayerIndex: 0
+      NoiseThresholdMin: 0
+      NoiseThresholdMax: 0.2
   Course:
   - Do: 1
-    RequiredBiomes: 06000000
+    RequiredBiomes: 0500000007000000
     UseMask: 1
     Masks:
     - LayerIndex: 0
@@ -113,7 +124,7 @@ MonoBehaviour:
       NoiseThresholdMax: 0.4
   Holes:
   - Do: 1
-    RequiredBiomes: 06000000
+    RequiredBiomes: 05000000
     UseMask: 1
     Masks:
     - LayerIndex: 0

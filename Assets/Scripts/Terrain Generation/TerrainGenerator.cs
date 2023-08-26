@@ -197,10 +197,8 @@ public class TerrainGenerator : MonoBehaviour
 
     static void TerrainMapIndexToChunk(int chunkSize, Vector2Int terrainMapIndex, out Vector2Int chunk, out Vector2Int chunkRelativeIndex)
     {
-        int chunkMinusOne = chunkSize - 1;
-
-        chunk = terrainMapIndex / chunkMinusOne;
-        chunkRelativeIndex = new Vector2Int(terrainMapIndex.x % chunkMinusOne, terrainMapIndex.y % chunkMinusOne);
+        chunk = terrainMapIndex / chunkSize;
+        chunkRelativeIndex = new Vector2Int(terrainMapIndex.x % chunkSize, terrainMapIndex.y % chunkSize);
     }
 
 
@@ -939,7 +937,7 @@ public class TerrainGenerator : MonoBehaviour
         // TODO BETTER PERFORMANCE:
         foreach (TerrainMap.WorldObjectData obj in map.WorldObjects)
         {
-            TerrainMapIndexToChunk(chunkSize, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int _);
+            TerrainMapIndexToChunk(chunkSize - 1, new Vector2Int(obj.ClosestIndexX, obj.ClosestIndexY), out Vector2Int chunk, out Vector2Int _);
 
             if (chunkData.TryGetValue(chunk, out TerrainChunkData value))
             {
@@ -1002,54 +1000,64 @@ public class TerrainGenerator : MonoBehaviour
                 {
                     if (Utils.GetClosestIndex(pos, Vector2.zero, worldBoundsSize, map.Width, map.Height, out int x, out int y))
                     {
-                        // Closest terrain map index
-                        int terrainMapIndex = (y * map.Width) + x;
-                        Biome.Type biome = map.Biomes[terrainMapIndex];
-
-                        // The biome for this position is valid
-                        if (attempt.RequiredBiomes.Contains(biome))
+                        if (x >= 1 && y >= 1 && x <= map.Width - 2 && y <= map.Height - 2)
                         {
-                            // Check that the mask is valid if we are using it
-                            bool maskvalid = true;
-                            if (attempt.UseMask)
+
+
+
+                            // Closest terrain map index
+                            int terrainMapIndex = (y * map.Width) + x;
+                            Biome.Type biome = map.Biomes[terrainMapIndex];
+
+                            // The biome for this position is valid
+                            if (attempt.RequiredBiomes.Contains(biome))
                             {
-                                for (int j = 0; j < attempt.Masks.Count; j++)
+                                // Check that the mask is valid if we are using it
+                                bool maskvalid = true;
+                                if (attempt.UseMask)
                                 {
-                                    TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
-                                    // Mask is not valid here
-                                    if (!(maskValues.Noise[terrainMapIndex] >= attempt.Masks[j].NoiseThresholdMin &&
-                                        maskValues.Noise[terrainMapIndex] <= attempt.Masks[j].NoiseThresholdMax))
+                                    for (int j = 0; j < attempt.Masks.Count; j++)
                                     {
-                                        maskvalid = false;
-                                        break;
+                                        TerrainMap.Layer maskValues = map.Layers[attempt.Masks[j].LayerIndex];
+                                        // Mask is not valid here
+                                        if (!(maskValues.Noise[terrainMapIndex] >= attempt.Masks[j].NoiseThresholdMin &&
+                                            maskValues.Noise[terrainMapIndex] <= attempt.Masks[j].NoiseThresholdMax))
+                                        {
+                                            maskvalid = false;
+                                            break;
+                                        }
                                     }
                                 }
-                            }
 
-                            if (!attempt.UseMask || maskvalid)
-                            {
-                                // Calculate the minimum height of the 2x2 of surrounding vertices
-                                float minimumHeight = Mathf.Min
-                                (
-                                    map.Heights[terrainMapIndex],
-                                    map.Heights[terrainMapIndex - map.Width - 1],
-                                    map.Heights[terrainMapIndex - map.Width + 1],
-                                    map.Heights[terrainMapIndex + map.Width - 1],
-                                    map.Heights[terrainMapIndex + map.Width + 1]
-                                );
-
-                                // If we get here then this object must be valid at the position
-                                worldObjects.Add(new TerrainMap.WorldObjectData()
+                                if (!attempt.UseMask || maskvalid)
                                 {
-                                    LocalPosition = new Vector3(pos.x, minimumHeight - WorldObjectYOffset, pos.y),
-                                    Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
-                                    Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
-                                    ClosestIndexX = x,
-                                    ClosestIndexY = y,
-                                });
+                                    // Calculate the minimum height of the 2x2 of surrounding vertices
+                                    float minimumHeight = Mathf.Min
+                                    (
+                                        map.Heights[terrainMapIndex],
+                                        map.Heights[terrainMapIndex - map.Width - 1],
+                                        map.Heights[terrainMapIndex - map.Width + 1],
+                                        map.Heights[terrainMapIndex + map.Width - 1],
+                                        map.Heights[terrainMapIndex + map.Width + 1]
+                                    );
 
-                                break;
+                                    // If we get here then this object must be valid at the position
+                                    worldObjects.Add(new TerrainMap.WorldObjectData()
+                                    {
+                                        LocalPosition = new Vector3(pos.x, minimumHeight - WorldObjectYOffset, pos.y),
+                                        Rotation = new Vector3(0, (float)r.NextDouble() * 360, 0),
+                                        Prefab = attempt.Prefabs[r.Next(0, attempt.Prefabs.Count)],
+                                        ClosestIndexX = x,
+                                        ClosestIndexY = y,
+                                    });
+
+                                    break;
+                                }
                             }
+                        }
+                        else
+                        {
+                            UnityEngine.Debug.LogError("GenerateTerrainMapProceduralObjects: Not generating objects on edge of terrain map");
                         }
                     }
                     else
