@@ -91,8 +91,9 @@ public class GameManager : MonoBehaviour, IManager
         SetGameState(GameState.MainMenu);
     }
 
-    private void StartGame(TerrainGenerator.GenerationSettings settings)
+    private void StartGame(TerrainGenerator.GenerationSettings settings, TerrainSettings terrain)
     {
+        TerrainGenerator.TerrainSettings = terrain;
         StartGeneration(settings, false);
     }
 

@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using static TerrainGenerator;
 
 public class MainMenuManager : MonoBehaviour, IManager
 {
@@ -10,7 +12,7 @@ public class MainMenuManager : MonoBehaviour, IManager
     public TMP_InputField SeedInput;
 
 
-    public UnityEvent<TerrainGenerator.GenerationSettings> OnPressStartGame = new UnityEvent<TerrainGenerator.GenerationSettings>();
+    public UnityEvent<TerrainGenerator.GenerationSettings, TerrainSettings> OnPressStartGame = new UnityEvent<TerrainGenerator.GenerationSettings, TerrainSettings>();
     public UnityEvent OnPressQuit = new UnityEvent();
 
 
@@ -22,8 +24,25 @@ public class MainMenuManager : MonoBehaviour, IManager
     public TMP_Text VersionNumber;
 
 
+
+    public List<WorldSettings> GenerationSettings = new List<WorldSettings>();
+
+
+    [Serializable]
+    public class WorldSettings
+    {
+        public string Name;
+        public TerrainSettings Setting;
+        public GameObject Background;
+    }
+
+    public int CurrentSetting = 0;
+
+
     private void Awake()
     {
+        UpdateCurrentSettings();
+
         InvalidSeedText.SetActive(false);
 
         GenerateRandomSeed();
@@ -50,6 +69,27 @@ public class MainMenuManager : MonoBehaviour, IManager
         VersionNumber.text = $"v{Application.version} (Unity {Application.unityVersion})";
     }
 
+    private void UpdateCurrentSettings()
+    {
+        for(int i = 0; i < GenerationSettings.Count; i++ )
+        {
+            var setting = GenerationSettings[i];
+            setting.Background.SetActive(i == CurrentSetting);
+        }
+    }
+
+    public void SelectNextSettings()
+    {
+        CurrentSetting++;
+
+        if(CurrentSetting >= GenerationSettings.Count)
+        {
+            CurrentSetting = 0;
+        }
+
+        UpdateCurrentSettings();
+    }
+
     public void QuitGame()
     {
         OnPressQuit.Invoke();
@@ -61,7 +101,7 @@ public class MainMenuManager : MonoBehaviour, IManager
         {
             Settings.Seed = Convert.ToInt32(SeedInput.text);
             Settings.GenerateLOD = true;
-            OnPressStartGame.Invoke(Settings);
+            OnPressStartGame.Invoke(Settings, GenerationSettings[CurrentSetting].Setting);
         }
         catch (System.Exception)
         {
