@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Tundra Mountains
   m_EditorClassIdentifier: 
   RotationType: 0
-  Frequency: 0.015
+  Frequency: 0.004
   NoiseType: 0
   Offset: {x: 0, y: 0}
-  FractalType: 1
+  FractalType: 2
   Octaves: 3
-  Lacunarity: 2.5
-  Gain: 0.6
-  WeightedStrength: 1
+  Lacunarity: 3
+  Gain: 1
+  WeightedStrength: 1.5
   PingPongStrength: 0
   DistanceFunction: 1
   ReturnType: 1
