@@ -1002,9 +1002,6 @@ public class TerrainGenerator : MonoBehaviour
                     {
                         if (x >= 1 && y >= 1 && x <= map.Width - 2 && y <= map.Height - 2)
                         {
-
-
-
                             // Closest terrain map index
                             int terrainMapIndex = (y * map.Width) + x;
                             Biome.Type biome = map.Biomes[terrainMapIndex];
@@ -1054,10 +1051,6 @@ public class TerrainGenerator : MonoBehaviour
                                     break;
                                 }
                             }
-                        }
-                        else
-                        {
-                            UnityEngine.Debug.LogError("GenerateTerrainMapProceduralObjects: Not generating objects on edge of terrain map");
                         }
                     }
                     else
