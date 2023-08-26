@@ -10,14 +10,21 @@ public class GolfBall : MonoBehaviour
     public static int Layer => LayerMask.NameToLayer(LAYER_NAME);
     public static int Mask => LayerMask.GetMask(LAYER_NAME);
 
-    // Constants 
-    public readonly static RigidPreset Preset_Air = new RigidPreset(0f, 1f);
-    public readonly static RigidPreset Preset_Grass = new RigidPreset(3f, 1f);
-    public readonly static RigidPreset Preset_GrassShort = new RigidPreset(1.5f, 1f);
-    public readonly static RigidPreset Preset_GrassLong = new RigidPreset(5f, 0.9f);
-    public readonly static RigidPreset Preset_Sand = new RigidPreset(9f, 0.8f);
-    public readonly static RigidPreset Preset_Water = new RigidPreset(20f, 0.5f);
-    public readonly static RigidPreset Preset_Ice = new RigidPreset(0f, 1f);
+    public readonly static RigidPreset[] Presets = new RigidPreset[]
+    {
+        new RigidPreset(0.0f, 1.0f), // None
+        new RigidPreset(5.0f, 0.9f), // LongGrass
+        new RigidPreset(3.0f, 1.0f), // MediumGrass
+        new RigidPreset(1.5f, 1.0f), // ShortGrass
+        new RigidPreset(20.0f, 0.5f), // Water
+        new RigidPreset(9.0f, 0.8f), // NormalSand
+        new RigidPreset(9.0f, 0.8f), // HardSand
+        new RigidPreset(9.0f, 0.8f), // SoftSand
+        new RigidPreset(0.0f, 1.0f), // Ice
+        new RigidPreset(9.0f, 0.8f), // Snow
+        new RigidPreset(1.5f, 1.0f), // Regolith
+    };
+
     [SerializeField] private RigidPreset CurrentPreset;
 
     public HashSet<Biome.Type> InvalidBiomesForCurrentCourse = new HashSet<Biome.Type>();
@@ -185,47 +192,7 @@ public class GolfBall : MonoBehaviour
 
 
         // Update the rigidbody properties
-        // On the ground
-        if (IsOnGround)
-        {
-            switch (CurrentBiome)
-            {
-                case Biome.Type.None:
-                    break;
-                case Biome.Type.ShortGrass:
-                    CurrentPreset = Preset_GrassShort;
-                    break;
-                case Biome.Type.MediumGrass:
-                    CurrentPreset = Preset_Grass;
-                    break;
-                case Biome.Type.LongGrass:
-                    CurrentPreset = Preset_GrassLong;
-                    break;
-                case Biome.Type.NormalSand:
-                    CurrentPreset = Preset_Sand;
-                    break;
-                case Biome.Type.HardSand:
-                    CurrentPreset = Preset_Sand;
-                    break;
-                case Biome.Type.SoftSand:
-                    CurrentPreset = Preset_Sand;
-                    break;
-                case Biome.Type.Water:
-                    CurrentPreset = Preset_Water;
-                    break;
-                case Biome.Type.Ice:
-                    CurrentPreset = Preset_Ice;
-                    break;
-                default:
-                    Debug.LogError("Missing golf ball preset for biome");
-                    break;
-            }
-        }
-        else
-        {
-            CurrentPreset = Preset_Air;
-        }
-
+        CurrentPreset = Presets[(int)CurrentBiome];
 
         // Must have been on the ground for consecutive physics frames before drag applies
         if (ConsecutiveFramesOnGround >= NumPhysicsFramesBeforeDragAplies)
