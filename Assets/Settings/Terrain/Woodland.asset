@@ -216,7 +216,34 @@ MonoBehaviour:
     UseDistanceFromOriginCurve: 0
     DistanceFromOriginCurve:
       serializedVersion: 2
-      m_Curve: []
+      m_Curve:
+      - serializedVersion: 3
+        time: 0.9
+        value: 1.0000153
+        inSlope: -0.013114001
+        outSlope: -0.013114001
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.58891046
+      - serializedVersion: 3
+        time: 0.95
+        value: 1.1009728
+        inSlope: 5.408475
+        outSlope: 5.408475
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.23856157
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1
+        value: 10.025879
+        inSlope: 65.20975
+        outSlope: 65.20975
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.1897573
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -230,10 +257,10 @@ MonoBehaviour:
     CombinationMode: 1
     ShareOtherLayerNoise: 0
     LayerIndexShareNoise: 0
-    UseMask: 0
+    UseMask: 1
     Masks:
     - LayerIndex: 1
-      NoiseThresholdMin: 0.4
+      NoiseThresholdMin: 0.3
       NoiseThresholdMax: 1
   PoissonSamplingIterations: 5
   PoissonSamplingRadius: 13
