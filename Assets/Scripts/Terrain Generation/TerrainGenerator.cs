@@ -141,24 +141,24 @@ public class TerrainGenerator : MonoBehaviour
         yield return null;
 
 
-        // Now subdivide the data into chunks and calculate the mesh data
-        int chunkSize = TerrainSettings.SamplePointFrequency;
-        ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, distanceBetweenNoiseSamples);
-
-        Mesh waterMesh = TerrainSettings.DoWater ? GenerateWaterMesh(map, waterHeight, distanceBetweenNoiseSamples) : null;
-
-        UnityEngine.Debug.Log($"Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
-        lastTimestamp = DateTime.Now;
-        yield return null;
-
-
         // Partially sequential
+        int chunkSize = TerrainSettings.SamplePointFrequency;
         List<CourseData> courses = CalculateCourses(map, CurrentSettings.Seed, chunkSize, distanceBetweenNoiseSamples, NumAttemptsToChooseRandomCoursePositions, chunkSize / 8);
 
         // Sequential but short
         var invalidBiomes = CalculateInvalidBiomesForCourse();
 
         UnityEngine.Debug.Log($"Generated courses in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
+        lastTimestamp = DateTime.Now;
+        yield return null;
+
+
+        // Now subdivide the data into chunks and calculate the mesh data
+        ConcurrentDictionary<Vector2Int, TerrainChunkData> data = SplitIntoChunksAndGenerateMeshData(map, chunkSize, distanceBetweenNoiseSamples);
+
+        Mesh waterMesh = TerrainSettings.DoWater ? GenerateWaterMesh(map, waterHeight, distanceBetweenNoiseSamples) : null;
+
+        UnityEngine.Debug.Log($"Generated chunks and meshes in {(DateTime.Now - lastTimestamp).TotalSeconds:0.0} seconds\"");
         lastTimestamp = DateTime.Now;
         yield return null;
 
