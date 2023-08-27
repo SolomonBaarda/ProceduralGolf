@@ -50,7 +50,7 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.75
+        time: 0.79999995
         value: 1.0000012
         inSlope: 0.0145803485
         outSlope: 0.0145803485
@@ -61,11 +61,11 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 0.000074748605
-        inSlope: -7.1917686
-        outSlope: -7.1917686
+        inSlope: -12.191739
+        outSlope: -12.191739
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.06708336
+        inWeight: 0.035311274
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -84,7 +84,7 @@ MonoBehaviour:
     Masks: []
   - Apply: 1
     Settings: {fileID: 0}
-    UseDistanceFromOriginCurve: 1
+    UseDistanceFromOriginCurve: 0
     DistanceFromOriginCurve:
       serializedVersion: 2
       m_Curve:

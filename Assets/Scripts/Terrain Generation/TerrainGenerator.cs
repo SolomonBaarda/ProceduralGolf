@@ -10,6 +10,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static TerrainSettings;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -215,40 +217,66 @@ public class TerrainGenerator : MonoBehaviour
             map.Layers.Add(new TerrainMap.Layer(new float[] { }, Biome.Type.None));
         }
 
+        // Make thread local copies of the animation curve as sharing these objects blocks access
+        List<AnimationCurve> threadSafeDistanceOriginCurves = new List<AnimationCurve>();
+        for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
+        {
+            threadSafeDistanceOriginCurves.Add(new AnimationCurve(TerrainSettings.TerrainLayers[i].DistanceFromOriginCurve.keys));
+        }
+
         // Get all the noise layers for the terrain
-        For(0, TerrainSettings.TerrainLayers.Count, (int index) =>
+        For(0, TerrainSettings.TerrainLayers.Count, (int layerIndex) =>
             {
-                TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[index];
+                TerrainSettings.LayerSettings layerSettings = TerrainSettings.TerrainLayers[layerIndex];
 
                 // Only generate the noise if this layer uses it
                 if (layerSettings.ShareOtherLayerNoise)
                 {
-                    map.Layers[index] = new TerrainMap.Layer(new float[] { }, layerSettings.Biome);
+                    map.Layers[layerIndex] = new TerrainMap.Layer(new float[] { }, layerSettings.Biome);
                     return;
                 }
 
-                int seed = CurrentSettings.Seed.GetHashCode() + index.GetHashCode();
+                int seed = CurrentSettings.Seed.GetHashCode() + layerIndex.GetHashCode();
 
                 // Generate the noise for this layer and normalise it
                 float[] noise = Noise.GetNoise(layerSettings.Settings, seed, map.Width, map.Height, out float min, out float max);
+
                 Noise.NormaliseNoise(ref noise, min, max);
 
-                map.Layers[index] = new TerrainMap.Layer(noise, layerSettings.Biome);
+                // Scale noise according to the distance from the origin
+                if (layerSettings.UseDistanceFromOriginCurve)
+                {
+                    float distanceFalloffRadius = Math.Min(map.Width, map.Height) / 2.0f;
+                    var centre = new Vector2Int(map.Width / 2, map.Height / 2);
+
+                    for (int y = 0; y < map.Height; y++)
+                    {
+                        for(int x = 0; x < map.Width; x++)
+                        {
+                            Vector2Int directionToCentre = centre - new Vector2Int(x, y);
+                            // 0 - 1 value 
+                            float distanceFromCentreScaled = Math.Clamp(directionToCentre.magnitude / (distanceFalloffRadius), 0.0f, 1.0f);
+
+                            // Scale the raw noise by the distance from origin curve
+                            float multiplier = threadSafeDistanceOriginCurves[layerIndex].Evaluate(distanceFromCentreScaled);
+
+                            int noiseIndex = y * map.Width + x;
+                            noise[noiseIndex] = Mathf.Clamp01(noise[noiseIndex] * multiplier);
+                        }
+                    }
+                }
+
+                map.Layers[layerIndex] = new TerrainMap.Layer(noise, layerSettings.Biome);
             });
+
 
         // Calculate the height of the water layer
         waterHeight = TerrainSettings.WaterHeight * TerrainSettings.HeightMultiplier;
 
+
         // Now calculate the actual heights from the noise and the biomes
         For(0, map.Height, (int y) =>
         {
-            // Make thread local copies of the animation curve as sharing these objects blocks access
-            List<AnimationCurve> threadSafeCurves = new List<AnimationCurve>();
-            for (int i = 0; i < TerrainSettings.TerrainLayers.Count; i++)
-            {
-                threadSafeCurves.Add(new AnimationCurve(TerrainSettings.TerrainLayers[i].DistanceFromOriginCurve.keys));
-            }
-
             for (int x = 0; x < map.Width; x++)
             {
                 int index = (y * map.Width) + x;
@@ -256,11 +284,6 @@ public class TerrainGenerator : MonoBehaviour
                 // Set the default biome and height
                 map.Biomes[index] = TerrainSettings.BackgroundBiome;
                 map.Heights[index] = TerrainSettings.BaseHeight;
-
-                Vector2Int directionToCentre = new Vector2Int(x, y) - new Vector2Int(map.Width / 2, map.Height / 2);
-                float distanceFalloffRadius = Math.Min(map.Width, map.Height) / 2.0f;
-                // 0 - 1 value 
-                float distanceFromCentreScaled = Math.Clamp(directionToCentre.sqrMagnitude / (distanceFalloffRadius * distanceFalloffRadius), 0.0f, 1.0f);
 
                 for (int layerIndex = 0; layerIndex < map.Layers.Count; layerIndex++)
                 {
@@ -271,12 +294,6 @@ public class TerrainGenerator : MonoBehaviour
                     if (layerSettings.ShareOtherLayerNoise)
                     {
                         currentLayer = map.Layers[layerSettings.LayerIndexShareNoise];
-                    }
-
-                    // Scale noise according to the distance from the origin
-                    if (layerSettings.UseDistanceFromOriginCurve)
-                    {
-                        currentLayer.Noise[index] *= threadSafeCurves[layerIndex].Evaluate(distanceFromCentreScaled);
                     }
 
                     if (

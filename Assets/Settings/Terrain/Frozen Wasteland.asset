@@ -24,27 +24,27 @@ MonoBehaviour:
   TerrainLayers:
   - Apply: 1
     Settings: {fileID: 11400000, guid: dda91e03024e4434699e8533ae76d703, type: 2}
-    UseDistanceFromOriginCurve: 0
+    UseDistanceFromOriginCurve: 1
     DistanceFromOriginCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.79999995
+        time: 0.9
         value: 1
-        inSlope: 1.5000149
-        outSlope: 1.5000149
-        tangentMode: 34
+        inSlope: 0.0000017085314
+        outSlope: 0.0000017085314
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.33333334
+        outWeight: 1
       - serializedVersion: 3
         time: 1
-        value: 1.300003
-        inSlope: 1.5000149
-        outSlope: 1.5000149
-        tangentMode: 34
+        value: 2.4973068
+        inSlope: 22.438253
+        outSlope: 22.438253
+        tangentMode: 0
         weightedMode: 0
-        inWeight: 0.33333334
+        inWeight: 0.04240631
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
