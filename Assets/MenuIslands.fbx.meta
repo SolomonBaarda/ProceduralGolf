@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: f3f1cc1e03bf25d4fa0f712b7c3e4835
+guid: 8e4e5fc0bd9c83141bafedc47be69943
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -14,6 +14,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: Tree___toon
     second: {fileID: 2100000, guid: 6b231c08b2b87004b9f8278ea76769f8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: WaterShaderTiled__Instance_
+    second: {fileID: 2100000, guid: 5c13ef7f7339c6f4ab8e2c066e63255b, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
