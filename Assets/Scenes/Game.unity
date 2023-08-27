@@ -11055,7 +11055,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MeshSettings: {fileID: 11400000, guid: 402a58c91bf6e6d4c9f6eccfd87ae664, type: 2}
-  TerrainSettings: {fileID: 11400000, guid: d147f672ed62bcd48bbfbad3331925c1, type: 2}
+  TerrainSettings: {fileID: 11400000, guid: 392c806505110884192175365aabbd81, type: 2}
   TextureSettings: {fileID: 11400000, guid: 9e788a4a2ac8e7d49ab7dbea7ef4e3e1, type: 2}
   CurrentSettings:
     Seed: 0

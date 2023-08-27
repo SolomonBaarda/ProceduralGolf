@@ -43,16 +43,6 @@ public static class Noise
 
         return noise;
     }
-
-    public static void NormaliseNoise(ref float[] array, float min, float max)
-    {
-        float maxMinusMin = max - min;
-
-        for (int i = 0; i < array.Length; i++)
-        {
-            array[i] = (array[i] - min) / maxMinusMin;
-        }
-    }
 }
 
 
