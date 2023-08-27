@@ -689,6 +689,61 @@ public class TerrainGenerator : MonoBehaviour
             Vector2 distance = new Vector2(holeWorld.x - startWorld.x, holeWorld.z - startWorld.z);
             if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
             {
+                // Flatten the hole
+                if(TerrainSettings.FlattenStartAndHole)
+                {
+                    void FlattenPosition(int posX, int posY, int radius)
+                    {
+                        int radiusSquared = radius * radius;
+
+                        int minX = Mathf.Clamp(posX - radius, 0, map.Width - 1);
+                        int maxX = Mathf.Clamp(posX + radius, 0, map.Width - 1);
+                        int minY = Mathf.Clamp(posY - radius, 0, map.Height - 1);
+                        int maxY = Mathf.Clamp(posY + radius, 0, map.Height - 1);
+
+                        float averageHeight = 0.0f;
+                        int numHeightsSampled = 0;
+
+                        for (int y = minY; y <= maxY; y++)
+                        {
+                            for (int x = minX; x <= maxX; x++)
+                            {
+                                int i = y * map.Width + x;
+                                int newRadiusSquared = ((y - posY) * (y - posY)) + ((x - posX) * (x - posX));
+
+                                if (map.Holes[i] && newRadiusSquared <= radiusSquared)
+                                {
+                                    averageHeight += map.Heights[i];
+                                    numHeightsSampled++;
+                                }
+                            }
+                        }
+
+                        averageHeight /= numHeightsSampled;
+                        averageHeight += TerrainSettings.AbsoluteHeightToRaiseFlattenedArea;
+
+                        for (int y = minY; y <= maxY; y++)
+                        {
+                            for (int x = minX; x <= maxX; x++)
+                            {
+                                int i = y * map.Width + x;
+                                int newRadiusSquared = ((y - posY) * (y - posY)) + ((x - posX) * (x - posX));
+
+                                if (map.Holes[i] && newRadiusSquared <= radiusSquared)
+                                {
+                                    map.Heights[i] = averageHeight;
+                                }
+                            }
+                        }
+                    }
+
+                    // Flatten the start and end positions
+                    // Use the same radius for each
+                    int radius = r.Next(TerrainSettings.MinDistanceRadiusToFlatten, TerrainSettings.MaxDistanceRadiusToFlatten);
+                    FlattenPosition(start.x, start.y, radius);
+                    FlattenPosition(hole.x, hole.y, radius);
+                }
+
                 var pathPoints = CalculateShortestPathOnCourseFromStartToEnd(map, start, hole);
 
                 var indexesToKeep = new List<int>();
@@ -1000,6 +1055,8 @@ public class TerrainGenerator : MonoBehaviour
                 {
                     if (Utils.GetClosestIndex(pos, Vector2.zero, worldBoundsSize, map.Width, map.Height, out int x, out int y))
                     {
+                        // Ensure we aren't on the edge of the terrain map
+                        // Just do this for simplicity
                         if (x >= 1 && y >= 1 && x <= map.Width - 2 && y <= map.Height - 2)
                         {
                             // Closest terrain map index
@@ -1136,6 +1193,7 @@ public class TerrainGenerator : MonoBehaviour
             {
                 if (holeSettings.Do && holeSettings.RequiredBiomes.Contains(map.Biomes[index]) && AllMasksValidForPosition(map, holeSettings.Masks, x, y))
                 {
+                    map.Holes[index] = true;
                     validPoints.Add(new Vector2Int(x, y));
                     break;
                 }
