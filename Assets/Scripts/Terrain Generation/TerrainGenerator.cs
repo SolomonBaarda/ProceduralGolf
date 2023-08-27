@@ -2,7 +2,6 @@
 //#define UnityEngine.Debug_FLOOD_FILL
 
 using C5;
-using Codice.Client.BaseCommands;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -11,8 +10,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using static TerrainSettings;
-using static UnityEngine.EventSystems.EventTrigger;
 
 public class TerrainGenerator : MonoBehaviour
 {
