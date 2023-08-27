@@ -36,7 +36,7 @@ public class TerrainSettings : VariablePreset
     [Header("Hole Settings")]
     public List<CourseSettings> Holes;
 
-    public bool FlattenStartAndHole = false;
+    public bool FlattenStartAndHoleUsingMaxHeight = false;
     public int MinDistanceRadiusToFlatten = 4;
     public int MaxDistanceRadiusToFlatten = 6;
     public float AbsoluteHeightToRaiseFlattenedArea = 2.0f;

@@ -172,4 +172,8 @@ MonoBehaviour:
     - LayerIndex: 0
       NoiseThresholdMin: 0.8
       NoiseThresholdMax: 1
+  FlattenStartAndHoleUsingMaxHeight: 0
+  MinDistanceRadiusToFlatten: 3
+  MaxDistanceRadiusToFlatten: 5
+  AbsoluteHeightToRaiseFlattenedArea: 0
   MinimumWorldDistanceBetweenHoles: 250

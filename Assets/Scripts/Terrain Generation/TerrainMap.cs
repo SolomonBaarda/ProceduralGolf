@@ -12,8 +12,6 @@ public class TerrainMap
     public Biome.Type[] Biomes;
     public bool[] Greens;
 
-    public bool[] Holes;
-
 
     /// <summary>
     /// List of height layers to combine 
@@ -33,7 +31,6 @@ public class TerrainMap
         Heights = new float[size];
         Biomes = new Biome.Type[size];
         Greens = new bool[size];
-        Holes = new bool[size];
     }
 
     public class Layer

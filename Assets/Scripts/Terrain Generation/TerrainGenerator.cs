@@ -690,7 +690,7 @@ public class TerrainGenerator : MonoBehaviour
             if (distance.sqrMagnitude > TerrainSettings.MinimumWorldDistanceBetweenHoles * TerrainSettings.MinimumWorldDistanceBetweenHoles)
             {
                 // Flatten the hole
-                if(TerrainSettings.FlattenStartAndHole)
+                if(TerrainSettings.FlattenStartAndHoleUsingMaxHeight)
                 {
                     void FlattenPosition(int posX, int posY, int radius)
                     {
@@ -701,7 +701,7 @@ public class TerrainGenerator : MonoBehaviour
                         int minY = Mathf.Clamp(posY - radius, 0, map.Height - 1);
                         int maxY = Mathf.Clamp(posY + radius, 0, map.Height - 1);
 
-                        float averageHeight = 0.0f;
+                        float maxHeight = map.Heights[posY * map.Width + posX];
                         int numHeightsSampled = 0;
 
                         for (int y = minY; y <= maxY; y++)
@@ -711,16 +711,18 @@ public class TerrainGenerator : MonoBehaviour
                                 int i = y * map.Width + x;
                                 int newRadiusSquared = ((y - posY) * (y - posY)) + ((x - posX) * (x - posX));
 
-                                if (map.Holes[i] && newRadiusSquared <= radiusSquared)
+                                if (map.Greens[i] && newRadiusSquared <= radiusSquared)
                                 {
-                                    averageHeight += map.Heights[i];
+                                    if(map.Heights[i] > maxHeight)
+                                    {
+                                        maxHeight = map.Heights[i];
+                                    }
                                     numHeightsSampled++;
                                 }
                             }
                         }
 
-                        averageHeight /= numHeightsSampled;
-                        averageHeight += TerrainSettings.AbsoluteHeightToRaiseFlattenedArea;
+                        maxHeight += TerrainSettings.AbsoluteHeightToRaiseFlattenedArea;
 
                         for (int y = minY; y <= maxY; y++)
                         {
@@ -729,9 +731,9 @@ public class TerrainGenerator : MonoBehaviour
                                 int i = y * map.Width + x;
                                 int newRadiusSquared = ((y - posY) * (y - posY)) + ((x - posX) * (x - posX));
 
-                                if (map.Holes[i] && newRadiusSquared <= radiusSquared)
+                                if (map.Greens[i] && newRadiusSquared <= radiusSquared)
                                 {
-                                    map.Heights[i] = averageHeight;
+                                    map.Heights[i] = maxHeight;
                                 }
                             }
                         }
@@ -1193,7 +1195,6 @@ public class TerrainGenerator : MonoBehaviour
             {
                 if (holeSettings.Do && holeSettings.RequiredBiomes.Contains(map.Biomes[index]) && AllMasksValidForPosition(map, holeSettings.Masks, x, y))
                 {
-                    map.Holes[index] = true;
                     validPoints.Add(new Vector2Int(x, y));
                     break;
                 }
