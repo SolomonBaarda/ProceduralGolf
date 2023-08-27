@@ -100,6 +100,30 @@ MonoBehaviour:
     LayerIndexShareNoise: 0
     UseMask: 0
     Masks: []
+  - Apply: 1
+    Settings: {fileID: 11400000, guid: c1a65aced24a840458ee17856f225dc0, type: 2}
+    UseDistanceFromOriginCurve: 0
+    DistanceFromOriginCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    NoiseThresholdMin: 0.75
+    NoiseThresholdMax: 1
+    OneMinus: 0
+    Offset: -0.75
+    Multiplier: 1
+    Biome: 7
+    ClampHeightToZero: 0
+    CombinationMode: 1
+    ShareOtherLayerNoise: 0
+    LayerIndexShareNoise: 0
+    UseMask: 0
+    Masks:
+    - LayerIndex: 0
+      NoiseThresholdMin: 0
+      NoiseThresholdMax: 0.25
   PoissonSamplingIterations: 5
   PoissonSamplingRadius: 50
   ProceduralObjects:
@@ -108,7 +132,8 @@ MonoBehaviour:
     Prefabs:
     - {fileID: 185962, guid: 9739a89a5ec460c4b94bb52719a0931c, type: 3}
     - {fileID: 110776, guid: 63ff2386a1262d64f99de6e3e1183874, type: 3}
-    Chance: 0.507
+    - {fileID: 175704, guid: fb9f189dcf5d2ad4aad003a8a44b136d, type: 3}
+    Chance: 0.602
     UseMask: 1
     Masks:
     - LayerIndex: 0
@@ -130,4 +155,8 @@ MonoBehaviour:
     - LayerIndex: 0
       NoiseThresholdMin: 0
       NoiseThresholdMax: 0.15
+  FlattenStartAndHoleUsingMaxHeight: 0
+  MinDistanceRadiusToFlatten: 4
+  MaxDistanceRadiusToFlatten: 6
+  AbsoluteHeightToRaiseFlattenedArea: 2
   MinimumWorldDistanceBetweenHoles: 250
