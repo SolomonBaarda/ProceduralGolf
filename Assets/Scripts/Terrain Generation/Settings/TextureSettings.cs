@@ -8,14 +8,6 @@ public class TextureSettings : VariablePreset
     public List<BiomeColour> Colours = new List<BiomeColour>();
     private Dictionary<Biome.Type, Color32> colours = new Dictionary<Biome.Type, Color32>();
 
-
-
-    public static void ApplyToMaterial(Material m, in Texture2D colourMap, Vector2 maintextureTiling)
-    {
-        // Add the colour map
-        m.SetTexture("_BaseMap", colourMap);
-    }
-
     public override void ValidateValues()
     {
     }
@@ -23,6 +15,7 @@ public class TextureSettings : VariablePreset
     public void AddColoursToDictionary()
     {
         colours.Clear();
+
         foreach (BiomeColour c in Colours)
         {
             colours.Add(c.Biome, c.Colour);
