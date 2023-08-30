@@ -184,7 +184,18 @@ public class TerrainGenerator : MonoBehaviour
         // Calculate which biomes are allowed
         // Always allow none as otherwise we couldn't shoot the ball
         var allowedBiomes = new System.Collections.Generic.HashSet<Biome.Type>() { Biome.Type.None };
+
+        // Add the course biomes
         foreach (var setting in TerrainSettings.Course)
+        {
+            foreach (var biome in setting.RequiredBiomes)
+            {
+                allowedBiomes.Add(biome);
+            }
+        }
+
+        // And hole biomes just in case
+        foreach (var setting in TerrainSettings.Holes)
         {
             foreach (var biome in setting.RequiredBiomes)
             {

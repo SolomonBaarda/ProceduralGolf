@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public static class Biome
 {
@@ -18,23 +19,10 @@ public static class Biome
         Stone = 10,
     }
 
-    public static HashSet<Biome.Type> GetAllBiomes()
+    public static HashSet<Type> GetAllBiomes()
     {
-        // TODO USE Enum.GetValues()
-
-        return new HashSet<Biome.Type>()
-        {
-            Type.None,
-            Type.LongGrass,
-            Type.MediumGrass,
-            Type.ShortGrass,
-            Type.Mud,
-            Type.NormalSand,
-            Type.HardSand,
-            Type.SoftSand,
-            Type.Ice,
-            Type.Snow,
-            Type.Stone,
-        };
+        return Enum.GetValues(typeof(Type))
+            .OfType<Type>()
+            .ToHashSet();
     }
 }
