@@ -774,6 +774,10 @@ public class TerrainGenerator : MonoBehaviour
                     int radius = r.Next(TerrainSettings.MinDistanceRadiusToFlatten, TerrainSettings.MaxDistanceRadiusToFlatten);
                     FlattenPosition(start.x, start.y, radius);
                     FlattenPosition(hole.x, hole.y, radius);
+
+                    // Recalculate the start and end positions as the y value will have changed
+                    startWorld = CalculateWorldVertexPositionFromTerrainMapIndex(map, start.x, start.y, distanceBetweenNoiseSamples);
+                    holeWorld = CalculateWorldVertexPositionFromTerrainMapIndex(map, hole.x, hole.y, distanceBetweenNoiseSamples);
                 }
 
                 var pathPoints = CalculateShortestPathOnCourseFromStartToEnd(map, start, hole);
