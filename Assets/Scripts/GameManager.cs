@@ -10,8 +10,6 @@ using UnityEngine.Rendering;
 
 public class GameManager : MonoBehaviour, IManager
 {
-    //public static UnityEvent<TerrainGenerator.GenerationSettings, bool> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings, bool>();
-
     [Header("Game State")]
     public GameState State;
 
@@ -44,8 +42,6 @@ public class GameManager : MonoBehaviour, IManager
     {
         RenderSettings.skybox = Skybox;
 
-        //OnRequestStartGenerating.AddListener(StartGeneration);
-
 
         TerrainManager.OnCourseStarted += OnStartCourse;
         TerrainManager.OnCourseCompleted += (x) => { SetGameState(GameState.CourseEnd); UpdateHUDCourseProgressScreen(); UpdateHUDShotCounter(); };
@@ -53,6 +49,7 @@ public class GameManager : MonoBehaviour, IManager
 
         MainMenuManager.OnPressStartGame.AddListener(StartGame);
         MainMenuManager.OnPressQuit.AddListener(QuitApplication);
+        MainMenuManager.OnUpdatePostProcessing.AddListener(CameraManager.SetPostProcessing);
 
         HUDManager.OnQuitToMenuPressed.AddListener(QuitToMainMenu);
         HUDManager.OnRestartPressed.AddListener(RestartGameFromFirstCourse);

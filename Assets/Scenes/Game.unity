@@ -11640,11 +11640,11 @@ MonoBehaviour:
   - Name: Dunes
     Setting: {fileID: 11400000, guid: d147f672ed62bcd48bbfbad3331925c1, type: 2}
     Background: {fileID: 1821495821}
-    PostProcessing: {fileID: 11400000, guid: 2c859c84ba3188a4c9d7fb7525e80179, type: 2}
+    PostProcessing: {fileID: 11400000, guid: 912c42c6209199d47985d4d6716533dd, type: 2}
   - Name: The Frozen Wasteland
     Setting: {fileID: 11400000, guid: 7f7daf0548666424288ecaaa14d81d28, type: 2}
     Background: {fileID: 1870653479}
-    PostProcessing: {fileID: 0}
+    PostProcessing: {fileID: 11400000, guid: 91471daf4995eea47bf6e1bad3490131, type: 2}
   - Name: The Golfing Islands
     Setting: {fileID: 11400000, guid: 016e9326d40268240b158f1eabce6f49, type: 2}
     Background: {fileID: 986604791}

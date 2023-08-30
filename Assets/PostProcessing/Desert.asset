@@ -21,7 +21,7 @@ MonoBehaviour:
     m_Value: 0.9
   intensity:
     m_OverrideState: 1
-    m_Value: 7.5
+    m_Value: 3
   scatter:
     m_OverrideState: 0
     m_Value: 0.724
@@ -30,7 +30,7 @@ MonoBehaviour:
     m_Value: 65536.67
   tint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0.998476, b: 0.65471697, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
   highQualityFiltering:
     m_OverrideState: 0
     m_Value: 0
@@ -61,20 +61,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   postExposure:
-    m_OverrideState: 0
-    m_Value: -0.32
+    m_OverrideState: 1
+    m_Value: 0.4
   contrast:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 33
   colorFilter:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   hueShift:
     m_OverrideState: 0
-    m_Value: -8
+    m_Value: -24
   saturation:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 10
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -85,7 +85,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Main
+  m_Name: Desert
   m_EditorClassIdentifier: 
   components:
   - {fileID: -2362379981001086594}

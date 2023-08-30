@@ -13,6 +13,9 @@ public class MainMenuManager : MonoBehaviour, IManager
 
 
     public UnityEvent<TerrainGenerator.GenerationSettings, TerrainSettings, VolumeProfile> OnPressStartGame = new UnityEvent<TerrainGenerator.GenerationSettings, TerrainSettings, VolumeProfile>();
+    public UnityEvent<VolumeProfile> OnUpdatePostProcessing = new UnityEvent<VolumeProfile>();
+
+
     public UnityEvent OnPressQuit = new UnityEvent();
 
 
@@ -81,6 +84,8 @@ public class MainMenuManager : MonoBehaviour, IManager
         }
 
         CurrentMapText.text = $"Map: {GenerationSettings[CurrentSetting].Name}";
+
+        OnUpdatePostProcessing.Invoke(GenerationSettings[CurrentSetting].PostProcessing);
     }
 
     public void SelectNextSettings()
@@ -116,9 +121,6 @@ public class MainMenuManager : MonoBehaviour, IManager
     public void GenerateRandomSeed()
     {
         SeedInput.text = Noise.RandomSeed.ToString();
-
-        // Invalid seed:
-        //SeedInput.text = "-1793396896";
     }
 
     public void Reset()
