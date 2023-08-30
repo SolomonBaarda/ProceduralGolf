@@ -266,8 +266,8 @@ public class TerrainManager : MonoBehaviour, IManager
             Vector3 distanceFromBall = currentGolfBallPosition - chunk.Bounds.center;
 
             // Enable collisions for the 2x2 chunks surrounding the ball
-            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= TerrainChunkData.ChunkSizeWorldUnits &&
-                Math.Abs(distanceFromBall.z) <= TerrainChunkData.ChunkSizeWorldUnits;
+            bool collisionsEnabled = Math.Abs(distanceFromBall.x) <= 2 * TerrainChunkData.ChunkSizeWorldUnits &&
+                Math.Abs(distanceFromBall.z) <= 2 * TerrainChunkData.ChunkSizeWorldUnits;
 
             if (collisionsEnabled && viewLOD >= LODViewSettings.Count)
             {
