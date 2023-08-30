@@ -9,13 +9,13 @@ public static class Biome
         LongGrass = 1,
         MediumGrass = 2,
         ShortGrass = 3,
-        Water = 4,
+        Mud = 4,
         NormalSand = 5,
         HardSand = 6,
         SoftSand = 7,
         Ice = 8,
         Snow = 9,
-        Regolith = 10,
+        Stone = 10,
     }
 
     public static HashSet<Biome.Type> GetAllBiomes()
@@ -28,13 +28,13 @@ public static class Biome
             Type.LongGrass,
             Type.MediumGrass,
             Type.ShortGrass,
-            Type.Water,
+            Type.Mud,
             Type.NormalSand,
             Type.HardSand,
             Type.SoftSand,
             Type.Ice,
             Type.Snow,
-            Type.Regolith,
+            Type.Stone,
         };
     }
 }

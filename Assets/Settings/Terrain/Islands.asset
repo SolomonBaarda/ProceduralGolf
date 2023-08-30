@@ -54,7 +54,7 @@ MonoBehaviour:
     OneMinus: 0
     Offset: 0
     Multiplier: 5
-    Biome: 2
+    Biome: 1
     ClampHeightToZero: 0
     CombinationMode: 0
     ShareOtherLayerNoise: 0
@@ -146,7 +146,7 @@ MonoBehaviour:
   PoissonSamplingRadius: 20
   ProceduralObjects:
   - Do: 1
-    RequiredBiomes: 02000000
+    RequiredBiomes: 01000000
     Prefabs:
     - {fileID: 117604, guid: 9469bb1d3aa88ca40aa4079e96a27f8e, type: 3}
     - {fileID: 117604, guid: 0df2c2e15d0927945ba927ab1d1c3e1e, type: 3}
@@ -161,7 +161,7 @@ MonoBehaviour:
       NoiseThresholdMax: 0.7
   Course:
   - Do: 1
-    RequiredBiomes: 020000000300000005000000
+    RequiredBiomes: 010000000300000005000000
     UseMask: 1
     Masks: []
   Holes:
