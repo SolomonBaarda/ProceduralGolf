@@ -6,10 +6,11 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
 
 public class GameManager : MonoBehaviour, IManager
 {
-    public static UnityEvent<TerrainGenerator.GenerationSettings, bool> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings, bool>();
+    //public static UnityEvent<TerrainGenerator.GenerationSettings, bool> OnRequestStartGenerating = new UnityEvent<TerrainGenerator.GenerationSettings, bool>();
 
     [Header("Game State")]
     public GameState State;
@@ -43,7 +44,7 @@ public class GameManager : MonoBehaviour, IManager
     {
         RenderSettings.skybox = Skybox;
 
-        OnRequestStartGenerating.AddListener(StartGeneration);
+        //OnRequestStartGenerating.AddListener(StartGeneration);
 
 
         TerrainManager.OnCourseStarted += OnStartCourse;
@@ -91,10 +92,10 @@ public class GameManager : MonoBehaviour, IManager
         SetGameState(GameState.MainMenu);
     }
 
-    private void StartGame(TerrainGenerator.GenerationSettings settings, TerrainSettings terrain)
+    private void StartGame(TerrainGenerator.GenerationSettings settings, TerrainSettings terrain, VolumeProfile postProcessing)
     {
         TerrainGenerator.TerrainSettings = terrain;
-        StartGeneration(settings, false);
+        StartGeneration(settings, false, postProcessing);
     }
 
     private void SetGameState(GameState state)
@@ -243,7 +244,7 @@ public class GameManager : MonoBehaviour, IManager
 
 
 
-    public void StartGeneration(TerrainGenerator.GenerationSettings settings, bool testing)
+    public void StartGeneration(TerrainGenerator.GenerationSettings settings, bool testing, VolumeProfile profile)
     {
         if (TerrainGenerator.IsGenerating || State == GameState.GameLoading) return;
 
@@ -260,6 +261,8 @@ public class GameManager : MonoBehaviour, IManager
         {
             Gamerule = FixedArea;
         }
+
+        CameraManager.SetPostProcessing(profile);
 
         // Now generate the terrain
         TerrainGenerator.Generate(settings, LoadTerrain);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using static TerrainGenerator;
+using UnityEngine.Rendering;
 
 public class MainMenuManager : MonoBehaviour, IManager
 {
@@ -12,7 +12,7 @@ public class MainMenuManager : MonoBehaviour, IManager
     public TMP_InputField SeedInput;
 
 
-    public UnityEvent<TerrainGenerator.GenerationSettings, TerrainSettings> OnPressStartGame = new UnityEvent<TerrainGenerator.GenerationSettings, TerrainSettings>();
+    public UnityEvent<TerrainGenerator.GenerationSettings, TerrainSettings, VolumeProfile> OnPressStartGame = new UnityEvent<TerrainGenerator.GenerationSettings, TerrainSettings, VolumeProfile>();
     public UnityEvent OnPressQuit = new UnityEvent();
 
 
@@ -36,6 +36,7 @@ public class MainMenuManager : MonoBehaviour, IManager
         public string Name;
         public TerrainSettings Setting;
         public GameObject Background;
+        public VolumeProfile PostProcessing;
     }
 
     public int CurrentSetting = 0;
@@ -105,7 +106,7 @@ public class MainMenuManager : MonoBehaviour, IManager
         {
             Settings.Seed = Convert.ToInt32(SeedInput.text);
             Settings.GenerateLOD = true;
-            OnPressStartGame.Invoke(Settings, GenerationSettings[CurrentSetting].Setting);
+            OnPressStartGame.Invoke(Settings, GenerationSettings[CurrentSetting].Setting, GenerationSettings[CurrentSetting].PostProcessing);
         }
         catch (System.Exception)
         {

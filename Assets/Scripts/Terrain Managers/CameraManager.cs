@@ -1,6 +1,7 @@
 using Cinemachine;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class CameraManager : MonoBehaviour, IManager
 {
@@ -9,6 +10,7 @@ public class CameraManager : MonoBehaviour, IManager
 
     [Space]
     public CinemachineBrain MainCameraBrain;
+    public Volume MainCameraPostProcessing;
     public Camera MainCamera => MainCameraBrain.OutputCamera;
 
     [Header("States")]
@@ -45,6 +47,12 @@ public class CameraManager : MonoBehaviour, IManager
     public void SetVisible(bool visible)
     {
         CamerasParent.SetActive(visible);
+    }
+
+    public void SetPostProcessing(VolumeProfile profile)
+    {
+        MainCameraPostProcessing.sharedProfile = profile;
+        MainCameraPostProcessing.enabled = profile != null;
     }
 
     public void SetGolfBallSquareMagnitudeToAimingPosition(float value)
