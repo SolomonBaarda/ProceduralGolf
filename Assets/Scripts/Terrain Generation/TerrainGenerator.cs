@@ -1,11 +1,12 @@
 ﻿#define GOLF_PARALLEL_ROUTINES
-//#define UnityEngine.Debug_FLOOD_FILL
+//#define DEBUG_FLOOD_FILL
 
 using C5;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -645,18 +646,19 @@ public class TerrainGenerator : MonoBehaviour
         }
 
 #if DEBUG_FLOOD_FILL
-
-        Texture2D t = new Texture2D(map.Width, map.Height);
-
-        System.Random r1 = new System.Random(0);
-
-        UnityEngine.Color32[] c = new Color32[map.Width * map.Height];
-
-        For(0, map.Width * map.Height, (int i) =>
         {
-            c[i] = TextureSettings.GetColour(map.Biomes[i]);
-        });
+            Texture2D t = new Texture2D(map.Width, map.Height);
 
+            System.Random r1 = new System.Random(0);
+
+            UnityEngine.Color32[] cols = new Color32[map.Width * map.Height];
+
+            For(0, map.Width * map.Height, (int i) =>
+            {
+                cols[i] = TextureSettings.GetColour(map.Biomes[i]);
+            });
+
+#if false
         foreach (var list in coursePoints)
         {
             UnityEngine.Color32 colour = new UnityEngine.Color32((byte)(r1.NextDouble() * 255), (byte)(r1.NextDouble() * 255), (byte)(r1.NextDouble() * 255), 255);
@@ -666,15 +668,16 @@ public class TerrainGenerator : MonoBehaviour
                 c[(p.y * map.Width) + p.x] = colour;
             });
         }
+#endif
 
-        t.SetPixels32(c);
-        t.Apply();
+            t.SetPixels32(cols);
+            t.Apply();
 
-        byte[] png = t.EncodeToPNG();
-        File.WriteAllBytes(Application.dataPath + "/UnityEngine.Debug_floodfill.png", png);
+            byte[] png = t.EncodeToPNG();
+            File.WriteAllBytes(Application.dataPath + "/debug_floodfill.png", png);
 
-        UnityEngine.Debug.LogWarning($"Wrote flood fill UnityEngine.Debug image to \"{Application.dataPath + "/UnityEngine.Debug_floodfill.png"}\"");
-
+            UnityEngine.Debug.LogWarning($"Wrote flood fill UnityEngine.Debug image to \"{Application.dataPath + "/UnityEngine.Debug_floodfill.png"}\"");
+        }
 #endif
 
         ConcurrentBag<Tuple<Vector3, Vector3, List<Vector3>>> startFinishPathCourses = new ConcurrentBag<Tuple<Vector3, Vector3, List<Vector3>>>();
