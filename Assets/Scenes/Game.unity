@@ -514,7 +514,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Map: The Frozen Wasteland'
+  m_text: 'Map: Really Long Map Name HERE'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 242c91b1585439a4f8c34b24beae7436, type: 2}
   m_sharedMaterial: {fileID: 1111312492165219485, guid: 242c91b1585439a4f8c34b24beae7436,
@@ -542,7 +542,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 62.5
+  m_fontSize: 56.95
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
