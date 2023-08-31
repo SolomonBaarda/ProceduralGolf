@@ -2,6 +2,7 @@
 //#define DEBUG_FLOOD_FILL
 
 using C5;
+using Codice.Client.BaseCommands;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -112,7 +113,6 @@ public class TerrainGenerator : MonoBehaviour
     private IEnumerator WaitForGenerate(bool atLeastOneObject, OnCourseGenerated callback)
     {
         UnityEngine.Debug.Log($"Starting generation using seed {CurrentSettings.Seed}");
-
         DateTime startTimestamp = DateTime.Now, lastTimestamp = startTimestamp;
         IsGenerating = true;
 
@@ -123,6 +123,8 @@ public class TerrainGenerator : MonoBehaviour
         TerrainMap map = new TerrainMap(size, size);
 
         float distanceBetweenNoiseSamples = TerrainChunkData.ChunkSizeWorldUnits / (TerrainSettings.SamplePointFrequency - 1);
+
+        UnityEngine.Debug.Log($"Generating terrain map with dimensions {map.Width}x{map.Height}");
 
         GenerateTerrain(map, out float waterHeight);
 

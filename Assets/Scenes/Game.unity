@@ -8117,7 +8117,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056162044}
-  m_LocalRotation: {x: -0.11659174, y: 0.98967886, z: 0.0684011, w: 0.047575578}
+  m_LocalRotation: {x: -0.11659172, y: 0.98967886, z: 0.0684011, w: 0.047575578}
   m_LocalPosition: {x: -14.719395, y: 46.67807, z: 29.173086}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -9867,7 +9867,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1306902958}
-  m_LocalRotation: {x: -0.04003477, y: 0.31762898, z: -0.1277707, w: 0.9387139}
+  m_LocalRotation: {x: -0.04003477, y: 0.31762895, z: -0.12777069, w: 0.9387139}
   m_LocalPosition: {x: -28.200605, y: 63.592613, z: -53.509018}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -11563,19 +11563,19 @@ MonoBehaviour:
   VersionNumber: {fileID: 396148937}
   CurrentMapText: {fileID: 43191841}
   GenerationSettings:
-  - Name: Woodland
+  - Name: Leafy Links
     Setting: {fileID: 11400000, guid: 392c806505110884192175365aabbd81, type: 2}
     Background: {fileID: 1442127513}
     PostProcessing: {fileID: 11400000, guid: 2c859c84ba3188a4c9d7fb7525e80179, type: 2}
-  - Name: Dunes
+  - Name: Sandy Swings
     Setting: {fileID: 11400000, guid: d147f672ed62bcd48bbfbad3331925c1, type: 2}
     Background: {fileID: 1821495821}
     PostProcessing: {fileID: 11400000, guid: 912c42c6209199d47985d4d6716533dd, type: 2}
-  - Name: The Frozen Wasteland
+  - Name: Frosty Fairways
     Setting: {fileID: 11400000, guid: 7f7daf0548666424288ecaaa14d81d28, type: 2}
     Background: {fileID: 1870653479}
     PostProcessing: {fileID: 11400000, guid: 91471daf4995eea47bf6e1bad3490131, type: 2}
-  - Name: The Golfing Islands
+  - Name: Tropical Tee-off
     Setting: {fileID: 11400000, guid: 016e9326d40268240b158f1eabce6f49, type: 2}
     Background: {fileID: 986604791}
     PostProcessing: {fileID: 11400000, guid: 2c859c84ba3188a4c9d7fb7525e80179, type: 2}
