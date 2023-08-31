@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 648c60eb5410b864e93975df6dd34f5d
+guid: 15d112705d42ca24cb343d6539c3f13c
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -7,7 +7,7 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Cactus___toon
+      name: Desert
     second: {fileID: 2100000, guid: 9831e654efafcfe4493a1f498b5a8b52, type: 2}
   - first:
       type: UnityEngine:Material
