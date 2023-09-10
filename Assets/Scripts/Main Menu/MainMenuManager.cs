@@ -77,7 +77,7 @@ public class MainMenuManager : MonoBehaviour, IManager
 
     private void UpdateCurrentSettings()
     {
-        for(int i = 0; i < GenerationSettings.Count; i++ )
+        for (int i = 0; i < GenerationSettings.Count; i++)
         {
             var setting = GenerationSettings[i];
             setting.Background.SetActive(i == CurrentSetting);
@@ -92,7 +92,7 @@ public class MainMenuManager : MonoBehaviour, IManager
     {
         CurrentSetting++;
 
-        if(CurrentSetting >= GenerationSettings.Count)
+        if (CurrentSetting >= GenerationSettings.Count)
         {
             CurrentSetting = 0;
         }
