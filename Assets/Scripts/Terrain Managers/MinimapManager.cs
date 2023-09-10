@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class MinimapManager : MonoBehaviour, IManager 
+public class MinimapManager : MonoBehaviour, IManager
 {
     public GolfBall GolfBall;
 
@@ -20,11 +20,39 @@ public class MinimapManager : MonoBehaviour, IManager
     public float PathHintNumDashesPerWorldUnit = 0.02f;
     public float PathHintDashesSpeed = 1.0f;
 
+    [Header("Minimap scales")]
+    public float BallIconScale = 0.2f;
+    public float FlagIconScale = 0.25f;
+    public float PathHintScale = 0.15f;
+
+    [Space]
+    public float MinimapSizeDefault = 300;
+    public float MinimapSizeCloseToHole = 100;
+    public float DistanceToHoleZoomIn = 100;
+
+
     List<Vector2> fullCoursePath2D = new List<Vector2>();
 
     private void Awake()
     {
         GolfBall.OnRollingFinished += UpdateMinimapBeforeShot;
+
+        UpdateMinimapIconsScale();
+    }
+
+    private void UpdateMinimapIconsScale()
+    {
+        // Ball
+        float ballScale = MinimapCamera.orthographicSize * BallIconScale;
+        GolfballMinimapIcon.transform.localScale = new Vector3(ballScale, ballScale, ballScale);
+
+        // Flag
+        float flagScale = MinimapCamera.orthographicSize * FlagIconScale;
+        HoleMinimapIcon.transform.localScale = new Vector3(flagScale, flagScale, flagScale);
+
+        // Path hint
+        float pathHintScale = MinimapCamera.orthographicSize * PathHintScale;
+        PathStartToEnd.startWidth = pathHintScale;
     }
 
     public void UpdateMinimapShotPreview(Vector3 estimatedLandingPoint, float ballAimingDirectionAngle)
@@ -70,8 +98,13 @@ public class MinimapManager : MonoBehaviour, IManager
 
         // Calculate if the flag is visible on the minimap
         Vector3 diff = HoleMinimapIcon.position - GolfBall.transform.position;
-        Vector2 distanceToHole = new Vector2(diff.x, diff.z);
-        bool isHoleVisibleOnMinimap = distanceToHole.sqrMagnitude <= MinimapCamera.orthographicSize * MinimapCamera.orthographicSize;
+        float distanceToHoleSqrMag = new Vector2(diff.x, diff.z).sqrMagnitude;
+
+        // Zoom in the map if we are close to the hole
+        MinimapCamera.orthographicSize = distanceToHoleSqrMag < DistanceToHoleZoomIn * DistanceToHoleZoomIn ? MinimapSizeCloseToHole : MinimapSizeDefault;
+        UpdateMinimapIconsScale();
+
+        bool isHoleVisibleOnMinimap = distanceToHoleSqrMag <= MinimapCamera.orthographicSize * MinimapCamera.orthographicSize * 0.9f;
 
         // Make the direction hint visible if the hole is off the screen
         PathStartToEnd.enabled = !isHoleVisibleOnMinimap;

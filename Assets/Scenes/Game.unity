@@ -8524,7 +8524,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1306902958}
-  m_LocalRotation: {x: -0.04003477, y: 0.31762898, z: -0.1277707, w: 0.9387139}
+  m_LocalRotation: {x: -0.04003477, y: 0.31762895, z: -0.12777069, w: 0.9387139}
   m_LocalPosition: {x: -28.200605, y: 63.592613, z: -53.509018}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -11119,6 +11119,12 @@ MonoBehaviour:
   PathStartToEnd: {fileID: 1257441756}
   PathHintNumDashesPerWorldUnit: 0.01
   PathHintDashesSpeed: 1
+  BallIconScale: 0.2
+  FlagIconScale: 0.25
+  PathHintScale: 0.15
+  MinimapSizeDefault: 300
+  MinimapSizeCloseToHole: 75
+  DistanceToHoleZoomIn: 50
 --- !u!1 &1797953127
 GameObject:
   m_ObjectHideFlags: 0
