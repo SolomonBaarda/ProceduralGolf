@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,7 +9,8 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         // Apply the preset to all buttons in the scene
-        var buttons = FindObjectsOfType<Button>();
+        var buttons = FindObjectsOfType<Button>(true); // Include inactive
+
         foreach (var button in buttons)
         {
             button.colors = Colours;

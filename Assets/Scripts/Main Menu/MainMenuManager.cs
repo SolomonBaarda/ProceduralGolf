@@ -138,58 +138,8 @@ public class MainMenuManager : MonoBehaviour, IManager
         PlayMenuParent.SetActive(!loading);
     }
 
-    // Trees
-    public void OpenBrokenVectorCredits()
+    public void OpenCredits()
     {
-        Application.OpenURL("https://assetstore.unity.com/publishers/12124");
+        Application.OpenURL("https://github.com/SolomonBaarda/ProceduralGolf/");
     }
-
-    // Skybox
-    public void OpenYuki2022Credits()
-    {
-        Application.OpenURL("https://assetstore.unity.com/publishers/57827");
-    }
-
-    // Icons
-    public void OpenJuicyFishCredits()
-    {
-        Application.OpenURL("https://www.flaticon.com/authors/juicy-fish");
-    }
-
-    // Flagpole
-    public void OpenProrookie123Credits()
-    {
-        Application.OpenURL("https://sketchfab.com/prorookie123");
-    }
-
-    // Loading icons
-    public void OpenInfimaGamesCredits()
-    {
-        Application.OpenURL("https://assetstore.unity.com/publishers/13489");
-    }
-
-    // Loading icons
-    public void OpenSyntyStudiosCredits()
-    {
-        Application.OpenURL("https://assetstore.unity.com/publishers/5217");
-    }
-
-    // Toon shader
-    public void OpenDELTationCredits()
-    {
-        Application.OpenURL("https://github.com/Delt06/urp-toon-shader");
-    }
-
-    // Water shader
-    public void OpenIgniteCodersCredits()
-    {
-        Application.OpenURL("https://assetstore.unity.com/publishers/53014");
-    }
-
-    // Desert models
-    public void Open23SpaceRobotsandCountingCredits()
-    {
-        Application.OpenURL("https://assetstore.unity.com/publishers/21779");
-    }
-
 }
