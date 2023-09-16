@@ -1,8 +1,8 @@
-﻿using TMPro;
+﻿using System.Collections;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using System.Collections;
+using UnityEngine.UI;
 
 public class PointerSlider : HeldButton, IDragHandler
 {
@@ -20,20 +20,13 @@ public class PointerSlider : HeldButton, IDragHandler
     private bool coroutineIsRunning;
 
 
-    private Vector2 window = new Vector2();
-
-    private void Awake()
-    {
-        window = new Vector2(Screen.width, Screen.height);
-    }
-
     public new void OnDrag(PointerEventData eventData)
     {
         // Doesn't get called when dragging but not moving
         // Need to reset delta somehow
         base.OnDrag(eventData);
 
-        delta = eventData.delta / window * Time.deltaTime * 10000.0f * Sensitivity;
+        delta = eventData.delta * Time.deltaTime * 100.0f * Sensitivity;
         isDragging = true;
 
         // Start the courotine if we need to
