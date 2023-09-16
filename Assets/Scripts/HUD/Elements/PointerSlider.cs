@@ -26,7 +26,7 @@ public class PointerSlider : HeldButton, IDragHandler
         // Need to reset delta somehow
         base.OnDrag(eventData);
 
-        delta = eventData.delta * Time.deltaTime * 10.0f * Sensitivity;
+        delta = eventData.delta * Time.deltaTime * Sensitivity;
         isDragging = true;
 
         // Start the courotine if we need to
