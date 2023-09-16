@@ -1,13 +1,12 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
 [RequireComponent(typeof(Camera))]
 public class Screenshot : MonoBehaviour
 {
-    public int Width = 1920;
-    public int Height = 1080;
+    public int Width = 3840;
+    public int Height = 2160;
 
 
     public static string GetScreenshotName()
@@ -48,13 +47,10 @@ public class Screenshot : MonoBehaviour
         c.Render();
 
 
-
-        
-
         RenderTexture.active = rt;
         screenShot.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
         c.targetTexture = null;
-        RenderTexture.active = null; 
+        RenderTexture.active = null;
 
         Destroy(rt);
         byte[] bytes = screenShot.EncodeToPNG();

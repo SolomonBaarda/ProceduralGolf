@@ -1654,7 +1654,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 295252892}
-  - component: {fileID: 295252894}
   - component: {fileID: 295252891}
   - component: {fileID: 295252890}
   - component: {fileID: 295252889}
@@ -1803,20 +1802,6 @@ MonoBehaviour:
   blendDistance: 0
   weight: 1
   sharedProfile: {fileID: 11400000, guid: 2c859c84ba3188a4c9d7fb7525e80179, type: 2}
---- !u!114 &295252894
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 295252888}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 75d8c2af58b655a4b90e9e0058f7d66c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Width: 1920
-  Height: 1080
 --- !u!114 &295252895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2105,7 +2090,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Hitbox: {fileID: 2139480714}
-  Canvas: {fileID: 1168740502}
   DisplayName: {fileID: 1990316497}
   DisplayValue: {fileID: 1810156966}
   Background: {fileID: 2139480716}
@@ -3567,7 +3551,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Hitbox: {fileID: 512432839}
-  Canvas: {fileID: 1168740502}
   DisplayName: {fileID: 0}
   DisplayValue: {fileID: 0}
   Background: {fileID: 0}
